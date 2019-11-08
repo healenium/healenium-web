@@ -1,7 +1,7 @@
 # healenium-web
 Self-healing library for Selenium Web-based tests
 
-[ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg?version=2.0-snapshot) ](https://bintray.com/epam/healenium/healenium-web/2.0-snapshot/link)
+[ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg?version=2.0) ](https://bintray.com/epam/healenium/healenium-web/2.0/link)
 ## How to start
 
 ### 1. Driver initialization
