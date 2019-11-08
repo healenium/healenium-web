@@ -1,0 +1,420 @@
+<!--
+
+    Healenium-web Copyright (C) 2019 EPAM
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+           http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SHA</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .content-wrapper {
+            max-width: 1136px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            margin: 0 auto;
+        }
+
+        .header {
+            width: 100%;
+            height: 60px;
+            background-color: #f8f8f8;
+        }
+
+        .logo-title {
+            margin-left: 10px;
+            font-size: 14px;
+            font-family: Roboto, sans-serif;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .main-area {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .report-info {
+            margin: 30px 0;
+            font-size: 24px;
+            font-family: Roboto, sans-serif;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .element-column {
+            flex: 6 0 10%;
+        }
+
+        .screenshot-column {
+            flex: 2 0 10%;
+        }
+
+        .actions-column {
+            flex: 1 0 10%;
+            text-align: right;
+        }
+
+        .elements-table-header {
+            display: flex;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f2f2f4;
+            font-size: 16px;
+            font-family: Roboto, sans-serif;
+            font-weight: 600;
+            color: #9b9b9b;
+        }
+
+        .elements-table-row {
+            min-height: 47px;
+            box-sizing: border-box;
+            padding: 15px;
+            border-bottom: 1px solid #f2f2f4;
+        }
+        .elements-table-row.Accepted {
+            background-color: #f4fff4;
+        }
+        .elements-table-row.Accepted .row-status {
+            color: #5cb85c;
+        }
+        .elements-table-row.Denied {
+            background-color: #fff7f7;
+        }
+        .elements-table-row.Denied .row-status {
+            color: #d9534f;
+        }
+        .elements-table-row svg {
+            transform: rotate(90deg);
+        }
+        .elements-table-row.content-hidden .row-content {
+            display: none;
+        }
+        .elements-table-row.content-hidden svg {
+            transform: none;
+        }
+
+        .row-caption {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .row-status {
+            position: absolute;
+            right: 0;
+            font-size: 14px;
+            font-family: Roboto, sans-serif;
+            font-weight: 600;
+        }
+
+        .row-caption-text {
+            max-width: 90%;
+            margin-left: 5px;
+            overflow: hidden;
+            font-size: 13px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+            text-overflow: ellipsis;
+        }
+
+        .row-content {
+            display: flex;
+            margin-top: 5px;
+        }
+        .row-content.hidden {
+            display: none;
+        }
+        .row-content .element-column {
+            margin: 10px 0 0 30px;
+        }
+
+        .expand-control {
+            margin-right: 5px;
+        }
+
+        .screenshot-image {
+            width: 141px;
+            height: 88px;
+            box-shadow: 0 2px 24px 0 rgba(0, 0, 0, 0.09);
+        }
+
+        .element-field-holder {
+            padding-bottom: 5px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            letter-spacing: -0.21px;
+        }
+
+        .action-button {
+            display: inline-block;
+            width: 92px;
+            height: 36px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .action-button:not(:last-child) {
+            margin-right: 5px;
+        }
+        .action-button.positive {
+            background-color: #5cb85c;
+        }
+        .action-button.negative {
+            background-color: #d9534f;
+        }
+
+        .change-status-button {
+            margin-top: 10px;
+            color: #0091ff;
+            background: none;
+            font-size: 14px;
+            font-family: Roboto, sans-serif;
+            line-height: 1.14;
+            text-align: right;
+            cursor: pointer;
+        }
+    </style>
+</head>
+    <body>
+        <header class="header">
+            <div class="content-wrapper">
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="none" fill-rule="evenodd" transform="rotate(45 10 10)"><path fill="#F8F8F8" stroke="#000" stroke-width="2" d="M0 10a5 5 0 0 1 5-5h10a5 5 0 0 1 0 10H5a5 5 0 0 1-5-5z"></path><path fill="#F8F8F8" stroke="#000" stroke-width="2" d="M10 0a5 5 0 0 1 5 5v10a5 5 0 0 1-10 0V5a5 5 0 0 1 5-5z"></path><rect width="4" height="6" x="8" y="7" fill="#000" rx="2"></rect></g></svg>
+                </div>
+                <span class="logo-title">SHA</span>
+            </div>
+        </header>
+        <main class="content-wrapper">
+            <div class="main-area">
+                <h2 class="report-info">
+                    <span class="report-name" data-report-name></span>
+                    <span class="report-time" data-report-time></span>
+                </h2>
+                <div class="report-content">
+                    <div class="elements-table-header">
+                        <span class="element-column">
+                            Element
+                        </span>
+                        <span class="screenshot-column">
+                            Screenshot
+                        </span>
+                        <span class="actions-column"></span>
+                    </div>
+                    <div data-elements-table></div>
+                </div>
+            </div>
+        </main>
+    </body>
+    <script type="html/tpl" id="elements-list-row-template">
+        <div class="elements-table-row content-hidden {elementStatus}">
+            <div class="row-caption element-column" data-row-index={dataIndex}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="8" height="13" viewBox="0 0 8 13">
+                    <path fill="none" fill-rule="evenodd" stroke="#000" stroke-width="2" d="M1 11.5l5-5-5-5"/>
+                </svg>
+                <span class="row-caption-text">
+                    {declaringClass}
+                </span>
+                <span class="row-status" data-status-index={dataIndex}>
+                    {elementStatus}
+                </span>
+            </div>
+            <div class="row-content">
+                <div class="element-column">
+                    {contentElements}
+                </div>
+                <div class="screenshot-column">
+                    <img src={screenShotPath} class="screenshot-image" />
+                </div>
+                <div class="actions-column" data-actions-index={dataIndex}>
+                    {actionItems}
+                </div>
+            </div>
+        </div>
+    </script>
+    <script>
+        const DATA_FILE_LOCATION = './data.json'; // change to your path
+        const ITEM_ACTIONS_TO_STATUSES = {
+          accept: 'Accepted',
+          deny: 'Denied',
+          change: '',
+        };
+
+        let elements = [];
+        let storageItemKey = '';
+        let savedElementsStatuses = [];
+
+        function getAcceptElementUrl(fileName, oldLocator, newLocator) {
+          return `http://localhost:8091?target=${fileName}&oldLocator=${oldLocator}&newLocator=${newLocator}`;
+        }
+
+        function getStorageItem(key) {
+          return localStorage.getItem(key) ? JSON.parse(localStorage.getItem(key)) : null;
+        }
+        function setStorageItem(key, value) {
+          return localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function renderTemplate(name, data = {}) {
+          var template = document.getElementById(name).innerHTML;
+
+          for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+              var search = new RegExp('{' + property + '}', 'g');
+              template = template.replace(search, data[property]);
+            }
+          }
+          return template;
+        }
+
+        function toggleElementContent(targetElement) {
+          const elementWithIndex = targetElement.hasAttribute('data-row-index') ? targetElement : targetElement.parentNode;
+          const rowIndex = elementWithIndex.getAttribute('data-row-index');
+          if (rowIndex) {
+            elementWithIndex.parentNode.classList.toggle('content-hidden');
+          }
+        }
+
+        function getStatusActionsMarkup(status) {
+          return status ?
+            '<button class="change-status-button" data-action-type="change">Change</button>' :
+            '<button class="action-button positive" data-action-type="accept">Accept</button>' +
+            '<button class="action-button negative" data-action-type="deny">Deny</button>';
+        }
+
+        function setNewItemStatus(itemIndex, newStatus, actionsBlockNode) {
+          const statusNode = document.querySelector(`[data-status-index="${itemIndex}"]`);
+
+          statusNode.innerText = newStatus;
+          actionsBlockNode.innerHTML = getStatusActionsMarkup(newStatus);
+          savedElementsStatuses[itemIndex] = newStatus;
+          setStorageItem(storageItemKey, savedElementsStatuses)
+        }
+
+        // accept selected element, send corresponding request
+        function acceptElement(itemIndex, { rowNode, actionsBlockNode }) {
+          const { fileName, failedLocatorValue, healedLocatorValue } = elements[itemIndex] || {};
+          fetch(getAcceptElementUrl(fileName, failedLocatorValue, healedLocatorValue),
+            { method: 'post', body: '' }
+          )
+            .then(() => {
+              rowNode.classList.add(ITEM_ACTIONS_TO_STATUSES.accept);
+              setNewItemStatus(itemIndex, ITEM_ACTIONS_TO_STATUSES.accept, actionsBlockNode)
+            })
+            .catch((error) => console.log(error));
+        }
+
+        function switchItemAction(buttonType, itemIndex, actionsBlockNode) {
+          const rowNode = document.querySelector(`[data-row-index="${itemIndex}"]`).parentNode;
+
+          switch (buttonType) {
+            case 'change':
+              rowNode.classList.remove(ITEM_ACTIONS_TO_STATUSES.accept);
+              rowNode.classList.remove(ITEM_ACTIONS_TO_STATUSES.deny);
+              setNewItemStatus(itemIndex, ITEM_ACTIONS_TO_STATUSES.change, actionsBlockNode);
+              break;
+            case 'accept':
+              acceptElement(itemIndex, { rowNode, actionsBlockNode });
+              break;
+            default:
+              setNewItemStatus(itemIndex, ITEM_ACTIONS_TO_STATUSES.deny, actionsBlockNode);
+              rowNode.classList.add(ITEM_ACTIONS_TO_STATUSES.deny);
+          }
+        }
+
+        function itemActionClickHandler(targetElement) {
+          const actionsBlockNode = targetElement.parentNode;
+          if (actionsBlockNode.classList.contains('actions-column')) {
+            const buttonType = targetElement.getAttribute("data-action-type");
+            const itemIndex = parseInt(actionsBlockNode.getAttribute('data-actions-index'), 10);
+            if (typeof itemIndex !== 'number') {
+              return;
+            }
+
+            switchItemAction(buttonType, itemIndex, actionsBlockNode);
+          }
+        }
+
+        function rowClickHandler(event) {
+          const targetElement = event.target;
+
+          toggleElementContent(targetElement);
+          itemActionClickHandler(targetElement);
+        }
+
+        function renderElements(elements) {
+          const elementsTable = document.querySelector('[data-elements-table]');
+          elementsTable.addEventListener('click', rowClickHandler);
+          elementsTable.innerHTML = '';
+
+          elements.forEach((item, index) => {
+            const { declaringClass, screenShotPath, ...fields } = item;
+            const contentElements = Object.keys(fields).reduce((acc, fieldKey) =>
+              acc + `<div class="element-field-holder">${fieldKey} = ${fields[fieldKey]}</div>`, '');
+            const itemStatus = savedElementsStatuses[index] || '';
+
+            elementsTable.innerHTML += renderTemplate('elements-list-row-template', {
+              declaringClass: declaringClass,
+              screenShotPath: `./${screenShotPath}`,
+              contentElements,
+              elementStatus: itemStatus,
+              dataIndex: index,
+              actionItems: getStatusActionsMarkup(itemStatus),
+            });
+          });
+        }
+
+        function processData(data) {
+          const reportNameElement = document.querySelector('[data-report-name]');
+          const reportTimeElement = document.querySelector('[data-report-time]');
+          const { reportName, endTime, elementsInfo } = data;
+          elements = elementsInfo;
+          storageItemKey = `${reportName}_${endTime}`;
+
+          reportNameElement.innerText = reportName;
+          reportTimeElement.innerText = endTime;
+
+          savedElementsStatuses = getStorageItem(storageItemKey) || [];
+
+          renderElements(elementsInfo);
+        }
+
+        function catchRequestError(error) {
+          const elementsTable = document.querySelector('[data-elements-table]');
+          elementsTable.innerHTML = `An error occurred while requesting data: ${error}`;
+        }
+
+        function getData() {
+          fetch(DATA_FILE_LOCATION, { responseType: 'json' })
+            .then((response) => response.json())
+            .then((data) => {
+                processData(data);
+            })
+            .catch(catchRequestError)
+        }
+
+        getData();
+    </script>
+</html>

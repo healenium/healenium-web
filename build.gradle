@@ -1,0 +1,88 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'jacoco'
+    id 'com.github.kt3k.coveralls' version '2.8.4'
+    id "com.github.hierynomus.license" version "0.15.0"
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'distribution'
+    id "nebula.javadoc-jar" version "14.1.1"
+    id "nebula.source-jar" version "14.1.1"
+}
+
+group 'com.epam.healenium'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven {
+        url  "https://dl.bintray.com/epam/healenium"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: '2.1'
+    compile group: 'com.typesafe', name: 'config', version: '1.3.4'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    compile group: 'com.epam.healenium', name: 'tree-comparing', version: '0.4.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.12'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.12.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.19.v20190610'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+}
+
+ext {
+    bintrayUserName = (project.hasProperty('BINTRAY_USERNAME') ? project.findProperty('BINTRAY_USERNAME') : System.getenv()['BINTRAY_USERNAME'])
+    bintrayPassword = (project.hasProperty('BINTRAY_PASSWORD') ? project.findProperty('BINTRAY_PASSWORD') : System.getenv()['BINTRAY_PASSWORD'])
+}
+
+bintray {
+    user = bintrayUserName
+    key = bintrayPassword
+    publications = ['nebula']
+    dryRun = false
+    publish = true
+    pkg {
+        userOrg = 'epam'
+        repo = 'healenium'
+        name = 'healenium-web'
+        desc = project.description
+        websiteUrl = 'https://github.com/healenium'
+        issueTrackerUrl = 'https://github.com/healenium/healenium-web/issues'
+        vcsUrl = 'https://github.com/healenium/healenium-web.git'
+        licenses = ['Apache-2.0']
+        labels = ['gradle', 'healenium']
+        publicDownloadNumbers = true
+        attributes = [:]
+        version {
+            name = project.version
+            vcsTag = project.version
+            attributes = [:]
+        }
+    }
+}
+
+bintrayUpload.onlyIf {
+    !project.version.toString().toUpperCase().endsWith("-SNAPSHOT") && !project.version.toString().toUpperCase().contains("-DEV")
+}
+
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+license {
+    header rootProject.file('HEADER')
+    strictCheck false
+}
