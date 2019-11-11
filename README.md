@@ -4,6 +4,41 @@ Self-healing library for Selenium Web-based tests
 [ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg?version=2.0) ](https://bintray.com/epam/healenium/healenium-web/2.0/link)
 ## How to start
 
+### 0. Add dependency 
+for Gradle projects:
+``` 
+repositories {
+    maven {
+        url  "https://dl.bintray.com/epam/healenium"
+    }
+    mavenCentral()
+}
+dependencies {
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '2.0'
+}
+```
+
+for Maven projects:
+``` 
+<repositories>
+     <repository>
+        <snapshots>
+          <enabled>false</enabled>
+        </snapshots>
+        <id>bintray-epam-healenium</id>
+        <name>bintray</name>
+        <url>https://dl.bintray.com/epam/healenium</url>
+     </repository>
+</repositories>
+
+<dependency>
+	<groupId>com.epam.healenium</groupId>
+	<artifactId>healenium-web</artifactId>
+	<version>2.0</version>
+	<type>pom</type>
+</dependency>
+```
+
 ### 1. Driver initialization
 ### 1.1 Init driver instance of SelfHealingDriver with custom config:
 ``` //declare delegate
