@@ -12,21 +12,21 @@
  */
 package com.epam.healenium;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
-import java.util.Objects;
+
+@AllArgsConstructor
+@EqualsAndHashCode
 public class PageAwareBy extends By {
 
-    private final String pageName;
-    private final By by;
-
-    private PageAwareBy(String pageName, By by) {
-        this.pageName = pageName;
-        this.by = by;
-    }
+    @Getter private final String pageName;
+    @Getter private final By by;
 
     /**
      * Instantiates a page-aware locator.
@@ -39,38 +39,9 @@ public class PageAwareBy extends By {
         return new PageAwareBy(pageName, by);
     }
 
-    public String getPageName() {
-        return pageName;
-    }
-
-    public By getBy() {
-        return by;
-    }
-
     @Override
     public List<WebElement> findElements(SearchContext searchContext) {
         return by.findElements(searchContext);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        PageAwareBy that = (PageAwareBy) o;
-        return Objects.equals(pageName, that.pageName) &&
-               Objects.equals(by, that.by);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), pageName, by);
     }
 
     @Override

@@ -12,10 +12,10 @@
  */
 package com.epam.healenium;
 
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.openqa.selenium.WebDriver;
+
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -26,18 +26,15 @@ public interface SelfHealingDriver extends WebDriver {
 
     WebDriver getDelegate();
 
-
     /**
      * Instantiates the self-healing driver.
      *
      * @param delegate the original driver, like {@link org.openqa.selenium.chrome.ChromeDriver}, {@link
      *                 org.openqa.selenium.firefox.FirefoxDriver}, etc.
-     *
-     *
      */
     static SelfHealingDriver create(WebDriver delegate) {
         Config config = ConfigFactory.systemProperties().withFallback(ConfigFactory.load());
-        return create(new SelfHealingEngine(delegate,config));
+        return create(new SelfHealingEngine(delegate, config));
     }
 
     static SelfHealingDriver create(SelfHealingEngine engine) {
@@ -45,8 +42,8 @@ public interface SelfHealingDriver extends WebDriver {
         Class[] interfaces = Stream.concat(
                 Arrays.stream(engine.getWebDriver().getClass().getInterfaces()),
                 Stream.of(SelfHealingDriver.class))
-            .distinct()
-            .toArray(Class[]::new);
+                .distinct()
+                .toArray(Class[]::new);
         Object proxy = Proxy.newProxyInstance(
                 classLoader,
                 interfaces,

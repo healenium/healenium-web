@@ -30,15 +30,18 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
+
 import com.typesafe.config.Config;
+import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -51,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+@Log4j2
 public class SelfHealingEngine {
 
     /**
@@ -59,26 +64,17 @@ public class SelfHealingEngine {
     private static final String SCRIPT =
             ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
 
-    private final Config config;
-    private final WebDriver webDriver;
+    @Getter private final Config config;
+    @Getter private final WebDriver webDriver;
     private final PathStorage storage;
     private final int recoveryTries;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
-    private static final Logger LOGGER = LogManager.getLogger(SelfHealingEngine.class);
-
-    public Config getConfig() {
-        return config;
-    }
-
-    public WebDriver getWebDriver() {
-        return webDriver;
-    }
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
      * @param config   user-defined configuration
      */
-    public SelfHealingEngine(WebDriver delegate, Config config) {
+    SelfHealingEngine(WebDriver delegate, Config config) {
         this.webDriver = delegate;
         this.config = config;
         this.storage = new FileSystemPathStorage(config);
@@ -102,10 +98,10 @@ public class SelfHealingEngine {
      * @param webElement the element while it is still accessible by the locator
      */
     void savePath(PageAwareBy by, String source, WebElement webElement) {
-        LOGGER.info("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<Node> nodePath = getNodePath(webElement);
         storage.persistLastValidPath(by, by.getPageName(), nodePath);
-        LOGGER.info("* savePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* savePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
     }
 
     @SneakyThrows
@@ -114,7 +110,7 @@ public class SelfHealingEngine {
     }
 
     private List<Node> getNodePath(WebElement webElement) {
-        LOGGER.info("* getNodePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* getNodePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         JavascriptExecutor executor = (JavascriptExecutor) webDriver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();
@@ -129,9 +125,9 @@ public class SelfHealingEngine {
                 }
             }
         } catch (Exception ex) {
-            LOGGER.error("Failed to get element node path!", ex);
+            log.error("Failed to get element node path!", ex);
         }
-        LOGGER.info("* getNodePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* getNodePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         return path;
     }
 
