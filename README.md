@@ -35,7 +35,6 @@ for Maven projects:
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
 	<version>2.0</version>
-	<type>pom</type>
 </dependency>
 ```
 
@@ -59,9 +58,9 @@ for Maven projects:
 ```
 ### 1.2.1 Default config values:
 ``` recovery-tries = 3
-    basePath = target/selenium
-    reportPath = target/reports
-    screenshotPath = target/screenshots/
+    basePath = build/selenium
+    reportPath = build/reports
+    screenshotPath = build/screenshots/
     heal-enabled = true
  ```
 
