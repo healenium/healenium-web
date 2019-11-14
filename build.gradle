@@ -1,22 +1,20 @@
 plugins {
     id 'java'
+    id 'maven'
     id 'maven-publish'
     id 'jacoco'
     id 'com.github.kt3k.coveralls' version '2.8.4'
     id "com.github.hierynomus.license" version "0.15.0"
     id "com.jfrog.bintray" version "1.8.4"
     id 'distribution'
-    id "nebula.javadoc-jar" version "14.1.1"
-    id "nebula.source-jar" version "14.1.1"
 }
 
 group 'com.epam.healenium'
-
 sourceCompatibility = 1.8
 
 repositories {
     maven {
-        url  "https://dl.bintray.com/epam/healenium"
+        url "https://dl.bintray.com/epam/healenium"
     }
     mavenCentral()
 }
@@ -43,10 +41,42 @@ ext {
     bintrayPassword = (project.hasProperty('BINTRAY_PASSWORD') ? project.findProperty('BINTRAY_PASSWORD') : System.getenv()['BINTRAY_PASSWORD'])
 }
 
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = "sources"
+}
+
+task javadocJar(type: Jar) {
+    from javadoc.destinationDir
+    archiveClassifier = "javadoc"
+}
+
+publishing {
+    publications {
+        HealeniumPublication(MavenPublication) {
+            from components.java
+            artifact sourceJar
+            artifact javadocJar
+            pom {
+                name = "healenium-web"
+                description = 'Self-healing library for Selenium Web-based tests'
+                url = "https://github.com/healenium/healenium-web.git"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 bintray {
     user = bintrayUserName
     key = bintrayPassword
-    publications = ['nebula']
+    publications = ['HealeniumPublication']
     dryRun = false
     publish = true
     pkg {
