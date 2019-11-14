@@ -1,7 +1,11 @@
 # healenium-web
 Self-healing library for Selenium Web-based tests
 
+
 [ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg?version=2.0) ](https://bintray.com/epam/healenium/healenium-web/2.0/link)
+[![Coverage Status](https://coveralls.io/repos/github/healenium/healenium-web/badge.svg)](https://coveralls.io/github/healenium/healenium-web)
+[![Build Status](https://travis-ci.org/healenium/healenium-web.svg?branch=master)](https://travis-ci.org/healenium/healenium-web)
+
 ## How to start
 
 ### 0. Add dependency 
@@ -58,9 +62,9 @@ for Maven projects:
 ```
 ### 1.2.1 Default config values:
 ``` recovery-tries = 3
-    basePath = build/selenium
-    reportPath = build/reports
-    screenshotPath = build/screenshots/
+    basePath = sha/healenium
+    reportPath = target/reports
+    screenshotPath = target/screenshots/
     heal-enabled = true
  ```
 
