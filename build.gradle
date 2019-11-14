@@ -6,12 +6,9 @@ plugins {
     id "com.github.hierynomus.license" version "0.15.0"
     id "com.jfrog.bintray" version "1.8.4"
     id 'distribution'
-    id "nebula.javadoc-jar" version "14.1.1"
-    id "nebula.source-jar" version "14.1.1"
 }
 
 group 'com.epam.healenium'
-
 sourceCompatibility = 1.8
 
 repositories {
