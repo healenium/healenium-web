@@ -63,8 +63,8 @@ for Maven projects:
 ### 1.2.1 Default config values:
 ``` recovery-tries = 3
     basePath = sha/healenium
-    reportPath = target/reports
-    screenshotPath = target/screenshots/
+    reportPath = build/reports
+    screenshotPath = build/screenshots/
     heal-enabled = true
  ```
 
