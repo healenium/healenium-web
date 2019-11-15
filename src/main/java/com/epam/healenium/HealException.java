@@ -12,11 +12,10 @@
  */
 package com.epam.healenium;
 
-public class HealException extends RuntimeException {
+import lombok.NoArgsConstructor;
 
-    public HealException() {
-        super();
-    }
+@NoArgsConstructor
+public class HealException extends RuntimeException {
 
     public HealException(String message) {
         super(message);

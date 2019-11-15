@@ -21,7 +21,9 @@ import com.epam.healenium.elementcreators.IdElementCreator;
 import com.epam.healenium.elementcreators.ParentElementCreator;
 import com.epam.healenium.elementcreators.TagElementCreator;
 import com.epam.healenium.treecomparing.Node;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public enum SelectorComponent {
     PATH(new PathElementCreator()),
     PARENT(new ParentElementCreator()),
@@ -32,10 +34,6 @@ public enum SelectorComponent {
     ATTRIBUTES(new AttributesElementCreator());
 
     private final ElementCreator elementCreator;
-
-    SelectorComponent(ElementCreator elementCreator) {
-        this.elementCreator = elementCreator;
-    }
 
     public String createComponent(Node node) {
         return elementCreator.create(node);

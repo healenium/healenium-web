@@ -13,21 +13,18 @@
 package com.epam.healenium;
 
 import com.typesafe.config.Config;
+import lombok.AllArgsConstructor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriver.TargetLocator;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+
+@AllArgsConstructor
 class TargetLocatorProxyInvocationHandler implements InvocationHandler {
     private final TargetLocator delegate;
     private final Config config;
     private final SelfHealingEngine engine;
-
-    TargetLocatorProxyInvocationHandler(TargetLocator delegate, Config config, SelfHealingEngine engine) {
-        this.delegate = delegate;
-        this.config = config;
-        this.engine = engine;
-    }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

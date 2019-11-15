@@ -14,8 +14,7 @@ package com.epam.healenium;
 
 import com.epam.healenium.data.LocatorInfo;
 import com.typesafe.config.Config;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.*;
 import org.openqa.selenium.io.FileHandler;
 import org.openqa.selenium.remote.Augmenter;
@@ -34,14 +33,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+@Log4j2
 class SelfHealingProxyInvocationHandler implements InvocationHandler {
-    private static final Logger LOGGER = LogManager.getLogger(SelfHealingDriver.class);
 
     private final WebDriver delegate;
     private final SelfHealingEngine engine;
     private final LocatorInfo info = new LocatorInfo();
     private final Config config;
-
 
     SelfHealingProxyInvocationHandler(SelfHealingEngine engine) {
         this.delegate = engine.getWebDriver();
@@ -53,16 +51,16 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         switch (method.getName()) {
             case "findElement":
-                LOGGER.debug("Caught findElement: invoking the healing version...");
+                log.debug("Caught findElement: invoking the healing version...");
                 return findElement((By) args[0]);
             case "getCurrentEngine":
-                LOGGER.debug("Caught getCurrentEngine");
+                log.debug("Caught getCurrentEngine");
                 return engine;
             case "getDelegate":
-                LOGGER.debug("Caught getDelegate");
+                log.debug("Caught getDelegate");
                 return delegate;
             case "switchTo":
-                LOGGER.debug("Caught switchTo");
+                log.debug("Caught switchTo");
                 WebDriver.TargetLocator switched = (WebDriver.TargetLocator) method.invoke(delegate, args);
                 ClassLoader classLoader = delegate.getClass().getClassLoader();
                 return Proxy.newProxyInstance(
@@ -86,7 +84,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
                 engine.savePath(pageBy, pageSource(), element);
                 return element;
             } catch (NoSuchElementException e) {
-                LOGGER.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
+                log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
                         inner.toString(), e.getMessage());
                 return heal(pageBy, e).orElse(null);
             }
@@ -128,7 +126,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
             entry.setDeclaringClass(el.getClassName());
             return (LocatorInfo.Entry) entry;
         }).orElseGet(() -> {
-            LOGGER.warn("No pageObject Class for NoSuchElementException: ");
+            log.warn("No pageObject Class for NoSuchElementException: ");
             LocatorInfo.SimplePageEntry entry = new LocatorInfo.SimplePageEntry();
             entry.setPageName(pageBy.getPageName());
             return entry;
@@ -141,24 +139,24 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
                 .filter(element -> {
                     String className = element.getClassName();
                     String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
-                    LOGGER.info("Input: {}, simple: {}", className, simpleClassName);
+                    log.info("Input: {}, simple: {}", className, simpleClassName);
                     return simpleClassName.equals(pageName);
                 })
                 .findFirst();
     }
 
     private Optional<By> healLocator(PageAwareBy pageBy) {
-        LOGGER.info("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<By> choices = engine.findNewLocations(pageBy, pageSource());
         Optional<By> result = choices.stream().findFirst();
         result.ifPresent(primary ->
-                LOGGER.warn("Using healed locator: {}", primary.toString()));
+                log.warn("Using healed locator: {}", primary.toString()));
         choices.stream().skip(1).forEach(otherChoice ->
-                LOGGER.warn("Other choice: {}", otherChoice.toString()));
+                log.warn("Other choice: {}", otherChoice.toString()));
         if (!result.isPresent()) {
-            LOGGER.warn("New element locators have not been found");
+            log.warn("New element locators have not been found");
         }
-        LOGGER.info("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.info("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         return result;
     }
 
