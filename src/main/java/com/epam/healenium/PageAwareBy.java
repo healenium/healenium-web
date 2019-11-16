@@ -12,9 +12,11 @@
  */
 package com.epam.healenium;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebElement;
@@ -22,11 +24,12 @@ import org.openqa.selenium.WebElement;
 import java.util.List;
 
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class PageAwareBy extends By {
 
-    @Getter private final String pageName;
-    @Getter private final By by;
+    @Getter String pageName;
+    @Getter By by;
 
     /**
      * Instantiates a page-aware locator.

@@ -60,7 +60,6 @@ public @interface PageAwareFindBy {
                 actualPageName = field.getDeclaringClass().getSimpleName();
             }
             return PageAwareBy.by(actualPageName, ans);
-
         }
     }
 }

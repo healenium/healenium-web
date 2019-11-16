@@ -34,8 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 import com.typesafe.config.Config;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -56,19 +58,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class SelfHealingEngine {
 
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
-    private static final String SCRIPT =
+    static String SCRIPT =
             ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
 
-    @Getter private final Config config;
-    @Getter private final WebDriver webDriver;
-    private final PathStorage storage;
-    private final int recoveryTries;
-    private final List<Set<SelectorComponent>> selectorDetailLevels;
+    @Getter Config config;
+    @Getter WebDriver webDriver;
+    PathStorage storage;
+    int recoveryTries;
+    List<Set<SelectorComponent>> selectorDetailLevels;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
@@ -140,14 +143,14 @@ public class SelfHealingEngine {
     private Node toNode(JsonParser parser) throws IOException {
         ObjectCodec codec = parser.getCodec();
         TreeNode tree = parser.readValueAsTree();
-        String tag = codec.treeToValue(tree.path("tag"), String.class);
-        Integer index = codec.treeToValue(tree.path("index"), Integer.class);
-        String innerText = codec.treeToValue(tree.path("innerText"), String.class);
-        String id = codec.treeToValue(tree.path("id"), String.class);
+        String tag = codec.treeToValue(tree.path(FieldName.TAG.getFieldName()), String.class);
+        Integer index = codec.treeToValue(tree.path(FieldName.INDEX.getFieldName()), Integer.class);
+        String innerText = codec.treeToValue(tree.path(FieldName.INNER_TEXT.getFieldName()), String.class);
+        String id = codec.treeToValue(tree.path(FieldName.ID.getFieldName()), String.class);
         //noinspection unchecked
-        Set<String> classes = codec.treeToValue(tree.path("classes"), Set.class);
+        Set<String> classes = codec.treeToValue(tree.path(FieldName.CLASSES.getFieldName()), Set.class);
         //noinspection unchecked
-        Map<String, String> attributes = codec.treeToValue(tree.path("other"), Map.class);
+        Map<String, String> attributes = codec.treeToValue(tree.path(FieldName.OTHER.getFieldName()), Map.class);
         return new NodeBuilder()
                 //TODO: fix attribute setting, because they override 'id' and 'classes' property
                 .setAttributes(attributes)
