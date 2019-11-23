@@ -22,8 +22,6 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.typesafe.config.Config;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.openqa.selenium.By;
@@ -42,14 +40,14 @@ import java.util.Map;
 import java.util.Objects;
 
 @Log4j2
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class FileSystemPathStorage implements PathStorage {
-    static int MAX_FILE_LENGTH = 128;
-    static String FILENAME_REGEX = "[\\w\\-]+";
-    static String REPORT_FILE = "index.html";
-    Path basePath;
-    Path reportsPath;
-    ObjectMapper objectMapper;
+
+    private static final int MAX_FILE_LENGTH = 128;
+    private static final String FILENAME_REGEX = "[\\w\\-]+";
+    private static final String REPORT_FILE = "index.html";
+    private final Path basePath;
+    private final Path reportsPath;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a file system bound storage.

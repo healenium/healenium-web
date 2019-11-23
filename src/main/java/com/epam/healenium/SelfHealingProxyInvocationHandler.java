@@ -14,8 +14,6 @@ package com.epam.healenium;
 
 import com.epam.healenium.data.LocatorInfo;
 import com.typesafe.config.Config;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.*;
 import org.openqa.selenium.io.FileHandler;
@@ -36,13 +34,12 @@ import java.util.Locale;
 import java.util.Optional;
 
 @Log4j2
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 class SelfHealingProxyInvocationHandler implements InvocationHandler {
 
-    WebDriver delegate;
-    SelfHealingEngine engine;
-    LocatorInfo info = new LocatorInfo();
-    Config config;
+    private final WebDriver delegate;
+    private final SelfHealingEngine engine;
+    private final LocatorInfo info = new LocatorInfo();
+    private final Config config;
 
     SelfHealingProxyInvocationHandler(SelfHealingEngine engine) {
         this.delegate = engine.getWebDriver();

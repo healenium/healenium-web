@@ -12,21 +12,18 @@
  */
 package com.epam.healenium.data;
 
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class LocatorInfo {
 
-    String reportName;
-    String endTime;
-    List<Entry> elementsInfo;
+    private String reportName;
+    private String endTime;
+    private List<Entry> elementsInfo;
 
     public LocatorInfo() {
         this.reportName = "Healing Report";

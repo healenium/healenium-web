@@ -34,10 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 import com.typesafe.config.Config;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -58,20 +56,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class SelfHealingEngine {
 
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
-    static String SCRIPT =
+    private static final String SCRIPT =
             ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
 
-    @Getter Config config;
-    @Getter WebDriver webDriver;
-    PathStorage storage;
-    int recoveryTries;
-    List<Set<SelectorComponent>> selectorDetailLevels;
+    @Getter private final Config config;
+    @Getter private final WebDriver webDriver;
+    private final PathStorage storage;
+    private final int recoveryTries;
+    private final List<Set<SelectorComponent>> selectorDetailLevels;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
