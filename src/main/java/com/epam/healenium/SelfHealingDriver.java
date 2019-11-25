@@ -34,7 +34,11 @@ public interface SelfHealingDriver extends WebDriver {
      */
     static SelfHealingDriver create(WebDriver delegate) {
         Config config = ConfigFactory.systemProperties().withFallback(ConfigFactory.load());
-        return create(new SelfHealingEngine(delegate, config));
+        return create(delegate,config);
+    }
+
+    static SelfHealingDriver create(WebDriver delegate, Config config) {
+        return create(new SelfHealingEngine(delegate,config));
     }
 
     static SelfHealingDriver create(SelfHealingEngine engine) {
