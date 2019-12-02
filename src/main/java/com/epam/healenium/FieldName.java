@@ -12,13 +12,13 @@
  */
 package com.epam.healenium;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+public class FieldName {
 
-@AllArgsConstructor @Getter
-public enum FieldName {
-    TAG("tag"), INDEX("index"), INNER_TEXT("innerText"),
-    ID("id"), CLASSES("classes"), CLASS("class"), OTHER("other");
-
-    private String fieldName;
+    public static final String TAG = "tag";
+    public static final String INDEX = "index";
+    public static final String INNER_TEXT = "innerText";
+    public static final String ID = "id";
+    public static final String CLASSES = "classes";
+    public static final String CLASS = "class";
+    public static final String OTHER = "other";
 }

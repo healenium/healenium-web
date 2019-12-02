@@ -37,7 +37,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Log4j2
 public class FileSystemPathStorage implements PathStorage {
@@ -107,9 +106,17 @@ public class FileSystemPathStorage implements PathStorage {
         new ObjectMapper().writeValue(reportsPath.resolve("data.json").toFile(), info);
         Path target = reportsPath.resolve(REPORT_FILE);
         if (!Files.exists(target)) {
+            log.debug(String.format("File '%s' does not exist.", target));
             ClassLoader classLoader = getClass().getClassLoader();
             InputStream source = classLoader.getResourceAsStream(REPORT_FILE);
-            Files.copy(Objects.requireNonNull(source), target, StandardCopyOption.REPLACE_EXISTING);
+            if (source == null) {
+                log.debug(String.format("Input stream for reading the '%s' resource is null. Copy to '%s' was skipped.", REPORT_FILE, target));
+            } else {
+                log.debug(String.format("Copy input stream of reading the '%s' resource to '%s' file.", REPORT_FILE, target));
+                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } else {
+            log.debug(String.format("File '%s' exists.", target));
         }
     }
 
@@ -137,12 +144,12 @@ public class FileSystemPathStorage implements PathStorage {
 
         @Override
         public void serialize(Node value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-            gen.writeStringField(FieldName.TAG.getFieldName(), value.getTag());
-            gen.writeNumberField(FieldName.INDEX.getFieldName(), value.getIndex());
-            gen.writeStringField(FieldName.INNER_TEXT.getFieldName(), value.getInnerText());
-            gen.writeStringField(FieldName.ID.getFieldName(), value.getId());
-            gen.writeStringField(FieldName.CLASSES.getFieldName(), String.join(" ", value.getClasses()));
-            gen.writeObjectField(FieldName.OTHER.getFieldName(), value.getOtherAttributes());
+            gen.writeStringField(FieldName.TAG, value.getTag());
+            gen.writeNumberField(FieldName.INDEX, value.getIndex());
+            gen.writeStringField(FieldName.INNER_TEXT, value.getInnerText());
+            gen.writeStringField(FieldName.ID, value.getId());
+            gen.writeStringField(FieldName.CLASSES, String.join(" ", value.getClasses()));
+            gen.writeObjectField(FieldName.OTHER, value.getOtherAttributes());
             gen.flush();
         }
     }
@@ -153,15 +160,15 @@ public class FileSystemPathStorage implements PathStorage {
         public Node deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
             ObjectCodec codec = parser.getCodec();
             TreeNode tree = parser.readValueAsTree();
-            String tag = codec.treeToValue(tree.path(FieldName.TAG.getFieldName()), String.class);
-            Integer index = codec.treeToValue(tree.path(FieldName.INDEX.getFieldName()), Integer.class);
-            String innerText = codec.treeToValue(tree.path(FieldName.INNER_TEXT.getFieldName()), String.class);
-            String id = codec.treeToValue(tree.path(FieldName.ID.getFieldName()), String.class);
-            String classes = codec.treeToValue(tree.path(FieldName.CLASSES.getFieldName()), String.class);
+            String tag = codec.treeToValue(tree.path(FieldName.TAG), String.class);
+            Integer index = codec.treeToValue(tree.path(FieldName.INDEX), Integer.class);
+            String innerText = codec.treeToValue(tree.path(FieldName.INNER_TEXT), String.class);
+            String id = codec.treeToValue(tree.path(FieldName.ID), String.class);
+            String classes = codec.treeToValue(tree.path(FieldName.CLASSES), String.class);
             //noinspection unchecked
-            Map<String, String> attributes = codec.treeToValue(tree.path(FieldName.OTHER.getFieldName()), Map.class);
-            attributes.put(FieldName.ID.getFieldName(), id);
-            attributes.put(FieldName.CLASS.getFieldName(), classes);
+            Map<String, String> attributes = codec.treeToValue(tree.path(FieldName.OTHER), Map.class);
+            attributes.put(FieldName.ID, id);
+            attributes.put(FieldName.CLASS, classes);
             return new NodeBuilder()
                     .setTag(tag)
                     .setIndex(index)
