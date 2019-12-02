@@ -71,7 +71,7 @@ public class FileSystemPathStorage implements PathStorage {
 
     @Override
     public synchronized void persistLastValidPath(By locator, String context, List<Node> nodes) {
-        LOGGER.info("* persistLastValidPath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        LOGGER.debug("* persistLastValidPath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         Path persistedNodePath = getPersistedNodePath(locator, context);
         byte[] newContent;
         try {
@@ -82,7 +82,7 @@ public class FileSystemPathStorage implements PathStorage {
         } catch (IOException e) {
             LOGGER.error("Failed to persist last valid path", e);
         }
-        LOGGER.info("* persistLastValidPath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        LOGGER.debug("* persistLastValidPath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
     }
 
     @Override

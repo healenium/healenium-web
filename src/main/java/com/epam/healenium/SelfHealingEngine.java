@@ -98,10 +98,10 @@ public class SelfHealingEngine {
      * @param webElement the element while it is still accessible by the locator
      */
     void savePath(PageAwareBy by, String source, WebElement webElement) {
-        log.info("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<Node> nodePath = getNodePath(webElement);
         storage.persistLastValidPath(by, by.getPageName(), nodePath);
-        log.info("* savePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* savePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
     }
 
     @SneakyThrows
@@ -110,7 +110,7 @@ public class SelfHealingEngine {
     }
 
     private List<Node> getNodePath(WebElement webElement) {
-        log.info("* getNodePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* getNodePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         JavascriptExecutor executor = (JavascriptExecutor) webDriver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();
@@ -127,7 +127,7 @@ public class SelfHealingEngine {
         } catch (Exception ex) {
             log.error("Failed to get element node path!", ex);
         }
-        log.info("* getNodePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* getNodePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         return path;
     }
 
