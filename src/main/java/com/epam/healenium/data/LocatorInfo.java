@@ -36,6 +36,7 @@ public class LocatorInfo {
         private String failedLocatorValue;
         private String failedLocatorType;
         private String healedLocatorValue;
+        private String healedLocatorType;
         private String screenShotPath;
     }
 
