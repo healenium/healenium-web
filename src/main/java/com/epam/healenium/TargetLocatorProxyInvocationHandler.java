@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 
 @AllArgsConstructor
 class TargetLocatorProxyInvocationHandler implements InvocationHandler {
+
     private final TargetLocator delegate;
     private final Config config;
     private final SelfHealingEngine engine;
