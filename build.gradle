@@ -34,6 +34,7 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.19.v20190610'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    testCompile group: 'com.codeborne', name: 'selenide', version: '5.5.1'
 }
 
 ext {
