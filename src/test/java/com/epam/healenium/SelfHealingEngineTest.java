@@ -12,18 +12,18 @@
  */
 package com.epam.healenium;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SelfHealingEngineTest {
 
-    public static final String PAGE_NAME = SelfHealingEngineTest.class.getSimpleName();
+    private static final String PAGE_NAME = SelfHealingEngineTest.class.getSimpleName();
 
     private SelfHealingDriver driver;
 
@@ -34,10 +34,24 @@ public class SelfHealingEngineTest {
     }
 
     @Test
-    public void name() {
+    public void findNewLocatorTest() {
         driver.get("https://google.com/");
-        PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input"));
+        PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.xpath("//input[@name='source']"));
         WebElement input = driver.findElement(by);
+        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
+        Assert.assertEquals(input, driver.findElement(newLocation));
+    }
+
+    @Test
+    public void locatorHealingTest() {
+        final By inputFieldLocator = By.xpath("//input[@name='source']");
+        driver.get("https://google.com/");
+        PageAwareBy by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
+        WebElement input = driver.findElement(by);
+        JavascriptExecutor js = driver.getDelegate();
+        js.executeScript("arguments[0].setAttribute('name', 'source_new')", input);
+        by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
+        input = driver.findElement(by);
         By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
         Assert.assertEquals(input, driver.findElement(newLocation));
     }
