@@ -38,7 +38,6 @@ public class SelenideTest {
 
     @Before
     public void setUp() {
-        System.setProperty("webdriver.gecko.driver", "C:\\projects\\healing\\drivers\\geckodriver.exe");
         Configuration.browser = MyGridProvider.class.getName();
     }
 
