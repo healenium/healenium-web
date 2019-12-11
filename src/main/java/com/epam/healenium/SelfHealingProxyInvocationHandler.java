@@ -73,23 +73,18 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
     }
 
     private WebElement findElement(By by) {
-        if (by instanceof PageAwareBy) {
-            PageAwareBy pageBy = (PageAwareBy) by;
-            By inner = pageBy.getBy();
-            if (!config.getBoolean("heal-enabled")) {
-                return delegate.findElement(inner);
-            }
-            try {
-                WebElement element = delegate.findElement(inner);
-                engine.savePath(pageBy, pageSource(), element);
-                return element;
-            } catch (NoSuchElementException e) {
-                log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
-                        inner.toString(), e.getMessage());
-                return heal(pageBy, e).orElse(null);
-            }
-        } else {
-            return delegate.findElement(by);
+        PageAwareBy pageBy = awareBy(by);
+        By inner = pageBy.getBy();
+        if (!config.getBoolean("heal-enabled")) {
+            return delegate.findElement(inner);
+        }
+        try {
+            WebElement element = delegate.findElement(inner);
+            engine.savePath(pageBy, element);
+            return element;
+        } catch (NoSuchElementException e) {
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", inner.toString(), e.getMessage());
+            return heal(pageBy, e).orElse(null);
         }
     }
 
@@ -189,5 +184,9 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
         } else {
             return delegate.getPageSource();
         }
+    }
+
+    private PageAwareBy awareBy(By by){
+        return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(delegate.getTitle(), by);
     }
 }

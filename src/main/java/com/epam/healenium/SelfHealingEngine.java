@@ -94,10 +94,9 @@ public class SelfHealingEngine {
      * Stores the valid locator state: the element it found and the page.
      *
      * @param by         the locator
-     * @param source     the HTML source of a page element is located on
      * @param webElement the element while it is still accessible by the locator
      */
-    void savePath(PageAwareBy by, String source, WebElement webElement) {
+    void savePath(PageAwareBy by, WebElement webElement) {
         log.info("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<Node> nodePath = getNodePath(webElement);
         storage.persistLastValidPath(by, by.getPageName(), nodePath);

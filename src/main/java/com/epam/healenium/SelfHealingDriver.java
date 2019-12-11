@@ -24,7 +24,7 @@ public interface SelfHealingDriver extends WebDriver {
 
     SelfHealingEngine getCurrentEngine();
 
-    WebDriver getDelegate();
+    <T extends WebDriver> T getDelegate();
 
     /**
      * Instantiates the self-healing driver.
