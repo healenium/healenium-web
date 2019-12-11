@@ -22,6 +22,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 public class AbsentLocatorTest {
+
     private static final String PAGE_NAME = AbsentLocatorTest.class.getSimpleName();
 
     private SelfHealingDriver driver;

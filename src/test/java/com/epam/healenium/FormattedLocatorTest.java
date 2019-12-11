@@ -21,6 +21,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
 public class FormattedLocatorTest {
+
     private static final String PAGE_NAME = SelfHealingEngineTest.class.getSimpleName();
     private static final int PORT = 8090;
 
