@@ -96,16 +96,12 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
 
     private WebElement findElement(By by) {
         try{
-            if (by instanceof PageAwareBy) {
-                PageAwareBy pageBy = (PageAwareBy) by;
-                By inner = pageBy.getBy();
-                if (!config.getBoolean("heal-enabled")) {
-                    return delegate.findElement(inner);
-                }
-                return stash.get(pageBy);
-            } else {
-                return delegate.findElement(by);
+            PageAwareBy pageBy = awareBy(by);
+            By inner = pageBy.getBy();
+            if (!config.getBoolean("heal-enabled")) {
+                return delegate.findElement(inner);
             }
+            return stash.get(pageBy);
         } catch (Exception ex){
             log.warn("Failed to find element", ex);
             return null;
@@ -120,7 +116,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
     private WebElement lookUp(PageAwareBy key){
         try {
             WebElement element = delegate.findElement(key.getBy());
-            engine.savePath(key, pageSource(), element);
+            engine.savePath(key, element);
             return element;
         } catch (NoSuchElementException e) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
@@ -229,5 +225,9 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
         } else {
             return delegate.getPageSource();
         }
+    }
+
+    private PageAwareBy awareBy(By by){
+        return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(delegate.getTitle(), by);
     }
 }

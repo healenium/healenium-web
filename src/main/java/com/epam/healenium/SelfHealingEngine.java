@@ -94,10 +94,9 @@ public class SelfHealingEngine {
      * Stores the valid locator state: the element it found and the page.
      *
      * @param by         the locator
-     * @param source     the HTML source of a page element is located on
      * @param webElement the element while it is still accessible by the locator
      */
-    void savePath(PageAwareBy by, String source, WebElement webElement) {
+    void savePath(PageAwareBy by, WebElement webElement) {
         log.debug("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<Node> nodePath = getNodePath(webElement);
         storage.persistLastValidPath(by, by.getPageName(), nodePath);
@@ -140,14 +139,14 @@ public class SelfHealingEngine {
     private Node toNode(JsonParser parser) throws IOException {
         ObjectCodec codec = parser.getCodec();
         TreeNode tree = parser.readValueAsTree();
-        String tag = codec.treeToValue(tree.path("tag"), String.class);
-        Integer index = codec.treeToValue(tree.path("index"), Integer.class);
-        String innerText = codec.treeToValue(tree.path("innerText"), String.class);
-        String id = codec.treeToValue(tree.path("id"), String.class);
+        String tag = codec.treeToValue(tree.path(FieldName.TAG), String.class);
+        Integer index = codec.treeToValue(tree.path(FieldName.INDEX), Integer.class);
+        String innerText = codec.treeToValue(tree.path(FieldName.INNER_TEXT), String.class);
+        String id = codec.treeToValue(tree.path(FieldName.ID), String.class);
         //noinspection unchecked
-        Set<String> classes = codec.treeToValue(tree.path("classes"), Set.class);
+        Set<String> classes = codec.treeToValue(tree.path(FieldName.CLASSES), Set.class);
         //noinspection unchecked
-        Map<String, String> attributes = codec.treeToValue(tree.path("other"), Map.class);
+        Map<String, String> attributes = codec.treeToValue(tree.path(FieldName.OTHER), Map.class);
         return new NodeBuilder()
                 //TODO: fix attribute setting, because they override 'id' and 'classes' property
                 .setAttributes(attributes)

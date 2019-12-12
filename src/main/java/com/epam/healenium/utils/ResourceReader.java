@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ResourceReader {
+
     public static <T> T readResource(String classpath, Function<Stream<String>, T> function) {
         ClassLoader classLoader = SelfHealingEngine.class.getClassLoader();
         try (InputStream stream = classLoader.getResourceAsStream(classpath)) {

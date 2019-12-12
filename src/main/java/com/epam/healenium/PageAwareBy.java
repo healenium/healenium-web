@@ -22,7 +22,7 @@ import org.openqa.selenium.WebElement;
 import java.util.List;
 
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class PageAwareBy extends By {
 
     @Getter private final String pageName;
