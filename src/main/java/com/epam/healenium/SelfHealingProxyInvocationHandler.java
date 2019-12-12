@@ -13,12 +13,10 @@
 package com.epam.healenium;
 
 import com.epam.healenium.data.LocatorInfo;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.typesafe.config.Config;
-import lombok.extern.log4j.Log4j2;
-import org.openqa.selenium.*;
-import org.openqa.selenium.io.FileHandler;
-import org.openqa.selenium.remote.Augmenter;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -32,9 +30,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.log4j.Log4j2;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.io.FileHandler;
+import org.openqa.selenium.remote.Augmenter;
 
 @Log4j2
 class SelfHealingProxyInvocationHandler implements InvocationHandler {
+
+    private final LoadingCache<PageAwareBy, WebElement> stash;
 
     private final WebDriver delegate;
     private final SelfHealingEngine engine;
@@ -45,6 +56,17 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
         this.delegate = engine.getWebDriver();
         this.config = engine.getConfig();
         this.engine = engine;
+
+        this.stash = CacheBuilder.newBuilder()
+            .maximumSize(300)
+            .expireAfterWrite(10, TimeUnit.SECONDS)
+            .build(
+                new CacheLoader<PageAwareBy, WebElement>() {
+                    @Override
+                    public WebElement load(PageAwareBy key) {
+                        return lookUp(key);
+                    }
+                });
     }
 
     @Override
@@ -73,18 +95,32 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
     }
 
     private WebElement findElement(By by) {
-        PageAwareBy pageBy = awareBy(by);
-        By inner = pageBy.getBy();
-        if (!config.getBoolean("heal-enabled")) {
-            return delegate.findElement(inner);
+        try{
+            PageAwareBy pageBy = awareBy(by);
+            By inner = pageBy.getBy();
+            if (!config.getBoolean("heal-enabled")) {
+                return delegate.findElement(inner);
+            }
+            return stash.get(pageBy);
+        } catch (Exception ex){
+            log.warn("Failed to find element", ex);
+            return null;
         }
+    }
+
+    /**
+     * Search target element on a page
+     * @param key will be used for checking|saving in cache
+     * @return
+     */
+    private WebElement lookUp(PageAwareBy key){
         try {
-            WebElement element = delegate.findElement(inner);
-            engine.savePath(pageBy, element);
+            WebElement element = delegate.findElement(key.getBy());
+            engine.savePath(key, element);
             return element;
         } catch (NoSuchElementException e) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", inner.toString(), e.getMessage());
-            return heal(pageBy, e).orElse(null);
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
+            return heal(key, e).orElse(null);
         }
     }
 
@@ -98,10 +134,16 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
     }
 
     private void reportFailedInfo(PageAwareBy by, LocatorInfo.Entry infoEntry, By healed) {
-        infoEntry.setFailedLocatorValue(by.getBy().toString());
         String failedByValue = by.getBy().toString();
-        infoEntry.setFailedLocatorType(failedByValue.substring(0, failedByValue.indexOf(':')));
-        infoEntry.setHealedLocatorValue(healed.toString());
+        int splitIndex = failedByValue.indexOf(':');
+        infoEntry.setFailedLocatorType(failedByValue.substring(0, splitIndex).trim());
+        infoEntry.setFailedLocatorValue(failedByValue.substring(++splitIndex).trim());
+
+        String healedByValue = healed.toString();
+        splitIndex = healedByValue.indexOf(':');
+        infoEntry.setHealedLocatorType(healedByValue.substring(0, splitIndex).trim());
+        infoEntry.setHealedLocatorValue(healedByValue.substring(++splitIndex).trim());
+
         infoEntry.setScreenShotPath(captureScreen(healed));
         int pos = info.getElementsInfo().indexOf(infoEntry);
         if (pos != -1) {
@@ -121,7 +163,6 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
             entry.setDeclaringClass(el.getClassName());
             return (LocatorInfo.Entry) entry;
         }).orElseGet(() -> {
-            log.warn("No pageObject Class for NoSuchElementException: ");
             LocatorInfo.SimplePageEntry entry = new LocatorInfo.SimplePageEntry();
             entry.setPageName(pageBy.getPageName());
             return entry;
@@ -130,28 +171,28 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
 
     private Optional<StackTraceElement> getStackTraceForPageObject(StackTraceElement[] elements, String pageName) {
         return Arrays
-                .stream(elements)
-                .filter(element -> {
-                    String className = element.getClassName();
-                    String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
-                    log.info("Input: {}, simple: {}", className, simpleClassName);
-                    return simpleClassName.equals(pageName);
-                })
-                .findFirst();
+            .stream(elements)
+            .filter(element -> {
+                String className = element.getClassName();
+                String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
+                log.debug("Input: {}, simple: {}", className, simpleClassName);
+                return simpleClassName.equals(pageName);
+            })
+            .findFirst();
     }
 
     private Optional<By> healLocator(PageAwareBy pageBy) {
-        log.info("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<By> choices = engine.findNewLocations(pageBy, pageSource());
         Optional<By> result = choices.stream().findFirst();
         result.ifPresent(primary ->
-                log.warn("Using healed locator: {}", primary.toString()));
+            log.warn("Using healed locator: {}", primary.toString()));
         choices.stream().skip(1).forEach(otherChoice ->
-                log.warn("Other choice: {}", otherChoice.toString()));
+            log.warn("Other choice: {}", otherChoice.toString()));
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
         }
-        log.info("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
+        log.debug("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         return result;
     }
 
@@ -165,9 +206,9 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
             byte[] source = ((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.BYTES);
             FileHandler.createDir(new File(config.getString("screenshotPath")));
             File file =
-                    new File(config.getString("screenshotPath") + "screenshot_" + LocalDateTime
-                            .now()
-                            .format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png");
+                new File(config.getString("screenshotPath") + "screenshot_" + LocalDateTime
+                    .now()
+                    .format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png");
             Files.write(file.toPath(), source, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
             path = file.getPath().replaceAll("\\\\", "/");
             path = ".." + path.substring(path.indexOf("/sc"));
