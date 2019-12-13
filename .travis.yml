@@ -13,6 +13,9 @@ install:
   - sudo apt-get install -y unzip
   - mkdir -p $TRAVIS_BUILD_DIR/drivers
   - unzip chromedriver_linux64.zip -d $TRAVIS_BUILD_DIR/drivers
+  - wget 'https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz'
+  - tar xzf geckodriver-v0.25.0-linux64.tar.gz
+  - sudo mv geckodriver $TRAVIS_BUILD_DIR/drivers
   - PATH=$PATH:$TRAVIS_BUILD_DIR/drivers
 before_script:
   - export DISPLAY=:99.0

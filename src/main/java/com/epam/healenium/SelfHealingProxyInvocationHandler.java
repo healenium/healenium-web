@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.typesafe.config.Config;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
 import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -86,23 +88,25 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
                 WebDriver.TargetLocator switched = (WebDriver.TargetLocator) method.invoke(delegate, args);
                 ClassLoader classLoader = delegate.getClass().getClassLoader();
                 return Proxy.newProxyInstance(
-                        classLoader,
-                        new Class[]{WebDriver.TargetLocator.class},
-                        new TargetLocatorProxyInvocationHandler(switched, config, engine));
+                    classLoader,
+                    new Class[]{WebDriver.TargetLocator.class},
+                    new TargetLocatorProxyInvocationHandler(switched, config, engine));
             default:
                 return method.invoke(delegate, args);
         }
     }
 
     private WebElement findElement(By by) {
-        try{
+        try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (!config.getBoolean("heal-enabled")) {
                 return delegate.findElement(inner);
             }
             return stash.get(pageBy);
-        } catch (Exception ex){
+        } catch (NoSuchElementException ex) {
+            throw ex;
+        } catch (Exception ex) {
             log.warn("Failed to find element", ex);
             return null;
         }
@@ -113,7 +117,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
      * @param key will be used for checking|saving in cache
      * @return
      */
-    private WebElement lookUp(PageAwareBy key){
+    private WebElement lookUp(PageAwareBy key) {
         try {
             WebElement element = delegate.findElement(key.getBy());
             engine.savePath(key, element);
@@ -227,7 +231,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
         }
     }
 
-    private PageAwareBy awareBy(By by){
+    private PageAwareBy awareBy(By by) {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(delegate.getTitle(), by);
     }
 }
