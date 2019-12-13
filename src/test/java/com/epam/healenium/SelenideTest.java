@@ -44,10 +44,10 @@ public class SelenideTest {
     @Test
     public void userCanLoginByUsername() {
         open(String.format("http://localhost:%d", PORT));
-        $(By.id("username")).setValue("erin");
+        $(By.id("user_name")).setValue("erin");
         $(By.id("password")).setValue("secret");
         $(By.xpath("//div/button[@type='submit']")).click();
-        $(By.id("username")).shouldHave(value("erin"));
+        $(By.id("user_name")).shouldHave(value("erin"));
     }
 
     private static class MyGridProvider implements WebDriverProvider {
