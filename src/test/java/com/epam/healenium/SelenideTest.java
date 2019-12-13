@@ -61,7 +61,9 @@ public class SelenideTest {
             capabilities.setCapability(PROFILE, firefoxProfile);
             capabilities.setBrowserName("firefox");
 
-            WebDriver wd = new FirefoxDriver(new FirefoxOptions(capabilities));
+            FirefoxOptions options = new FirefoxOptions(capabilities);
+            options.setHeadless(true);
+            WebDriver wd = new FirefoxDriver(options);
             return SelfHealingDriver.create(wd);
         }
     }

@@ -17,6 +17,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 public class IFrameTest {
 
@@ -29,7 +30,9 @@ public class IFrameTest {
 
     @Before
     public void createDriver() {
-        WebDriver delegate = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.setHeadless(true);
+        WebDriver delegate = new ChromeDriver(options);
         driver = SelfHealingDriver.create(delegate);
     }
 
