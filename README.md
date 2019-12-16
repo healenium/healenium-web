@@ -4,7 +4,7 @@ Self-healing library for Selenium Web-based tests
 
 [ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg) ](https://bintray.com/epam/healenium/healenium-web/_latestVersion)
 [![Coverage Status](https://coveralls.io/repos/github/healenium/healenium-web/badge.svg)](https://coveralls.io/github/healenium/healenium-web)
-[![Build Status](https://travis-ci.org/healenium/healenium-web.svg?branch=master)](https://travis-ci.org/healenium/healenium-web)
+[![Build Status](https://github.com/healenium/healenium-web/workflows/Java-CI-test/badge.svg)](https://github.com/healenium/healenium-web/workflows/Java-CI-test/badge.svg)
 
 ## How to start
 
