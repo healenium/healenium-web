@@ -1,16 +1,9 @@
 name: Build with tests
 
-on: 
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -38,3 +31,7 @@ jobs:
         && sudo chmod +x /usr/local/bin/geckodriver
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
