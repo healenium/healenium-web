@@ -75,8 +75,8 @@ publishing {
 
 
 bintray {
-    user = bintrayUserName
-    key = bintrayPassword
+    user = property('bintrayUserName')
+    key = property('bintrayPassword')
     publications = ['HealeniumPublication']
     dryRun = false
     publish = true
