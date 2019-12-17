@@ -55,5 +55,5 @@ jobs:
           echo ${{ steps.vars.outputs.tag }}
       - name: Build with Gradle
         run: ./gradlew build -x test 
-      - name: bintray upload
+     # - name: bintray upload
       #  run: ./gradlew -Prelease.useLastTag=true -PBINTRAY_USERNAME=${{secrets.BINTRAY_USERNAME}} -PBINTRAY_PASSWORD=${{secrets.BINTRAY_PASSWORD}} bintrayUpload javadoc --info --stacktrace
