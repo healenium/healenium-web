@@ -44,7 +44,16 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
       - name: Build with Gradle
         run: ./gradlew build -x test 
       - name: bintray upload
-        run: ./gradlew -Prelease.useLastTag=true -PBINTRAY_USERNAME=${{secrets.BINTRAY_USERNAME}} -PBINTRAY_PASSWORD=${{secrets.BINTRAY_PASSWORD}} bintrayUpload javadoc --info --stacktrace
+      #  run: ./gradlew -Prelease.useLastTag=true -PBINTRAY_USERNAME=${{secrets.BINTRAY_USERNAME}} -PBINTRAY_PASSWORD=${{secrets.BINTRAY_PASSWORD}} bintrayUpload javadoc --info --stacktrace
