@@ -6,7 +6,7 @@ on:
     - 'healenium/healenium-web/src/**'
     - 'healenium/healenium-web/build.gradle'
     - 'healenium/healenium-web/gradle/**'
-    - 'healenium/healenium-web/.github/**'
+    - '.github/**'
   pull_request:
     paths:
     - 'healenium/healenium-web/src/**'
