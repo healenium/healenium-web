@@ -1,6 +1,17 @@
 name: Java-CI-test
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+    - 'healenium/healenium-web/src/**'
+    - 'healenium/healenium-web/build.gradle'
+    - 'healenium/healenium-web/gradle/**'
+    - 'healenium/healenium-web/.github/**'
+  pull_request:
+    paths:
+    - 'healenium/healenium-web/src/**'
+    - 'healenium/healenium-web/build.gradle'
+    - 'healenium/healenium-web/gradle/**'
 
 jobs:
   build:
