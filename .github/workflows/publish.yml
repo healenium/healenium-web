@@ -47,7 +47,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test 
       - name: bintray upload
-        run: ./gradlew -Prelease.useLastTag=true bintrayUpload javadoc --info --stacktrace
+        run: ./gradlew -Prelease.useLastTag=true -Puser=$bintrayUserName -Pkey=$bintrayPassword bintrayUpload javadoc --info --stacktrace
         env: 
           bintrayUserName: ${{ secrets.BINTRAY_USERNAME }}
           bintrayPassword: ${{ secrets.BINTRAY_PASSWORD }}
