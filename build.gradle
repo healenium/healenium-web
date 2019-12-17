@@ -93,8 +93,8 @@ bintray {
         publicDownloadNumbers = true
         attributes = [:]
         version {
-            name = project.version
-            vcsTag = project.version
+            name = System.getenv()['RELEASE_VERSION']
+            vcsTag = System.getenv()['RELEASE_VERSION']
             attributes = [:]
         }
     }
