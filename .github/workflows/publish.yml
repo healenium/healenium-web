@@ -48,7 +48,11 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
       - name: Check output
-        run: echo ${{ steps.vars.outputs.tag }}
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
       - name: Build with Gradle
         run: ./gradlew build -x test 
       - name: bintray upload
