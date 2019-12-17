@@ -50,4 +50,4 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test 
       - name: bintray upload
-        run: ./gradlew -Prelease.useLastTag=true final bintrayUpload javadoc --info --stacktrace
+        run: ./gradlew -Prelease.useLastTag=true bintrayUpload javadoc --info --stacktrace
