@@ -44,10 +44,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: Build with Gradle
         run: ./gradlew build -x test 
       - name: bintray upload
         run: ./gradlew -Prelease.useLastTag=true bintrayUpload javadoc --info --stacktrace
+        env: 
+          bintrayUserName: ${{ secrets.BINTRAY_USERNAME }
+          bintrayPassword: ${{ secrets.BINTRAY_PASSWORD }
