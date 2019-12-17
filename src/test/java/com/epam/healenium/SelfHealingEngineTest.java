@@ -19,6 +19,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class SelfHealingEngineTest {
@@ -29,7 +30,9 @@ public class SelfHealingEngineTest {
 
     @Before
     public void createDriver() {
-        WebDriver delegate = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.setHeadless(true);
+        WebDriver delegate = new ChromeDriver(options);
         driver = SelfHealingDriver.create(delegate);
     }
 

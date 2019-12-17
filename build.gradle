@@ -115,5 +115,6 @@ jacocoTestReport {
 
 license {
     header rootProject.file('HEADER')
+    excludes(["**/*.html", "*.conf", "*.properties"])
     strictCheck false
 }

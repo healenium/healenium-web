@@ -20,6 +20,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 public class HealTurnedOffTest {
 
@@ -29,7 +30,9 @@ public class HealTurnedOffTest {
 
     @Before
     public void createDriver() {
-        WebDriver delegate = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.setHeadless(true);
+        WebDriver delegate = new ChromeDriver(options);
         Config config = ConfigFactory.load("test.conf");
         SelfHealingEngine engine = new SelfHealingEngine(delegate, config);
         driver = SelfHealingDriver.create(engine);

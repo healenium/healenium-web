@@ -15,8 +15,10 @@ package com.epam.healenium;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,7 +29,9 @@ public class MultiPageTest {
     public static final String PAGE_NAME = MultiPageTest.class.getSimpleName();
 
     private SelfHealingDriver create() {
-        return SelfHealingDriver.create(new ChromeDriver());
+        ChromeOptions options = new ChromeOptions();
+        options.setHeadless(true);
+        return SelfHealingDriver.create(new ChromeDriver(options));
     }
 
     @Test
