@@ -48,10 +48,8 @@ for Maven projects:
             WebDriver delegate = new ChromeDriver();
             //declare configs for sha
             Config config = ConfigFactory.load("sha.properties");
-            //declare engine with delegate and config
-            SelfHealingEngine engine = new SelfHealingEngine(delegate, config);
             //create sha driver
-            SelfHealingDriver driver = SelfHealingDriver.create(engine);
+            SelfHealingDriver driver = SelfHealingDriver.create(delegate, config);
  ```
 
 ### 1.2 Or Init driver instance of SelfHealingDriver with default config:
