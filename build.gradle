@@ -40,7 +40,6 @@ dependencies {
 ext {
     bintrayUserName = (project.hasProperty('BINTRAY_USERNAME') ? project.findProperty('BINTRAY_USERNAME') : System.getenv()['BINTRAY_USERNAME'])
     bintrayPassword = (project.hasProperty('BINTRAY_PASSWORD') ? project.findProperty('BINTRAY_PASSWORD') : System.getenv()['BINTRAY_PASSWORD'])
-    projectVersion = (project.hasProperty('RELEASE_VERSION') ? project.findProperty('RELEASE_VERSION') : System.getenv()['RELEASE_VERSION'])
 }
 
 task sourceJar(type: Jar) {
@@ -94,8 +93,8 @@ bintray {
         publicDownloadNumbers = true
         attributes = [:]
         version {
-            name = projectVersion
-            vcsTag = projectVersion
+            name = project.version
+            vcsTag = project.version
             attributes = [:]
         }
     }
