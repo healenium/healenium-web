@@ -54,6 +54,6 @@ jobs:
           echo $RELEASE_VERSION
           echo ${{ steps.vars.outputs.tag }}
       - name: Build with Gradle
-        run: ./gradlew build -x test 
+        run: ./gradlew build -x test -Pversion=${{ steps.vars.outputs.tag }}
       - name: bintray upload
-        run: ./gradlew -Prelease.useLastTag=true -PRELEASE_VERSION=${{ steps.vars.outputs.tag }} -PBINTRAY_USERNAME=${{ secrets.BINTRAY_USERNAME }} -PBINTRAY_PASSWORD=${{ secrets.BINTRAY_PASSWORD }} bintrayUpload javadoc --info --stacktrace
+        run: ./gradlew -Pversion=${{ steps.vars.outputs.tag }} -PBINTRAY_USERNAME=${{ secrets.BINTRAY_USERNAME }} -PBINTRAY_PASSWORD=${{ secrets.BINTRAY_PASSWORD }} bintrayUpload javadoc --info --stacktrace
