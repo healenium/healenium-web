@@ -12,6 +12,9 @@
  */
 package com.epam.healenium;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.openqa.selenium.By;
@@ -33,7 +36,10 @@ public class SelfHealingEngineTest {
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
+        Config config = ConfigFactory.parseResources("test.conf")
+                .withValue("heal-enabled", ConfigValueFactory.fromAnyRef(true)).resolve();
+        SelfHealingEngine engine = new SelfHealingEngine(delegate, config);
+        driver = SelfHealingDriver.create(engine);
     }
 
     @Test
