@@ -85,6 +85,7 @@ class SelfHealingProxyInvocationHandler implements InvocationHandler {
                 return delegate;
             case "switchTo":
                 log.debug("Caught switchTo");
+                stash.invalidateAll();
                 WebDriver.TargetLocator switched = (WebDriver.TargetLocator) method.invoke(delegate, args);
                 ClassLoader classLoader = delegate.getClass().getClassLoader();
                 return Proxy.newProxyInstance(
