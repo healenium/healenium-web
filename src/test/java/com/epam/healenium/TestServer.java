@@ -18,7 +18,9 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.junit.rules.ExternalResource;
+
 public class TestServer extends ExternalResource {
+
     private final String folder;
     private final int port;
     private Server server;
@@ -33,7 +35,7 @@ public class TestServer extends ExternalResource {
     }
 
     @Override
-    protected void before() throws Throwable {
+    protected void before() {
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newClassPathResource(folder));
         resourceHandler.setWelcomeFiles(new String[]{"index.html"});
