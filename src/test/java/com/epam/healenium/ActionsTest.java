@@ -51,6 +51,8 @@ public class ActionsTest {
 
     @After
     public void close() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 }

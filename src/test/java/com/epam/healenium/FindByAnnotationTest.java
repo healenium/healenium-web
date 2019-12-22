@@ -63,7 +63,9 @@ public class FindByAnnotationTest {
 
     @After
     public void destroy() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     public static class GooglePage {

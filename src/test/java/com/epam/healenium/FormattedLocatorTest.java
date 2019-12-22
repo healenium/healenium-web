@@ -48,7 +48,9 @@ public class FormattedLocatorTest {
 
     @After
     public void close() {
-        driver.quit();
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     private void selectItem(String itemName) {
