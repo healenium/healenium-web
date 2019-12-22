@@ -14,6 +14,7 @@ package com.epam.healenium;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 
 import java.lang.reflect.Proxy;
@@ -45,7 +46,7 @@ public interface SelfHealingDriver extends WebDriver {
         ClassLoader classLoader = SelfHealingDriver.class.getClassLoader();
         Class[] interfaces = Stream.concat(
                 Arrays.stream(engine.getWebDriver().getClass().getInterfaces()),
-                Stream.of(SelfHealingDriver.class))
+                Stream.of(JavascriptExecutor.class, SelfHealingDriver.class))
                 .distinct()
                 .toArray(Class[]::new);
         Object proxy = Proxy.newProxyInstance(

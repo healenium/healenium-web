@@ -18,7 +18,9 @@ import static com.codeborne.selenide.Selenide.open;
 import static org.openqa.selenium.firefox.FirefoxDriver.PROFILE;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverProvider;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,6 +50,13 @@ public class SelenideTest {
         $(By.id("password")).setValue("secret");
         $(By.xpath("//div/button[@type='submit']")).click();
         $(By.id("user_name")).shouldHave(value("erin"));
+    }
+
+    @Test
+    public void userExecuteJS() {
+        open("https://google.com");
+        String value = Selenide.executeJavaScript("return document.querySelector('img#hplogo').getAttribute('alt')");
+        Assert.assertTrue(value.equalsIgnoreCase("Google"));
     }
 
     private static class MyGridProvider implements WebDriverProvider {
