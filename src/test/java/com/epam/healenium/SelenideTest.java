@@ -14,6 +14,7 @@ package com.epam.healenium;
 
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
 import static org.openqa.selenium.firefox.FirefoxDriver.PROFILE;
 
@@ -50,6 +51,7 @@ public class SelenideTest {
         $(By.id("password")).setValue("secret");
         $(By.xpath("//div/button[@type='submit']")).click();
         $(By.id("user_name")).shouldHave(value("erin"));
+        closeWebDriver();
     }
 
     @Test
@@ -57,6 +59,7 @@ public class SelenideTest {
         open("https://google.com");
         String value = Selenide.executeJavaScript("return document.querySelector('img#hplogo').getAttribute('alt')");
         Assert.assertTrue(value.equalsIgnoreCase("Google"));
+        closeWebDriver();
     }
 
     private static class MyGridProvider implements WebDriverProvider {
