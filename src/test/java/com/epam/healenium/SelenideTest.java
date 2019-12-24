@@ -54,14 +54,6 @@ public class SelenideTest {
         closeWebDriver();
     }
 
-    @Test
-    public void userExecuteJS() {
-        open("https://google.com");
-        String value = Selenide.executeJavaScript("return document.querySelector('img#hplogo').getAttribute('alt')");
-        Assert.assertTrue(value.equalsIgnoreCase("Google"));
-        closeWebDriver();
-    }
-
     private static class MyGridProvider implements WebDriverProvider {
         @Override
         public WebDriver createDriver(DesiredCapabilities capabilities) {

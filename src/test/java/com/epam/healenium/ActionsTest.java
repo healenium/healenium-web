@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -47,6 +48,13 @@ public class ActionsTest {
         } catch (Exception e) {
             Assert.fail();
         }
+    }
+
+    @Test
+    public void userExecuteJS() {
+        driver.get("https://google.com");
+        String value = ((JavascriptExecutor) driver).executeScript("return document.querySelector('img#hplogo').getAttribute('alt')").toString();
+        Assert.assertTrue(value.equalsIgnoreCase("Google"));
     }
 
     @After
