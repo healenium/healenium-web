@@ -27,6 +27,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
@@ -57,17 +59,11 @@ public class SelenideTest {
     private static class MyGridProvider implements WebDriverProvider {
         @Override
         public WebDriver createDriver(DesiredCapabilities capabilities) {
-            FirefoxProfile firefoxProfile = new FirefoxProfile();
-
-            firefoxProfile.setPreference("browser.fullscreen.autohide",true);
-            firefoxProfile.setPreference("browser.fullscreen.animateUp",0);
-
-            capabilities.setCapability(PROFILE, firefoxProfile);
-            capabilities.setBrowserName("firefox");
-
-            FirefoxOptions options = new FirefoxOptions(capabilities);
+            capabilities.setBrowserName("chrome");
+            ChromeOptions options = new ChromeOptions();
             options.setHeadless(true);
-            WebDriver wd = new FirefoxDriver(options);
+            options.merge(capabilities);
+            WebDriver wd = new ChromeDriver(options);
             return SelfHealingDriver.create(wd);
         }
     }
