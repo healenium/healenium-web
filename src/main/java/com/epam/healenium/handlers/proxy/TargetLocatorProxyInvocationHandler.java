@@ -10,21 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.handlers.proxy;
 
-import com.typesafe.config.Config;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.SelfHealingEngine;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import lombok.AllArgsConstructor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriver.TargetLocator;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 
 @AllArgsConstructor
 class TargetLocatorProxyInvocationHandler implements InvocationHandler {
 
     private final TargetLocator delegate;
-    private final Config config;
     private final SelfHealingEngine engine;
 
     @Override

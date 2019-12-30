@@ -96,7 +96,7 @@ public class SelfHealingEngine {
      * @param by         the locator
      * @param webElement the element while it is still accessible by the locator
      */
-    void savePath(PageAwareBy by, WebElement webElement) {
+    public void savePath(PageAwareBy by, WebElement webElement) {
         log.debug("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         List<Node> nodePath = getNodePath(webElement);
         storage.persistLastValidPath(by, by.getPageName(), nodePath);
@@ -104,7 +104,7 @@ public class SelfHealingEngine {
     }
 
     @SneakyThrows
-    void saveLocator(LocatorInfo info) {
+    public void saveLocator(LocatorInfo info) {
         storage.saveLocatorInfo(info);
     }
 
@@ -163,7 +163,7 @@ public class SelfHealingEngine {
      * @param targetPage the new HTML page source on which we should search for the element
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    List<By> findNewLocations(PageAwareBy by, String targetPage) {
+    public List<By> findNewLocations(PageAwareBy by, String targetPage) {
         List<Node> nodes = storage.getLastValidPath(by, by.getPageName());
         if (nodes.isEmpty()) {
             return Collections.emptyList();

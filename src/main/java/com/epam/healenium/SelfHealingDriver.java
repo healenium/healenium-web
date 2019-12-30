@@ -12,14 +12,11 @@
  */
 package com.epam.healenium;
 
+import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
+import com.epam.healenium.utils.ProxyFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 public interface SelfHealingDriver extends WebDriver {
 
@@ -44,15 +41,10 @@ public interface SelfHealingDriver extends WebDriver {
 
     static SelfHealingDriver create(SelfHealingEngine engine) {
         ClassLoader classLoader = SelfHealingDriver.class.getClassLoader();
-        Class[] interfaces = Stream.concat(
-                Arrays.stream(engine.getWebDriver().getClass().getInterfaces()),
-                Stream.of(JavascriptExecutor.class, SelfHealingDriver.class))
-                .distinct()
-                .toArray(Class[]::new);
-        Object proxy = Proxy.newProxyInstance(
-                classLoader,
-                interfaces,
-                new SelfHealingProxyInvocationHandler(engine));
-        return (SelfHealingDriver) proxy;
+        Class<? extends WebDriver> driverClass = engine.getWebDriver().getClass();
+        SelfHealingProxyInvocationHandler handler = new SelfHealingProxyInvocationHandler(engine);
+        return ProxyFactory.createDriverProxy(classLoader, handler, driverClass);
     }
+
+
 }
