@@ -85,10 +85,14 @@ Also you could set configs via -D or System properties, for example to turn off 
 ```-Dheal-enabled=false```
 
 ### 2. Locating elements
+### Simply use standard By/@FindBy to locate your elements
+ ```diff 
+- From version 2.0.2 Healium supports either standart By/@FindBy or PageAwareBy/@PageAwareFindBy usage for healing.) 
+```
 
-Healing will work only for elements that are declared using PageAware
+In 2.0.1 and earlier healing will work only for elements that are declared using PageAwareBy/@PageAwareFindBy
 
-### 2.1 Using PageAwareBy.by instead of By to locate your elements
+### Using PageAwareBy.by instead of By to locate your elements in 2.0.1 and earlier
 ```By buttonBy = PageAwareBy.by("MainPage", By.id(testButtonId));```
 
 * where the first argument "MainPage" is the name of the page to which the WebElement belongs.
@@ -99,7 +103,7 @@ Then you can simply call findElement() method as usual
 Or use the shorter form
 ```driver.findElement(PageAwareBy.by("MainPage", By.id(testButtonId))).click();```
 
-### 2.2 Using @PageAwareFindBy instead of @FindBy to locate your elements
+### Using @PageAwareFindBy instead of @FindBy to locate your elements in 2.0.1 and earlier
 
 ```
     @PageAwareFindBy(page="MainPage", findBy = @FindBy(id = "markup-generation-button"))
