@@ -86,9 +86,9 @@ Also you could set configs via -D or System properties, for example to turn off 
 
 ### 2. Locating elements
 
-Healing will work only for elements that ara declered using PageAware
+Healing will work only for elements that are declared using PageAware
 
-### 2.1 Using PageAwareBy.by intead of By to locate your elements
+### 2.1 Using PageAwareBy.by instead of By to locate your elements
 ```By buttonBy = PageAwareBy.by("MainPage", By.id(testButtonId));```
 
 * where the first argument "MainPage" is the name of the page to which the WebElement belongs.
