@@ -5,7 +5,6 @@
  */
 package com.epam.healenium;
 
-import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,7 +12,6 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
@@ -32,20 +30,13 @@ public class ActionsTest {
 
     @Test
     public void name() {
-        driver.get("http://www.google.com/");
-        try {
-            WebElement element = driver.findElement(By.cssSelector("#tsf div.J9leP"));
-            // open virtual keyboard
+        driver.get("https://google.com.ua");
+        try{
             new Actions(driver)
-                .moveToElement(element)
+                .moveToElement(driver.findElement(By.name("q")))
                 .click()
-                .perform();
-            // wait till it appear
-            driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-            // click on some keys
-            new Actions(driver)
-                .click(driver.findElement(By.id("K89")))
-                .click(driver.findElement(By.id("K66")))
+                .sendKeys("search")
+                .build()
                 .perform();
         } catch (Exception e) {
             Assert.fail();
