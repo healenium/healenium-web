@@ -21,6 +21,7 @@ import lombok.experimental.UtilityClass;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.HasInputDevices;
 import org.openqa.selenium.interactions.Locatable;
 import org.openqa.selenium.internal.WrapsElement;
 
@@ -31,7 +32,7 @@ public class ProxyFactory {
     public static <T extends WebDriver> SelfHealingDriver createDriverProxy(ClassLoader loader, InvocationHandler handler, Class<T> clazz) {
         Class<?>[] interfaces = Stream.concat(
             Arrays.stream(clazz.getInterfaces()),
-            Stream.of(JavascriptExecutor.class, SelfHealingDriver.class)
+            Stream.of(JavascriptExecutor.class, SelfHealingDriver.class, HasInputDevices.class)
         ).distinct().toArray(Class[]::new);
 
         return (SelfHealingDriver) Proxy.newProxyInstance(loader, interfaces, handler);
