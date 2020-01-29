@@ -32,10 +32,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -62,9 +62,8 @@ public abstract class BaseHandler implements InvocationHandler {
             .build(
                 new CacheLoader<PageAwareBy, WebElement>() {
                     @Override
-                    public WebElement load(PageAwareBy key) {
-                        WebElement result = lookUp(key);
-                        return Optional.ofNullable(result).orElseThrow(NotFoundException::new);
+                    public WebElement load(@NotNull PageAwareBy key) {
+                       return lookUp(key);
                     }
                 });
     }
@@ -77,11 +76,8 @@ public abstract class BaseHandler implements InvocationHandler {
                 return driver.findElement(inner);
             }
             return stash.get(pageBy);
-        } catch (NoSuchElementException ex) {
-            throw ex;
         } catch (Exception ex) {
-            log.warn("Failed to find element", ex);
-            return null;
+            throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
         }
     }
 
@@ -97,7 +93,7 @@ public abstract class BaseHandler implements InvocationHandler {
             return element;
         } catch (NoSuchElementException e) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
-            return heal(key, e).orElse(null);
+            return heal(key, e).orElseThrow(() -> e);
         }
     }
 
@@ -176,7 +172,7 @@ public abstract class BaseHandler implements InvocationHandler {
     /**
      * Create screenshot of healed element
      * @param by - healed locator
-     * @return
+     * @return path to screenshot location
      */
     private String captureScreen(By by) {
         WebElement element = findElement(by);

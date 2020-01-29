@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -36,12 +37,11 @@ public class AbsentLocatorTest {
         driver = SelfHealingDriver.create(delegate);
     }
 
-    @Test
+    @Test(expected = NoSuchElementException.class)
     public void name() {
         driver.get("https://google.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.tagName("nonexistenttag"));
-        WebElement input = driver.findElement(by);
-        Assert.assertNull(input);
+        driver.findElement(by);
     }
 
     @After
