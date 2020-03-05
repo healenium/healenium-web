@@ -30,13 +30,17 @@ public class WebElementProxyHandler extends BaseHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if ("findElement".equals(method.getName())) {
-            log.debug("Caught findElement: invoking the healing version...");
-            return findElement((By) args[0]);
+        try {
+            if ("findElement".equals(method.getName())) {
+                log.debug("Caught findElement: invoking the healing version...");
+                return findElement((By) args[0]);
+            }
+            if ("getWrappedElement".equals(method.getName())) {
+                return delegate;
+            }
+            return method.invoke(delegate, args);
+        } catch (Exception ex) {
+            throw ex.getCause();
         }
-        if ("getWrappedElement".equals(method.getName())) {
-            return delegate;
-        }
-        return method.invoke(delegate, args);
     }
 }
