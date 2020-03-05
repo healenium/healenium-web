@@ -25,17 +25,18 @@ public class WaitersTest {
     @Before
     public void createDriver() {
         ChromeOptions options = new ChromeOptions();
+        options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);
         driver = SelfHealingDriver.create(delegate);
     }
 
     @Test
     public void name() {
-        driver.get("https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin");
+        driver.get("https://accounts.google.com");
         WebDriverWait waiter = new WebDriverWait(driver, 10);
         waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.id("identifierId"))));
         driver.findElement(By.cssSelector("div.PrDSKc>button")).click();
-        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//input[@type='email']")));
+        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.id("identifierId")));
         driver.findElement(By.id("recoveryIdentifierId")).sendKeys("email");
         Assert.assertEquals( "email", driver.findElement(By.id("recoveryIdentifierId")).getAttribute("value"));
     }
