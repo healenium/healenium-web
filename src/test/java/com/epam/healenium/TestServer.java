@@ -12,6 +12,7 @@
  */
 package com.epam.healenium;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -19,6 +20,9 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.junit.rules.ExternalResource;
 
+import java.time.LocalDateTime;
+
+@Slf4j
 public class TestServer extends ExternalResource {
 
     private final String folder;
@@ -36,6 +40,7 @@ public class TestServer extends ExternalResource {
 
     @Override
     protected void before() {
+        log.info("START TestServer.before() at {}", LocalDateTime.now());
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newClassPathResource(folder));
         resourceHandler.setWelcomeFiles(new String[]{"index.html"});
@@ -47,15 +52,20 @@ public class TestServer extends ExternalResource {
             server.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            log.info("COMPLETE TestServer.before() at {}", LocalDateTime.now());
         }
     }
 
     @Override
     protected void after() {
+        log.info("START TestServer.after() at {}", LocalDateTime.now());
         try {
             server.stop();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            log.info("COMPLETE TestServer.after() at {}", LocalDateTime.now());
         }
     }
 }
