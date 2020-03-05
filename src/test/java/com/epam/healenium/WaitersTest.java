@@ -32,13 +32,13 @@ public class WaitersTest {
 
     @Test
     public void name() {
-        driver.get("https://accounts.google.com");
+        driver.get("https://accounts.google.com/signin/v2/identifier?hl=en");
         WebDriverWait waiter = new WebDriverWait(driver, 10);
-        waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.id("identifierId"))));
-        driver.findElement(By.cssSelector("div.PrDSKc>button")).click();
-        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.id("identifierId")));
-        driver.findElement(By.id("recoveryIdentifierId")).sendKeys("email");
-        Assert.assertEquals( "email", driver.findElement(By.id("recoveryIdentifierId")).getAttribute("value"));
+        waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("input#Email"))));
+        driver.findElement(By.cssSelector("a.need-help")).click();
+        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("input#Email")));
+        driver.findElement(By.id("identifier")).sendKeys("email");
+        Assert.assertEquals( "email", driver.findElement(By.id("identifier")).getAttribute("value"));
     }
 
     @After
