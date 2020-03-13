@@ -121,7 +121,3 @@ license {
     excludes(["**/*.html", "*.conf", "*.properties"])
     strictCheck false
 }
-
-test.doFirst {
-    systemProperty 'webdriver.chrome.driver', "${projectDir}/drivers/chromedriver"
-}
