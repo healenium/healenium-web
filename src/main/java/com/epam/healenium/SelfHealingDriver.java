@@ -27,8 +27,7 @@ public interface SelfHealingDriver extends WebDriver {
     /**
      * Instantiates the self-healing driver.
      *
-     * @param delegate the original driver, like {@link org.openqa.selenium.chrome.ChromeDriver}, {@link
-     *                 org.openqa.selenium.firefox.FirefoxDriver}, etc.
+     * @param delegate the original driver, like ChromeDriver, FirefoxDriver, etc.
      */
     static SelfHealingDriver create(WebDriver delegate) {
         Config config = ConfigFactory.systemProperties().withFallback(ConfigFactory.load());
