@@ -10,7 +10,7 @@ Self-healing library for Selenium Web-based tests
 
 ### 0. Add dependency 
 for Gradle projects:
-``` 
+```gradle
 repositories {
     maven {
         url  "https://dl.bintray.com/epam/healenium"
@@ -23,47 +23,50 @@ dependencies {
 ```
 
 for Maven projects:
-``` 
+```xml
 <repositories>
-     <repository>
+    <repository>
         <snapshots>
-          <enabled>false</enabled>
+            <enabled>false</enabled>
         </snapshots>
         <id>bintray-epam-healenium</id>
         <name>bintray</name>
         <url>https://dl.bintray.com/epam/healenium</url>
-     </repository>
+    </repository>
 </repositories>
 
 <dependency>
-	<groupId>com.epam.healenium</groupId>
-	<artifactId>healenium-web</artifactId>
-	<version>2.0.2</version>
+    <groupId>com.epam.healenium</groupId>
+    <artifactId>healenium-web</artifactId>
+    <version>2.0.2</version>
 </dependency>
 ```
 
 ### 1. Driver initialization
 ### 1.1 Init driver instance of SelfHealingDriver with custom config:
-``` //declare delegate
-            WebDriver delegate = new ChromeDriver();
-            //declare configs for sha
-            Config config = ConfigFactory.load("sha.properties");
-            //create sha driver
-            SelfHealingDriver driver = SelfHealingDriver.create(delegate, config);
+```java
+//declare delegate
+WebDriver delegate = new ChromeDriver();
+//declare configs for sha
+Config config = ConfigFactory.load("sha.properties");
+//create sha driver
+SelfHealingDriver driver = SelfHealingDriver.create(delegate, config);
  ```
 
 ### 1.2 Or Init driver instance of SelfHealingDriver with default config:
-``` //declare delegate
-            WebDriver delegate = new ChromeDriver();
-            //create sha driver
-            SelfHealingDriver driver = SelfHealingDriver.create(delegate);
+```java
+//declare delegate
+WebDriver delegate = new ChromeDriver();
+//create sha driver
+SelfHealingDriver driver = SelfHealingDriver.create(delegate);
 ```
 ### 1.2.1 Default config values:
-``` recovery-tries = 3
-    basePath = sha/healenium
-    reportPath = build/reports
-    screenshotPath = build/screenshots/
-    heal-enabled = true
+```properties
+recovery-tries = 3
+basePath = sha/healenium
+reportPath = build/reports
+screenshotPath = build/screenshots/
+heal-enabled = true
  ```
 
  > recovery-tries - list of proposed healed locators
@@ -103,16 +106,16 @@ Or use the shorter form
 
 #### Using @PageAwareFindBy instead of @FindBy to locate your elements in 2.0.1 and earlier
 
-```
-    @PageAwareFindBy(page="MainPage", findBy = @FindBy(id = "markup-generation-button"))
-    WebElement testButtonId;
+```java
+@PageAwareFindBy(page="MainPage", findBy = @FindBy(id = "markup-generation-button"))
+WebElement testButtonId;
 ```
 
 or not declaring the page. In this case page name will be set by default with the class name in which the locator is declared.
 
- ```
-    @PageAwareFindBy(findBy = @FindBy(id = "markup-generation-button"))
-    WebElement testButtonId;
- ```
+```java
+@PageAwareFindBy(findBy = @FindBy(id = "markup-generation-button"))
+WebElement testButtonId;
+```
 
 #### To refactor your project fast you could use Idea hotkeys cmd+shift+r and perform replacement
