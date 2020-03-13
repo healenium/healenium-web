@@ -14,16 +14,15 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.utils.ProxyFactory;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Optional;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriver.TargetLocator;
 import org.openqa.selenium.WebElement;
 
-@Log4j2
+import java.lang.reflect.Method;
+import java.util.Optional;
+
+@Slf4j
 public class SelfHealingProxyInvocationHandler extends BaseHandler {
 
     public SelfHealingProxyInvocationHandler(SelfHealingEngine engine) {

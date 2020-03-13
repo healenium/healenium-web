@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.typesafe.config.Config;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.openqa.selenium.By;
 
@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public class FileSystemPathStorage implements PathStorage {
 
     private static final int MAX_FILE_LENGTH = 128;
