@@ -15,10 +15,10 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.data.LocatorInfo;
+import com.epam.healenium.utils.ProxyFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.typesafe.config.Config;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -49,13 +49,11 @@ public abstract class BaseHandler implements InvocationHandler {
     private final LoadingCache<PageAwareBy, WebElement> stash;
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
-    private final Config config;
     private final LocatorInfo info = new LocatorInfo();
 
     public BaseHandler(SelfHealingEngine engine) {
         this.engine = engine;
         this.driver = engine.getWebDriver();
-        this.config = engine.getConfig();
         this.stash = CacheBuilder.newBuilder()
             .maximumSize(300)
             .expireAfterWrite(10, TimeUnit.SECONDS)
@@ -72,10 +70,10 @@ public abstract class BaseHandler implements InvocationHandler {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
-            if (!config.getBoolean("heal-enabled")) {
-                return driver.findElement(inner);
+            if (engine.isHealingEnabled()) {
+                return stash.get(pageBy);
             }
-            return stash.get(pageBy);
+            return driver.findElement(inner);
         } catch (Exception ex) {
             throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
         }
@@ -86,7 +84,7 @@ public abstract class BaseHandler implements InvocationHandler {
      * @param key will be used for checking|saving in cache
      * @return proxy web element
      */
-    private WebElement lookUp(PageAwareBy key) {
+    protected WebElement lookUp(PageAwareBy key) {
         try {
             WebElement element = driver.findElement(key.getBy());
             engine.savePath(key, element);
@@ -182,9 +180,9 @@ public abstract class BaseHandler implements InvocationHandler {
             jse.executeScript("arguments[0].style.border='3px solid red'", element);
             WebDriver augmentedDriver = new Augmenter().augment(driver);
             byte[] source = ((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.BYTES);
-            FileHandler.createDir(new File(config.getString("screenshotPath")));
+            FileHandler.createDir(new File(engine.getScreenshotPath()));
             File file =
-                new File(config.getString("screenshotPath") + "screenshot_" + LocalDateTime
+                new File(engine.getScreenshotPath() + "screenshot_" + LocalDateTime
                     .now()
                     .format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png");
             Files.write(file.toPath(), source, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
@@ -211,5 +209,15 @@ public abstract class BaseHandler implements InvocationHandler {
 
     protected void clearStash(){
         stash.invalidateAll();
+    }
+
+    protected WebElement wrapElement(WebElement element, ClassLoader loader) {
+        WebElementProxyHandler elementProxyHandler = new WebElementProxyHandler(element, engine);
+        return ProxyFactory.createWebElementProxy(loader, elementProxyHandler);
+    }
+
+    protected WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
+        TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
+        return ProxyFactory.createTargetLocatorProxy(loader, handler);
     }
 }

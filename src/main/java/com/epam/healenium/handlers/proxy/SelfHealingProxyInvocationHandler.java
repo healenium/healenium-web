@@ -13,7 +13,6 @@
 package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.utils.ProxyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver.TargetLocator;
@@ -47,16 +46,6 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler {
             default:
                 return method.invoke(driver, args);
         }
-    }
-
-    private WebElement wrapElement(WebElement element, ClassLoader loader) {
-        WebElementProxyHandler elementProxyHandler = new WebElementProxyHandler(element, engine);
-        return ProxyFactory.createWebElementProxy(loader, elementProxyHandler);
-    }
-
-    private TargetLocator wrapTarget(TargetLocator locator, ClassLoader loader) {
-        TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
-        return ProxyFactory.createTargetLocatorProxy(loader, handler);
     }
 
 }

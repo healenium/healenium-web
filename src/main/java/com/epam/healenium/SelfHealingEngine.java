@@ -175,6 +175,14 @@ public class SelfHealingEngine {
                 .collect(Collectors.toList());
     }
 
+    public boolean isHealingEnabled(){
+        return config.getBoolean("heal-enabled");
+    }
+
+    public String getScreenshotPath(){
+        return config.getString("screenshotPath");
+    }
+
     private By toLocator(Node node) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
             By locator = construct(node, detailLevel);
