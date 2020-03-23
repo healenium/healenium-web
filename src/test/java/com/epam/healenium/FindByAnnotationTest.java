@@ -57,7 +57,7 @@ public class FindByAnnotationTest {
         // annotation-driven element is lazy, need to do something with it
         inputElement.sendKeys("search");
         PageAwareBy locator = PageAwareBy.by(pageName, By.name("q"));
-        By newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0);
+        By newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0).getValue();
         Assert.assertEquals(inputElement, driver.findElement(newLocation));
     }
 
