@@ -17,6 +17,7 @@ import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.data.LocatorInfo;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.ProxyFactory;
+import com.epam.healenium.utils.StackUtils;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -28,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -129,7 +129,8 @@ public abstract class BaseHandler implements InvocationHandler {
     }
 
     private LocatorInfo.Entry reportBasicInfo(PageAwareBy pageBy, NoSuchElementException e) {
-        Optional<StackTraceElement> elOpt = getStackTraceForPageObject(e.getStackTrace(), pageBy.getPageName());
+        String targetClass = pageBy.getPageName();
+        Optional<StackTraceElement> elOpt = StackUtils.getElementByClass(e.getStackTrace(), targetClass);
         return elOpt.map(el -> {
             LocatorInfo.PageAsClassEntry entry = new LocatorInfo.PageAsClassEntry();
             entry.setFileName(el.getFileName());
@@ -142,18 +143,6 @@ public abstract class BaseHandler implements InvocationHandler {
             entry.setPageName(pageBy.getPageName());
             return entry;
         });
-    }
-
-    private Optional<StackTraceElement> getStackTraceForPageObject(StackTraceElement[] elements, String pageName) {
-        return Arrays
-            .stream(elements)
-            .filter(element -> {
-                String className = element.getClassName();
-                String simpleClassName = className.substring(className.lastIndexOf('.') + 1);
-                log.debug("Input: {}, simple: {}", className, simpleClassName);
-                return simpleClassName.equals(pageName);
-            })
-            .findFirst();
     }
 
     private Optional<By> healLocator(PageAwareBy pageBy) {

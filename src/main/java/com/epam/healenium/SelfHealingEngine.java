@@ -20,11 +20,13 @@ import static com.epam.healenium.SelectorComponent.PATH;
 import static com.epam.healenium.SelectorComponent.POSITION;
 import static com.epam.healenium.SelectorComponent.TAG;
 
+import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.utils.ResourceReader;
 import com.epam.healenium.data.FileSystemPathStorage;
 import com.epam.healenium.data.LocatorInfo;
 import com.epam.healenium.data.PathStorage;
 import com.epam.healenium.treecomparing.*;
+import com.epam.healenium.utils.StackUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
@@ -178,7 +180,8 @@ public class SelfHealingEngine {
     }
 
     public boolean isHealingEnabled(){
-        return config.getBoolean("heal-enabled");
+        boolean isDisabled = StackUtils.isAnnotationPresent(DisableHealing.class);
+        return config.getBoolean("heal-enabled") && !isDisabled;
     }
 
     public String getScreenshotPath(){

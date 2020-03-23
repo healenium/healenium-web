@@ -10,8 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.annotation;
 
+import com.epam.healenium.PageAwareBy;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.AbstractFindByBuilder;
 import org.openqa.selenium.support.FindBy;
