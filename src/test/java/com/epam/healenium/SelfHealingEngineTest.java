@@ -47,7 +47,7 @@ public class SelfHealingEngineTest {
         driver.get("https://google.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.xpath("//input[@name='source']"));
         WebElement input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
+        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
         Assert.assertEquals(input, driver.findElement(newLocation));
     }
 
@@ -61,7 +61,7 @@ public class SelfHealingEngineTest {
         js.executeScript("arguments[0].setAttribute('name', 'source_new')", input);
         by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
         input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
+        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
         Assert.assertEquals(input, driver.findElement(newLocation));
     }
 

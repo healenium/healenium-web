@@ -15,6 +15,7 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.data.LocatorInfo;
+import com.epam.healenium.treecomparing.Scored;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -156,8 +157,8 @@ public abstract class BaseHandler implements InvocationHandler {
 
     private Optional<By> healLocator(PageAwareBy pageBy) {
         log.debug("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-        List<By> choices = engine.findNewLocations(pageBy, pageSource());
-        Optional<By> result = choices.stream().findFirst();
+        List<Scored<By>> choices = engine.findNewLocations(pageBy, pageSource());
+        Optional<Scored<By>> result = choices.stream().findFirst();
         result.ifPresent(primary ->
             log.warn("Using healed locator: {}", primary.toString()));
         choices.stream().skip(1).forEach(otherChoice ->
@@ -166,7 +167,7 @@ public abstract class BaseHandler implements InvocationHandler {
             log.warn("New element locators have not been found");
         }
         log.debug("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-        return result;
+        return result.map(Scored::getValue);
     }
 
     /**

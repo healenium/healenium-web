@@ -50,7 +50,7 @@ public class MultiPageTest {
         driver.get("https://duckduckgo.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input[type=text]"));
         WebElement input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
+        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
         Assert.assertEquals(input, driver.findElement(newLocation));
         driver.quit();
     }

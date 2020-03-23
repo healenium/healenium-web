@@ -68,6 +68,7 @@ public class SelfHealingEngine {
     @Getter private final WebDriver webDriver;
     private final PathStorage storage;
     private final int recoveryTries;
+    private final double scoreCap;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
 
     /**
@@ -79,6 +80,7 @@ public class SelfHealingEngine {
         this.config = config;
         this.storage = new FileSystemPathStorage(config);
         this.recoveryTries = config.getInt("recovery-tries");
+        this.scoreCap = config.getDouble("score-cap");
 
         List<Set<SelectorComponent>> temp = new ArrayList<>();
         temp.add(EnumSet.of(TAG, ID));
@@ -163,7 +165,7 @@ public class SelfHealingEngine {
      * @param targetPage the new HTML page source on which we should search for the element
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    public List<By> findNewLocations(PageAwareBy by, String targetPage) {
+    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
         List<Node> nodes = storage.getLastValidPath(by, by.getPageName());
         if (nodes.isEmpty()) {
             return Collections.emptyList();
@@ -175,12 +177,12 @@ public class SelfHealingEngine {
                 .collect(Collectors.toList());
     }
 
-    private By toLocator(Node node) {
+    private Scored<By> toLocator(Scored<Node> node) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
-            By locator = construct(node, detailLevel);
+            By locator = construct(node.getValue(), detailLevel);
             List<WebElement> elements = webDriver.findElements(locator);
             if (elements.size() == 1) {
-                return locator;
+                return new Scored<>(node.getScore(), locator);
             }
         }
         throw new HealException();
@@ -198,11 +200,10 @@ public class SelfHealingEngine {
      * @param destinationTree the HTML code of the current page
      * @return a list of nodes which are the candidates to be the searched element, ordered by relevance descending.
      */
-    private List<Node> findNearest(Node[] nodePath, String destinationTree) {
+    private List<Scored<Node>> findNearest(Node[] nodePath, String destinationTree) {
         Node destination = parseTree(destinationTree);
-        PathFinder pathFinder =
-                new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
-        return pathFinder.find(new Path(nodePath), destination, recoveryTries);
+        PathFinder pathFinder = new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
+        return pathFinder.find(new Path(nodePath), destination, recoveryTries, scoreCap);
     }
 
     private Node parseTree(String tree) {
