@@ -12,6 +12,7 @@
  */
 package com.epam.healenium;
 
+import com.epam.healenium.annotation.PageAwareFindBy;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
