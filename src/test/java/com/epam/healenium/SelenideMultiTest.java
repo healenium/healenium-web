@@ -23,8 +23,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import java.time.LocalDateTime;
-
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
@@ -44,33 +42,25 @@ public class SelenideMultiTest {
 
     @Before
     public void before() {
-        log.info("START before at {}", LocalDateTime.now());
         open(String.format("http://localhost:%d", PORT));
         $(By.id("user_name")).click();
-        log.info("COMPLETE before at {}", LocalDateTime.now());
     }
 
     @Test
     public void userNameTest() {
-        log.info("START userNameTest at {}", LocalDateTime.now());
         $(By.id("user_name")).setValue("erin");
         $(By.id("user_name")).shouldHave(value("erin"));
-        log.info("COMPLETE userNameTest at {}", LocalDateTime.now());
     }
 
     @Test
     public void passwordTest() {
-        log.info("START passwordTest at {}", LocalDateTime.now());
         $(By.id("password")).setValue("secret");
         $(By.id("password")).shouldHave(value("secret"));
-        log.info("COMPLETE passwordTest at {}", LocalDateTime.now());
     }
 
     @After
     public void after() {
-        log.info("START after at {}", LocalDateTime.now());
         $(By.xpath("//div/button[@type='submit']")).click();
-        log.info("COMPLETE after at {}", LocalDateTime.now());
     }
 
     private static class MyGridProvider implements WebDriverProvider {
