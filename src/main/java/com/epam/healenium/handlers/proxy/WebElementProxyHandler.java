@@ -12,10 +12,14 @@
  */
 package com.epam.healenium.handlers.proxy;
 
+import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import java.lang.reflect.Method;
+import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 @Slf4j
@@ -31,9 +35,10 @@ public class WebElementProxyHandler extends BaseHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
+            ClassLoader loader = driver.getClass().getClassLoader();
             if ("findElement".equals(method.getName())) {
-                log.debug("Caught findElement: invoking the healing version...");
-                return findElement((By) args[0]);
+                WebElement element = findElement((By) args[0]);
+                return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
             }
             if ("getWrappedElement".equals(method.getName())) {
                 return delegate;
@@ -43,4 +48,31 @@ public class WebElementProxyHandler extends BaseHandler {
             throw ex.getCause();
         }
     }
+
+    @Override
+    protected WebElement findElement(By by) {
+        try {
+            PageAwareBy pageBy = awareBy(by);
+            if (engine.isHealingEnabled()) {
+                return lookUp(pageBy);
+            }
+            return delegate.findElement(pageBy.getBy());
+        } catch (Exception ex) {
+            throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
+        }
+
+    }
+
+    @Override
+    protected WebElement lookUp(PageAwareBy key) {
+        try {
+            WebElement element = delegate.findElement(key.getBy());
+            engine.savePath(key, element);
+            return element;
+        } catch (NoSuchElementException ex) {
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), ex.getMessage());
+            return heal(key, ex).orElseThrow(() -> ex);
+        }
+    }
+
 }
