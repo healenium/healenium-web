@@ -36,9 +36,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -78,11 +80,8 @@ public class SelfHealingEngine {
      * @param config   user-defined configuration
      */
     SelfHealingEngine(WebDriver delegate, Config config) {
-        this.webDriver = delegate;
-        this.config = config;
-        this.storage = new FileSystemPathStorage(config);
-        this.recoveryTries = config.getInt("recovery-tries");
-        this.scoreCap = config.getDouble("score-cap");
+        // merge given config with default values
+        Config finalizedConfig = ConfigFactory.load(config).withFallback(ConfigFactory.systemProperties().withFallback(ConfigFactory.load()));
 
         List<Set<SelectorComponent>> temp = new ArrayList<>();
         temp.add(EnumSet.of(TAG, ID));
@@ -91,7 +90,21 @@ public class SelfHealingEngine {
         temp.add(EnumSet.of(PARENT, TAG, CLASS, POSITION));
         temp.add(EnumSet.of(PARENT, TAG, ID, CLASS, ATTRIBUTES));
         temp.add(EnumSet.of(PATH));
+
+        this.webDriver = delegate;
+        this.config = finalizedConfig;
+        this.storage = new FileSystemPathStorage(finalizedConfig);
+        this.recoveryTries = finalizedConfig.getInt("recovery-tries");
+        this.scoreCap = finalizedConfig.getDouble("score-cap");
         this.selectorDetailLevels = Collections.unmodifiableList(temp);
+    }
+
+    /**
+     * Used, when client not override config explicitly
+     * @param delegate
+     */
+    SelfHealingEngine(@NotNull WebDriver delegate) {
+        this(delegate, ConfigFactory.systemProperties().withFallback(ConfigFactory.load()));
     }
 
     /**

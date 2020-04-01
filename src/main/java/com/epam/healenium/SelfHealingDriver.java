@@ -15,7 +15,6 @@ package com.epam.healenium;
 import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
 import com.epam.healenium.utils.ProxyFactory;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.openqa.selenium.WebDriver;
 
 public interface SelfHealingDriver extends WebDriver {
@@ -30,8 +29,7 @@ public interface SelfHealingDriver extends WebDriver {
      * @param delegate the original driver, like ChromeDriver, FirefoxDriver, etc.
      */
     static SelfHealingDriver create(WebDriver delegate) {
-        Config config = ConfigFactory.systemProperties().withFallback(ConfigFactory.load());
-        return create(delegate,config);
+        return create(new SelfHealingEngine(delegate));
     }
 
     static SelfHealingDriver create(WebDriver delegate, Config config) {
