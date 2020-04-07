@@ -18,7 +18,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '2.0'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '2.0.5'
 }
 ```
 
@@ -38,7 +38,7 @@ for Maven projects:
 <dependency>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>2.0.2</version>
+    <version>2.0.5</version>
 </dependency>
 ```
 
@@ -67,6 +67,7 @@ basePath = sha/healenium
 reportPath = build/reports
 screenshotPath = build/screenshots/
 heal-enabled = true
+score-cap = 0.7
  ```
 
  > recovery-tries - list of proposed healed locators
@@ -79,7 +80,9 @@ heal-enabled = true
 
  > screenshotPath - folder to save screenshots of healed elements
 
- > heal-enabled - you could enable or disable healing by setting true or false flag to this variable
+ > heal-enabled - you can enable or disable healing by setting true or false flag to this variable
+ 
+ > score-cap - you can set up custom score value to enable healing with predefined probability of match (0.7 means that healing will be performed with new healed locators where probability of match is >70% )  
 
 * Suggested way is to declare custom config or property file (ex. sha.properties) and set
 ``` basePath = sha/selenium```
@@ -89,6 +92,13 @@ Also you could set configs via -D or System properties, for example to turn off 
 
 ### 2. Locating elements
 ### Simply use standard By/@FindBy to locate your elements
+### To disable healing for some element you can use @DisableHealing annotation over the method where element is called 
+```java
+@DisableHealing
+public void clickTestButton() {
+     testButton.click();
+}
+```
 ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) From version **2.0.2** Healium supports either standart **By/@FindBy** or **PageAwareBy/@PageAwareFindBy** usage for healing.
 
 ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) In **2.0.1** and earlier healing will work only for elements that are declared using **PageAwareBy/@PageAwareFindBy**
