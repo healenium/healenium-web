@@ -10,45 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.driver;
 
-import org.junit.*;
-import org.openqa.selenium.By;
+import com.epam.healenium.SelfHealingDriver;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-public class IFrameTest {
+public class InitDriver {
 
-    private static final int PORT = 8090;
-
-    @Rule
-    public TestServer server = new TestServer(getClass().getSimpleName(), PORT);
-
-    private SelfHealingDriver driver;
-
-    @Before
-    public void createDriver() {
+    public static SelfHealingDriver getDriver(){
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
-    }
-
-    @Test
-    public void testIFrame() {
-        PageAwareBy locator =
-                PageAwareBy.by(IFrameTest.class.getSimpleName(), By.cssSelector("input.framebutton"));
-        driver.get("http://localhost:" + PORT);
-        WebElement element = driver.switchTo().frame("internal").findElement(locator);
-        Assert.assertNotNull(element);
-    }
-
-    @After
-    public void close() {
-        if (driver != null) {
-            driver.quit();
-        }
+        return SelfHealingDriver.create(delegate);
     }
 }

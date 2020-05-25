@@ -18,12 +18,12 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
-import org.junit.rules.ExternalResource;
-
-import java.time.LocalDateTime;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 @Slf4j
-public class TestServer extends ExternalResource {
+public class TestServer implements BeforeAllCallback, AfterAllCallback {
 
     private final String folder;
     private final int port;
@@ -38,9 +38,20 @@ public class TestServer extends ExternalResource {
         this.port = port;
     }
 
+    public TestServer(String folder) {
+        this(folder, 8090);
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public String getPageName() {
+        return folder;
+    }
+
     @Override
-    protected void before() {
-        log.info("START TestServer.before() at {}", LocalDateTime.now());
+    public void beforeAll(ExtensionContext context) {
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setBaseResource(Resource.newClassPathResource(folder));
         resourceHandler.setWelcomeFiles(new String[]{"index.html"});
@@ -52,20 +63,15 @@ public class TestServer extends ExternalResource {
             server.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            log.info("COMPLETE TestServer.before() at {}", LocalDateTime.now());
         }
     }
 
     @Override
-    protected void after() {
-        log.info("START TestServer.after() at {}", LocalDateTime.now());
+    public void afterAll(ExtensionContext context) {
         try {
             server.stop();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            log.info("COMPLETE TestServer.after() at {}", LocalDateTime.now());
         }
     }
 }

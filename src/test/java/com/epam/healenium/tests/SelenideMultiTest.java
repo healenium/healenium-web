@@ -10,13 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.WebDriverProvider;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.TestServer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -28,21 +35,19 @@ import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 
 @Slf4j
-public class SelenideMultiTest {
+public class SelenideMultiTest extends AbstractBackendIT {
 
-    private static final int PORT = 8090;
+    @RegisterExtension
+    static TestServer server = new TestServer("SomeNewRoot");
 
-    @ClassRule
-    public static TestServer server = new TestServer("SomeNewRoot", PORT);
-
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
         Configuration.browser = MyGridProvider.class.getName();
     }
 
-    @Before
+    @BeforeEach
     public void before() {
-        open(String.format("http://localhost:%d", PORT));
+        open(String.format("http://localhost:%d", server.getPort()));
         $(By.id("user_name")).click();
     }
 
@@ -58,7 +63,7 @@ public class SelenideMultiTest {
         $(By.id("password")).shouldHave(value("secret"));
     }
 
-    @After
+    @AfterEach
     public void after() {
         $(By.xpath("//div/button[@type='submit']")).click();
     }

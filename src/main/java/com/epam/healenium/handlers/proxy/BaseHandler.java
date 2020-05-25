@@ -14,60 +14,33 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.data.LocatorInfo;
-import com.epam.healenium.treecomparing.Scored;
+import com.epam.healenium.service.HealingService;
+import com.epam.healenium.service.impl.HealingServiceImpl;
 import com.epam.healenium.utils.ProxyFactory;
-import com.epam.healenium.utils.StackUtils;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.typesafe.config.Config;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.io.FileHandler;
-import org.openqa.selenium.remote.Augmenter;
+
+import java.lang.reflect.InvocationHandler;
 
 @Slf4j
 public abstract class BaseHandler implements InvocationHandler {
 
-    private final LoadingCache<PageAwareBy, WebElement> stash;
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
     private final Config config;
-    private final LocatorInfo info = new LocatorInfo();
+    @Getter
+    private final HealingService healingService;
 
     public BaseHandler(SelfHealingEngine engine) {
         this.engine = engine;
         this.driver = engine.getWebDriver();
         this.config = engine.getConfig();
-        this.stash = CacheBuilder.newBuilder()
-            .maximumSize(300)
-            .expireAfterWrite(10, TimeUnit.SECONDS)
-            .build(
-                new CacheLoader<PageAwareBy, WebElement>() {
-                    @Override
-                    public WebElement load(@NotNull PageAwareBy key) {
-                       return lookUp(key);
-                    }
-                });
+        this.healingService = new HealingServiceImpl(engine);
     }
 
     protected WebElement findElement(By by) {
@@ -75,7 +48,7 @@ public abstract class BaseHandler implements InvocationHandler {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
-                return stash.get(pageBy);
+                return lookUp(pageBy);
             }
             return driver.findElement(inner);
         } catch (Exception ex) {
@@ -95,113 +68,17 @@ public abstract class BaseHandler implements InvocationHandler {
             return element;
         } catch (NoSuchElementException e) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
-            return heal(key, e).orElseThrow(() -> e);
+            return healingService.heal(key, e).orElseThrow(() -> e);
         }
-    }
-
-    protected Optional<WebElement> heal(PageAwareBy pageBy, NoSuchElementException e) {
-        LocatorInfo.Entry entry = reportBasicInfo(pageBy, e);
-        return healLocator(pageBy).map(healed -> {
-            reportFailedInfo(pageBy, entry, healed);
-            engine.saveLocator(info);
-            return driver.findElement(healed);
-        });
-    }
-
-    private void reportFailedInfo(PageAwareBy by, LocatorInfo.Entry infoEntry, By healed) {
-        String failedByValue = by.getBy().toString();
-        int splitIndex = failedByValue.indexOf(':');
-        infoEntry.setFailedLocatorType(failedByValue.substring(0, splitIndex).trim());
-        infoEntry.setFailedLocatorValue(failedByValue.substring(++splitIndex).trim());
-
-        String healedByValue = healed.toString();
-        splitIndex = healedByValue.indexOf(':');
-        infoEntry.setHealedLocatorType(healedByValue.substring(0, splitIndex).trim());
-        infoEntry.setHealedLocatorValue(healedByValue.substring(++splitIndex).trim());
-
-        infoEntry.setScreenShotPath(captureScreen(healed));
-        int pos = info.getElementsInfo().indexOf(infoEntry);
-        if (pos != -1) {
-            info.getElementsInfo().set(pos, infoEntry);
-        } else {
-            info.getElementsInfo().add(infoEntry);
-        }
-    }
-
-    private LocatorInfo.Entry reportBasicInfo(PageAwareBy pageBy, NoSuchElementException e) {
-        String targetClass = pageBy.getPageName();
-        Optional<StackTraceElement> elOpt = StackUtils.getElementByClass(e.getStackTrace(), targetClass);
-        return elOpt.map(el -> {
-            LocatorInfo.PageAsClassEntry entry = new LocatorInfo.PageAsClassEntry();
-            entry.setFileName(el.getFileName());
-            entry.setLineNumber(el.getLineNumber());
-            entry.setMethodName(el.getMethodName());
-            entry.setDeclaringClass(el.getClassName());
-            return (LocatorInfo.Entry) entry;
-        }).orElseGet(() -> {
-            LocatorInfo.SimplePageEntry entry = new LocatorInfo.SimplePageEntry();
-            entry.setPageName(pageBy.getPageName());
-            return entry;
-        });
-    }
-
-    private Optional<By> healLocator(PageAwareBy pageBy) {
-        log.debug("* healLocator start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-        List<Scored<By>> choices = engine.findNewLocations(pageBy, pageSource());
-        Optional<Scored<By>> result = choices.stream().findFirst();
-        result.ifPresent(primary ->
-            log.warn("Using healed locator: {}", primary.toString()));
-        choices.stream().skip(1).forEach(otherChoice ->
-            log.warn("Other choice: {}", otherChoice.toString()));
-        if (!result.isPresent()) {
-            log.warn("New element locators have not been found");
-        }
-        log.debug("* healLocator finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-        return result.map(Scored::getValue);
     }
 
     /**
-     * Create screenshot of healed element
-     * @param by - healed locator
-     * @return path to screenshot location
+     *
+     * @param by
+     * @return
      */
-    private String captureScreen(By by) {
-        WebElement element = findElement(by);
-        String path;
-        try {
-            JavascriptExecutor jse = (JavascriptExecutor) driver;
-            jse.executeScript("arguments[0].style.border='3px solid red'", element);
-            WebDriver augmentedDriver = new Augmenter().augment(driver);
-            byte[] source = ((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.BYTES);
-            FileHandler.createDir(new File(engine.getScreenshotPath()));
-            File file =
-                new File(engine.getScreenshotPath() + "screenshot_" + LocalDateTime
-                    .now()
-                    .format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png");
-            Files.write(file.toPath(), source, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
-            path = file.getPath().replaceAll("\\\\", "/");
-            path = ".." + path.substring(path.indexOf("/sc"));
-
-        } catch (IOException e) {
-            path = "Failed to capture screenshot: " + e.getMessage();
-        }
-        return path;
-    }
-
-    private String pageSource() {
-        if (driver instanceof JavascriptExecutor) {
-            return ((JavascriptExecutor) driver).executeScript("return document.body.outerHTML;").toString();
-        } else {
-            return driver.getPageSource();
-        }
-    }
-
     protected PageAwareBy awareBy(By by) {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(driver.getTitle(), by);
-    }
-
-    protected void clearStash(){
-        stash.invalidateAll();
     }
 
     protected WebElement wrapElement(WebElement element, ClassLoader loader) {
@@ -213,4 +90,5 @@ public abstract class BaseHandler implements InvocationHandler {
         TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
         return ProxyFactory.createTargetLocatorProxy(loader, handler);
     }
+
 }

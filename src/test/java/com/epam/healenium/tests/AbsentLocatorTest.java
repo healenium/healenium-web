@@ -10,39 +10,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.driver.InitDriver;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
-public class AbsentLocatorTest {
+public class AbsentLocatorTest extends AbstractBackendIT {
 
     private static final String PAGE_NAME = AbsentLocatorTest.class.getSimpleName();
 
     private SelfHealingDriver driver;
 
-    @Before
+    @BeforeEach
     public void createDriver() {
-        ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
-        WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
+        driver = InitDriver.getDriver();
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void name() {
         driver.get("https://google.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.tagName("nonexistenttag"));
-        driver.findElement(by);
+        Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(by));
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (driver != null) {
             driver.quit();

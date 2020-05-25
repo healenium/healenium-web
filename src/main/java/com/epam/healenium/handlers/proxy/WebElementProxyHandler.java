@@ -71,8 +71,7 @@ public class WebElementProxyHandler extends BaseHandler {
             return element;
         } catch (NoSuchElementException ex) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), ex.getMessage());
-            return heal(key, ex).orElseThrow(() -> ex);
+            return getHealingService().heal(key, ex).orElseThrow(() -> ex);
         }
     }
-
 }
