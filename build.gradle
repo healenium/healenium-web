@@ -3,6 +3,9 @@ plugins {
     id 'maven-publish'
     id "com.jfrog.bintray" version "1.8.4"
     id 'distribution'
+    id 'jacoco'
+    id 'com.github.kt3k.coveralls' version '2.8.4'
+    id "com.github.hierynomus.license" version "0.15.0"
 }
 
 group 'com.epam.healenium'
