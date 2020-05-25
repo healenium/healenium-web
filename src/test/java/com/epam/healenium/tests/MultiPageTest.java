@@ -10,28 +10,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
-import org.junit.Assert;
-import org.junit.Test;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.driver.InitDriver;
+import com.epam.healenium.treecomparing.Scored;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class MultiPageTest {
+public class MultiPageTest extends AbstractBackendIT {
 
     public static final String PAGE_NAME = MultiPageTest.class.getSimpleName();
 
     private SelfHealingDriver create() {
-        ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
-        return SelfHealingDriver.create(new ChromeDriver(options));
+        return InitDriver.getDriver();
     }
 
     @Test
@@ -50,8 +50,8 @@ public class MultiPageTest {
         driver.get("https://duckduckgo.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input[type=text]"));
         WebElement input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
-        Assert.assertEquals(input, driver.findElement(newLocation));
+        Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0);
+        Assertions.assertEquals(input, driver.findElement(newLocation.getValue()));
         driver.quit();
     }
 }

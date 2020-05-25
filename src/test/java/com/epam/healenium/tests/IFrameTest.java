@@ -10,42 +10,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
-import org.junit.*;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.TestServer;
+import com.epam.healenium.driver.InitDriver;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
-public class IFrameTest {
+public class IFrameTest extends AbstractBackendIT {
 
-    private static final int PORT = 8090;
-
-    @Rule
-    public TestServer server = new TestServer(getClass().getSimpleName(), PORT);
+    @RegisterExtension
+    public static final TestServer server = new TestServer(IFrameTest.class.getSimpleName());
 
     private SelfHealingDriver driver;
 
-    @Before
+    @BeforeEach
     public void createDriver() {
-        ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
-        WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
+        driver = InitDriver.getDriver();
     }
 
     @Test
     public void testIFrame() {
-        PageAwareBy locator =
-                PageAwareBy.by(IFrameTest.class.getSimpleName(), By.cssSelector("input.framebutton"));
-        driver.get("http://localhost:" + PORT);
+        PageAwareBy locator = PageAwareBy.by(IFrameTest.class.getSimpleName(), By.cssSelector("input.framebutton"));
+        driver.get("http://localhost:" + server.getPort());
         WebElement element = driver.switchTo().frame("internal").findElement(locator);
-        Assert.assertNotNull(element);
+        Assertions.assertNotNull(element);
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (driver != null) {
             driver.quit();

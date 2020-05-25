@@ -10,11 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.SelfHealingEngine;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -22,13 +29,13 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-public class HealTurnedOffTest {
+public class HealTurnedOffTest extends AbstractBackendIT {
 
-    private static final String PAGE_NAME = AbsentLocatorTest.class.getSimpleName();
+    private static final String PAGE_NAME = HealTurnedOffTest.class.getSimpleName();
 
     private SelfHealingDriver driver;
 
-    @Before
+    @BeforeEach
     public void createDriver() {
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
@@ -38,11 +45,11 @@ public class HealTurnedOffTest {
         driver = SelfHealingDriver.create(engine);
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void exceptionThrownTest() {
         driver.get("https://google.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.tagName("nonexistenttag"));
-        driver.findElement(by);
+        Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(by));
     }
 
     @Test
@@ -50,10 +57,10 @@ public class HealTurnedOffTest {
         driver.get("https://google.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.name("q"));
         WebElement input = driver.findElement(by);
-        Assert.assertTrue(input.isDisplayed());
+        Assertions.assertTrue(input.isDisplayed());
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (driver != null) {
             driver.quit();

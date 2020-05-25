@@ -10,45 +10,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
-
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.closeWebDriver;
-import static com.codeborne.selenide.Selenide.open;
-import static org.openqa.selenium.firefox.FirefoxDriver.PROFILE;
+package com.epam.healenium.tests;
 
 import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverProvider;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.TestServer;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
-import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-public class SelenideTest {
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Selenide.*;
 
-    private static final int PORT = 8090;
+public class SelenideTest extends AbstractBackendIT {
 
-    @Rule
-    public TestServer server = new TestServer("SomeNewRoot", PORT);
+    @RegisterExtension
+    static TestServer server = new TestServer("SomeNewRoot");
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Configuration.browser = MyGridProvider.class.getName();
     }
 
     @Test
     public void userCanLoginByUsername() {
-        open(String.format("http://localhost:%d", PORT));
+        open(String.format("http://localhost:%d", server.getPort()));
         $(By.id("user_name")).setValue("erin");
         $(By.id("password")).setValue("secret");
         $(By.xpath("//div/button[@type='submit']")).click();

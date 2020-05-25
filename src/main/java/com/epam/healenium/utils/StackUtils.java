@@ -12,13 +12,20 @@
  */
 package com.epam.healenium.utils;
 
+import com.epam.healenium.handlers.proxy.BaseHandler;
+import com.google.common.collect.Iterables;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -32,6 +39,20 @@ public class StackUtils {
     public boolean isAnnotationPresent(Class<? extends Annotation> aClass){
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         return findAnnotatedInTrace(trace, aClass).isPresent();
+    }
+
+    public Optional<StackTraceElement> findOriginCaller(){
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+        return findOriginCaller(trace);
+    }
+
+    public Optional<StackTraceElement> findOriginCaller(StackTraceElement[] elements){
+        List<StackTraceElement> elementList = normalize(elements);
+        String callerName = getCallerPackageName(elementList);
+        if(StringUtils.isBlank(callerName)) return Optional.empty();
+        return elementList.stream()
+                .filter(it -> it.getClassName().startsWith(callerName))
+                .findFirst();
     }
 
     /**
@@ -89,9 +110,38 @@ public class StackUtils {
      */
     private Predicate<StackTraceElement> redundantPackages() {
         return value -> {
-            Stream<String> skippingPackageStream = Stream.of("sun.reflect", "java.lang", "org.gradle", "org.junit", "java.util", "com.sun", "com.google");
+            Stream<String> skippingPackageStream = Stream.of("java.base","sun.reflect", "java.lang", "org.gradle", "org.junit", "java.util", "com.sun", "com.google","jdk.internal","org.openqa");
             return skippingPackageStream.noneMatch(s -> value.getClassName().startsWith(s));
         };
     }
 
+    private List<StackTraceElement> normalize(StackTraceElement[] traceElements){
+        List<StackTraceElement> elementList = Arrays.stream(traceElements)
+                .filter(redundantPackages())
+                .collect(Collectors.toList());
+        Collections.reverse(elementList);
+        elementList = StreamEx.of(elementList)
+                .takeWhile(it-> !it.getClassName().equals(BaseHandler.class.getName()))
+                .toList();
+        return elementList.subList(0, elementList.size() -1);
+    }
+
+    private String getCallerPackageName(List<StackTraceElement> traceElements){
+        String result = "";
+        try{
+            StackTraceElement element = Iterables.getLast(traceElements);
+            String className = element.getClassName();
+            int dotPos = lastDotPosition(className);
+            result = element.getClassName().substring(0, Math.max(dotPos,0));
+        } catch (Exception ex){
+            log.warn("Failed to find caller package name", ex);
+        }
+        return result;
+    }
+
+    private int lastDotPosition(String input){
+        int dot1 = input.indexOf(".");
+        int dot2 = input.indexOf(".", dot1 + 1);
+        return Math.max(dot1, dot2);
+    }
 }

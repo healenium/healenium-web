@@ -30,21 +30,24 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        ClassLoader loader = driver.getClass().getClassLoader();
-        switch (method.getName()) {
-            case "findElement":
-                WebElement element = findElement((By) args[0]);
-                return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
-            case "getCurrentEngine":
-                return engine;
-            case "getDelegate":
-                return driver;
-            case "switchTo":
-                clearStash();
-                TargetLocator switched = (TargetLocator) method.invoke(driver, args);
-                return wrapTarget(switched, loader);
-            default:
-                return method.invoke(driver, args);
+        try {
+            ClassLoader loader = driver.getClass().getClassLoader();
+            switch (method.getName()) {
+                case "findElement":
+                    WebElement element = findElement((By) args[0]);
+                    return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
+                case "getCurrentEngine":
+                    return engine;
+                case "getDelegate":
+                    return driver;
+                case "switchTo":
+                    TargetLocator switched = (TargetLocator) method.invoke(driver, args);
+                    return wrapTarget(switched, loader);
+                default:
+                    return method.invoke(driver, args);
+            }
+        } catch (Exception ex) {
+            throw ex.getCause();
         }
     }
 

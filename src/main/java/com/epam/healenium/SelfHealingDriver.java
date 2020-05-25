@@ -26,14 +26,15 @@ public interface SelfHealingDriver extends WebDriver {
     /**
      * Instantiates the self-healing driver.
      *
-     * @param delegate the original driver, like ChromeDriver, FirefoxDriver, etc.
+     * @param delegate the original driver, like {@link org.openqa.selenium.chrome.ChromeDriver}, {@link
+     *                 org.openqa.selenium.firefox.FirefoxDriver}, etc.
      */
     static SelfHealingDriver create(WebDriver delegate) {
         return create(new SelfHealingEngine(delegate));
     }
 
     static SelfHealingDriver create(WebDriver delegate, Config config) {
-        return create(new SelfHealingEngine(delegate,config));
+        return create(new SelfHealingEngine(delegate, config));
     }
 
     static SelfHealingDriver create(SelfHealingEngine engine) {
@@ -42,6 +43,5 @@ public interface SelfHealingDriver extends WebDriver {
         SelfHealingProxyInvocationHandler handler = new SelfHealingProxyInvocationHandler(engine);
         return ProxyFactory.createDriverProxy(classLoader, handler, driverClass);
     }
-
 
 }

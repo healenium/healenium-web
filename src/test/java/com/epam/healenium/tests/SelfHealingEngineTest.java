@@ -10,13 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.SelfHealingEngine;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import org.junit.*;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.MethodOrderer.Alphanumeric;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -24,14 +28,14 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class SelfHealingEngineTest {
+@TestMethodOrder(Alphanumeric.class)
+public class SelfHealingEngineTest extends AbstractBackendIT {
 
     private static final String PAGE_NAME = SelfHealingEngineTest.class.getSimpleName();
 
     private SelfHealingDriver driver;
 
-    @Before
+    @BeforeEach
     public void createDriver() {
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
@@ -48,7 +52,7 @@ public class SelfHealingEngineTest {
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.xpath("//input[@name='source']"));
         WebElement input = driver.findElement(by);
         By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
-        Assert.assertEquals(input, driver.findElement(newLocation));
+        Assertions.assertEquals(input, driver.findElement(newLocation));
     }
 
     @Test
@@ -62,10 +66,10 @@ public class SelfHealingEngineTest {
         by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
         input = driver.findElement(by);
         By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
-        Assert.assertEquals(input, driver.findElement(newLocation));
+        Assertions.assertEquals(input, driver.findElement(newLocation));
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (driver != null) {
             driver.quit();

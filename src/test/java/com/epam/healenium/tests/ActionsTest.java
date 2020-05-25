@@ -3,34 +3,32 @@
  * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.driver.InitDriver;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 
-public class ActionsTest {
+public class ActionsTest extends AbstractBackendIT {
 
     private SelfHealingDriver driver;
+    private String urlShaTest = "https://sha-test-app.herokuapp.com/";
 
-    @Before
+    @BeforeEach
     public void createDriver() {
-        ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
-        WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
+        driver = InitDriver.getDriver();
     }
 
     @Test
     public void name() {
-        driver.get("https://google.com.ua");
+        driver.get(urlShaTest);
         try{
             new Actions(driver)
                 .moveToElement(driver.findElement(By.name("q")))
@@ -39,18 +37,19 @@ public class ActionsTest {
                 .build()
                 .perform();
         } catch (Exception e) {
-            Assert.fail();
+            Assertions.fail();
         }
     }
 
     @Test
     public void userExecuteJS() {
-        driver.get("https://google.com");
-        String value = ((JavascriptExecutor) driver).executeScript("return document.querySelector('img#hplogo').getAttribute('alt')").toString();
-        Assert.assertTrue(value.equalsIgnoreCase("Google"));
+        driver.get(urlShaTest);
+        String value = ((JavascriptExecutor) driver)
+                .executeScript("return document.querySelector('#logo').getAttribute('alt')").toString();
+        Assertions.assertTrue(value.equalsIgnoreCase("Healenium"));
     }
 
-    @After
+    @AfterEach
     public void close() {
         if (driver != null) {
             driver.quit();

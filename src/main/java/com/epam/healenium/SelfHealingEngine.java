@@ -12,33 +12,19 @@
  */
 package com.epam.healenium;
 
-import static com.epam.healenium.SelectorComponent.ATTRIBUTES;
-import static com.epam.healenium.SelectorComponent.CLASS;
-import static com.epam.healenium.SelectorComponent.ID;
-import static com.epam.healenium.SelectorComponent.PARENT;
-import static com.epam.healenium.SelectorComponent.PATH;
-import static com.epam.healenium.SelectorComponent.POSITION;
-import static com.epam.healenium.SelectorComponent.TAG;
-
 import com.epam.healenium.annotation.DisableHealing;
-import com.epam.healenium.utils.ResourceReader;
-import com.epam.healenium.data.FileSystemPathStorage;
-import com.epam.healenium.data.LocatorInfo;
-import com.epam.healenium.data.PathStorage;
+import com.epam.healenium.client.RestClient;
 import com.epam.healenium.treecomparing.*;
+import com.epam.healenium.utils.ResourceReader;
 import com.epam.healenium.utils.StackUtils;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
@@ -47,17 +33,12 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.epam.healenium.SelectorComponent.*;
 
 @Slf4j
 public class SelfHealingEngine {
@@ -65,23 +46,23 @@ public class SelfHealingEngine {
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
-    private static final String SCRIPT =
-            ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
+    private static final String SCRIPT = ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
+    private static final Config DEFAULT_CONFIG = ConfigFactory.systemProperties().withFallback(ConfigFactory.load("healenium.properties").withFallback(ConfigFactory.load()));
 
     @Getter private final Config config;
     @Getter private final WebDriver webDriver;
-    private final PathStorage storage;
     private final int recoveryTries;
     private final double scoreCap;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
+    @Getter private final RestClient client;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
      * @param config   user-defined configuration
      */
-    SelfHealingEngine(WebDriver delegate, Config config) {
+    public SelfHealingEngine(@NotNull WebDriver delegate, @NotNull Config config) {
         // merge given config with default values
-        Config finalizedConfig = ConfigFactory.load(config).withFallback(ConfigFactory.systemProperties().withFallback(ConfigFactory.load()));
+        Config finalizedConfig = ConfigFactory.load(config).withFallback(DEFAULT_CONFIG);
 
         List<Set<SelectorComponent>> temp = new ArrayList<>();
         temp.add(EnumSet.of(TAG, ID));
@@ -93,18 +74,18 @@ public class SelfHealingEngine {
 
         this.webDriver = delegate;
         this.config = finalizedConfig;
-        this.storage = new FileSystemPathStorage(finalizedConfig);
         this.recoveryTries = finalizedConfig.getInt("recovery-tries");
         this.scoreCap = finalizedConfig.getDouble("score-cap");
         this.selectorDetailLevels = Collections.unmodifiableList(temp);
+        this.client = new RestClient(finalizedConfig);
     }
 
     /**
      * Used, when client not override config explicitly
      * @param delegate
      */
-    SelfHealingEngine(@NotNull WebDriver delegate) {
-        this(delegate, ConfigFactory.systemProperties().withFallback(ConfigFactory.load()));
+    public SelfHealingEngine(@NotNull WebDriver delegate) {
+        this(delegate, DEFAULT_CONFIG);
     }
 
     /**
@@ -114,19 +95,13 @@ public class SelfHealingEngine {
      * @param webElement the element while it is still accessible by the locator
      */
     public void savePath(PageAwareBy by, WebElement webElement) {
-        log.debug("* savePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-        List<Node> nodePath = getNodePath(webElement);
-        storage.persistLastValidPath(by, by.getPageName(), nodePath);
-        log.debug("* savePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
-    }
-
-    @SneakyThrows
-    public void saveLocator(LocatorInfo info) {
-        storage.saveLocatorInfo(info);
+        StackTraceElement traceElement = StackUtils.findOriginCaller(Thread.currentThread().getStackTrace())
+                .orElseThrow(()-> new IllegalArgumentException("Failed to detect origin method caller"));
+        List<Node> nodes = getNodePath(webElement);
+        client.selectorRequest(by.getBy(), traceElement, nodes);
     }
 
     private List<Node> getNodePath(WebElement webElement) {
-        log.debug("* getNodePath start: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         JavascriptExecutor executor = (JavascriptExecutor) webDriver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();
@@ -143,7 +118,6 @@ public class SelfHealingEngine {
         } catch (Exception ex) {
             log.error("Failed to get element node path!", ex);
         }
-        log.debug("* getNodePath finish: " + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME));
         return path;
     }
 
@@ -175,30 +149,25 @@ public class SelfHealingEngine {
                 .build();
     }
 
+    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
+        return findNewLocations(by, targetPage, StackUtils.findOriginCaller());
+    }
+
     /**
      * @param by         page aware locator
      * @param targetPage the new HTML page source on which we should search for the element
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
-        List<Node> nodes = storage.getLastValidPath(by, by.getPageName());
-        if (nodes.isEmpty()) {
-            return Collections.emptyList();
-        }
+    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage, Optional<StackTraceElement> optionalElement) {
+        List<Scored<By>> result = new ArrayList<>();
 
-        return findNearest(nodes.toArray(new Node[0]), targetPage)
-                .stream()
-                .map(this::toLocator)
-                .collect(Collectors.toList());
-    }
-
-    public boolean isHealingEnabled(){
-        boolean isDisabled = StackUtils.isAnnotationPresent(DisableHealing.class);
-        return config.getBoolean("heal-enabled") && !isDisabled;
-    }
-
-    public String getScreenshotPath(){
-        return config.getString("screenshotPath");
+        optionalElement.flatMap(it -> client.getLastValidPath(by.getBy(), it))
+                // ignore empty result, or will fall on search
+                .filter(it-> !it.isEmpty())
+                .ifPresent(nodes -> findNearest(nodes.toArray(new Node[0]), targetPage).stream()
+                        .map(this::toLocator)
+                        .forEach(result::add));
+        return result;
     }
 
     private Scored<By> toLocator(Scored<Node> node) {
@@ -233,4 +202,10 @@ public class SelfHealingEngine {
     private Node parseTree(String tree) {
         return new JsoupHTMLParser().parse(new ByteArrayInputStream(tree.getBytes(StandardCharsets.UTF_8)));
     }
+
+    public boolean isHealingEnabled(){
+        boolean isDisabled = StackUtils.isAnnotationPresent(DisableHealing.class);
+        return config.getBoolean("heal-enabled") && !isDisabled;
+    }
+
 }

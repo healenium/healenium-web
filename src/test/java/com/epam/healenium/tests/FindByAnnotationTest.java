@@ -10,35 +10,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.healenium;
+package com.epam.healenium.tests;
 
+import com.epam.healenium.AbstractBackendIT;
+import com.epam.healenium.PageAwareBy;
+import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.annotation.PageAwareFindBy;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.epam.healenium.driver.InitDriver;
+import com.epam.healenium.treecomparing.Scored;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 import java.util.function.Function;
 
-public class FindByAnnotationTest {
+public class FindByAnnotationTest extends AbstractBackendIT {
 
     private static final String CUSTOM_PAGE_NAME = "CustomPageName";
 
     private SelfHealingDriver driver;
 
-    @Before
+    @BeforeEach
     public void init() {
-        ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
-        WebDriver delegate = new ChromeDriver(options);
-        driver = SelfHealingDriver.create(delegate);
+        driver = InitDriver.getDriver();
     }
 
     @Test
@@ -58,11 +58,11 @@ public class FindByAnnotationTest {
         // annotation-driven element is lazy, need to do something with it
         inputElement.sendKeys("search");
         PageAwareBy locator = PageAwareBy.by(pageName, By.name("q"));
-        By newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0).getValue();
-        Assert.assertEquals(inputElement, driver.findElement(newLocation));
+        Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0);
+        Assertions.assertEquals(inputElement, driver.findElement(newLocation.getValue()));
     }
 
-    @After
+    @AfterEach
     public void destroy() {
         if (driver != null) {
             driver.quit();
@@ -74,8 +74,7 @@ public class FindByAnnotationTest {
         @PageAwareFindBy(findBy = @FindBy(name = "q"))
         private WebElement searchBox;
 
-        @PageAwareFindBy(page = CUSTOM_PAGE_NAME,
-            findBy = @FindBy(name = "q"))
+        @PageAwareFindBy(page = CUSTOM_PAGE_NAME, findBy = @FindBy(name = "q"))
         private WebElement customSearchBox;
 
         public GooglePage(WebDriver driver) {
