@@ -106,3 +106,17 @@ bintrayUpload.onlyIf {
 test {
     useJUnitPlatform()
 }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled true
+        html.destination file("${buildDir}/jacocoHtml")
+    }
+}
+
+license {
+    header rootProject.file('HEADER')
+    excludes(["**/*.html", "*.conf", "*.properties"])
+    strictCheck false
+}
