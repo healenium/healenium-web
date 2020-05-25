@@ -9,6 +9,7 @@ Self-healing library for Selenium Web-based tests
 ## How to start
 
 ### 0. Add dependency 
+
 for Gradle projects:
 ``` 
 repositories {
@@ -18,7 +19,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '2.0'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0'
 }
 ```
 
@@ -38,10 +39,49 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>2.0.2</version>
+	<version>3.0</version>
 </dependency>
 ```
+### 1. Init driver instance of SelfHealingDriver
+``` 
+//declare delegate
+WebDriver delegate = new ChromeDriver();
+//create Self-healing driver
+SelfHealingDriver driver = SelfHealingDriver.create(delegate);
+ ```
+### 2. Specify custom healing config file healenium.properties under test/resources directory, ex.:
+``` 
+recovery-tries = 1
+score-cap = 0.5
+heal-enabled = true
+serverHost = localhost
+serverPort = 7878
+ ```
+ > recovery-tries - list of proposed healed locators
+ 
+ > heal-enabled - flag to enable or disable healing. 
+Also you can set this value via -D or System properties, for example to turn off healing for current test run: -Dheal-enabled=false
 
+ > score-cap - score value to enable healing with predefined probability of match (0.5 means that healing will be performed for new healed locators where probability of match with target one is >=50% )
+ 
+ > serverHost - ip or name where hlm-backend instance is installed
+ 
+ > serverPort - port on which hlm-backend instance is installed (7878 by default)
+
+### 3. Simply use standard By/@FindBy to locate your elements
+To disable healing for some element you can use @DisableHealing annotation over the method where element is called
+```
+@DisableHealing
+public void clickTestButton() {
+     testButton.click();
+}
+```
+### 4. Add hlm-report or hlm-report-mvn plugin to enable reporting
+### 5. Add hlm-idea plugin to enable locator updates in your TAF code
+### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+
+
+# For versions 2.0.5 and earlier file storage is used and no hlm-backend is needed. If you want to use earliest versions for some reasons follow this instruction:
 ### 1. Driver initialization
 ### 1.1 Init driver instance of SelfHealingDriver with custom config:
 ``` //declare delegate
@@ -116,3 +156,4 @@ or not declaring the page. In this case page name will be set by default with th
  ```
 
 #### To refactor your project fast you could use Idea hotkeys cmd+shift+r and perform replacement
+
