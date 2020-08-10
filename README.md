@@ -76,9 +76,10 @@ public void clickTestButton() {
      testButton.click();
 }
 ```
-### 4. Add hlm-report or hlm-report-mvn plugin to enable reporting
-### 5. Add hlm-idea plugin to enable locator updates in your TAF code
-### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+### 4. Init Healenium backed by instruction here https://github.com/healenium/healenium-backend
+### 5. Add hlm-report or hlm-report-mvn plugin to enable reporting
+### 6. Add hlm-idea plugin to enable locator updates in your TAF code
+### 7. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
 
 
 # For versions 2.0.5 and earlier file storage is used and no hlm-backend is needed. If you want to use earliest versions for some reasons follow this instruction:
