@@ -8,7 +8,9 @@ Self-healing library for Selenium Web-based tests
 
 ## How to start
 
-### 0. Add dependency 
+### 0. For version 3.0 and higher start hlm-backend by [instruction](https://github.com/healenium/healenium-backend) 
+
+### 0.1 Add dependency 
 
 for Gradle projects:
 ``` 
@@ -76,10 +78,9 @@ public void clickTestButton() {
      testButton.click();
 }
 ```
-### 4. Init Healenium backend by instruction here https://github.com/healenium/healenium-backend
-### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
-### 6. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
-### 7. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+### 4. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
+### 5. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
+### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
 
 
 # For versions 2.0.5 and earlier file storage is used and no hlm-backend is needed. If you want to use earliest versions for some reasons follow this instruction:
