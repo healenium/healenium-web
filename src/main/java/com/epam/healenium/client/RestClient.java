@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import com.epam.healenium.mapper.HealeniumMapperImpl;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
+import com.epam.healenium.utils.SystemUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,10 +60,10 @@ public class RestClient {
 
     private OkHttpClient okHttpClient() {
         return new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build();
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .build();
     }
 
     private ObjectMapper initMapper() {
@@ -79,16 +80,16 @@ public class RestClient {
      * Store info in backend
      * @param by
      */
-    public void selectorRequest(By by, StackTraceElement element, List<Node> nodePath){
+    public void selectorRequest(By by, StackTraceElement element, List<Node> nodePath) {
         RequestDto requestDto = mapper.buildDto(by, element, nodePath);
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
             Request request = new Request.Builder()
-                .url(baseUrl)
-                .post(body)
-                .build();
+                    .url(baseUrl)
+                    .post(body)
+                    .build();
             okHttpClient().newCall(request).execute();
-        } catch (Exception e){
+        } catch (Exception e) {
             log.warn("Failed to make response");
         }
     }
@@ -100,7 +101,7 @@ public class RestClient {
      * @param page
      * @return
      */
-    public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices, Scored<By> healed, byte[] screenshot){
+    public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices, Scored<By> healed, byte[] screenshot) {
         RequestDto requestDto = mapper.buildDto(locator, element, page, choices, healed, screenshot);
         try {
             RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -109,13 +110,15 @@ public class RestClient {
                     .build();
 
             Request request = new Request.Builder()
-                .addHeader("sessionKey", sessionKey)
-                .url(baseUrl + "/healing")
-                .post(requestBody)
-                .build();
+                    .addHeader("sessionKey", sessionKey)
+                    .addHeader("instance", SystemUtils.getHostIpAddress())
+                    .addHeader("hostProject", SystemUtils.getHostProjectName())
+                    .url(baseUrl + "/healing")
+                    .post(requestBody)
+                    .build();
             okHttpClient().newCall(request).execute();
-        } catch (Exception e){
-            log.warn("Failed to make response",e);
+        } catch (Exception e) {
+            log.warn("Failed to make response", e);
         }
     }
 
@@ -125,7 +128,7 @@ public class RestClient {
      * @param element
      * @return
      */
-    public Optional<List<Node>> getLastValidPath(By locator, StackTraceElement element){
+    public Optional<List<Node>> getLastValidPath(By locator, StackTraceElement element) {
         List<Node> nodes = null;
         RequestDto requestDto = mapper.buildDto(locator, element);
         try {
@@ -145,7 +148,7 @@ public class RestClient {
                 nodes = objectMapper.readValue(result, new TypeReference<List<Node>>() {
                 });
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             log.warn("Failed to make response", ex);
         }
         return Optional.ofNullable(nodes);
@@ -155,7 +158,7 @@ public class RestClient {
      *
      * @return
      */
-    private String buildScreenshotName(){
+    private String buildScreenshotName() {
         return "screenshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png";
     }
 }
