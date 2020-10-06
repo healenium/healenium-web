@@ -24,7 +24,7 @@ import java.net.UnknownHostException;
 public class SystemUtils {
     
     public String getHostProjectName() {
-        String projectPath = System.getProperty("user.dir");
+        String projectPath = System.getProperty("user.dir").replace("\\", "/");
         return projectPath.substring(projectPath.lastIndexOf("/") + 1);
     }
 
