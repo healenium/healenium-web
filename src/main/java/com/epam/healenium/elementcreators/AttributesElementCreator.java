@@ -30,7 +30,7 @@ public class AttributesElementCreator implements ElementCreator {
             .stream()
             .filter(entry -> StringUtils.isNoneBlank(entry.getKey(), entry.getValue()))
             .filter(entry -> !SKIPPED_ATTRIBUTES.contains(entry.getKey()))
-            .map(entry -> String.format("[%s=\"%s\"]", entry.getKey().trim(), entry.getValue().trim()))
+            .map(entry -> String.format("[%s='%s']", entry.getKey().trim(), entry.getValue().trim()))
             .collect(Collectors.joining());
     }
 }
