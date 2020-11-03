@@ -108,6 +108,7 @@ bintrayUpload.onlyIf {
 
 test {
     useJUnitPlatform()
+    ignoreFailures = true
 }
 
 jacocoTestReport {
