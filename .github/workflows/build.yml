@@ -34,6 +34,6 @@ jobs:
         && sudo chmod +x /usr/local/bin/chromedriver \
         && chromedriver --version
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew clean build --refresh-dependencies
     - name: coveralls-report
       run: ./gradlew jacocoTestReport coveralls 
