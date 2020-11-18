@@ -21,7 +21,7 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0.2'
 }
 ```
 
