@@ -42,6 +42,21 @@ public class ActionsTest extends AbstractBackendIT {
     }
 
     @Test
+    public void nameElements() {
+        driver.get(urlShaTest);
+        try{
+            new Actions(driver)
+                .moveToElement(driver.findElements(By.name("q")).get(0))
+                .click()
+                .sendKeys("search")
+                .build()
+                .perform();
+        } catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
     public void userExecuteJS() {
         driver.get(urlShaTest);
         String value = ((JavascriptExecutor) driver)

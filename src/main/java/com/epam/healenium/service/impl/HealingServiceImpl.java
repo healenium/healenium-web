@@ -42,6 +42,12 @@ public class HealingServiceImpl implements HealingService {
         return healLocator(pageBy, ex.getStackTrace()).map(driver::findElement);
     }
 
+    public Optional<List<WebElement>> healElements(PageAwareBy pageBy, NoSuchElementException ex) {
+        // check if already have healed results
+//        RequestDto request = mapper.buildDto(pageBy.getBy(), e.getStackTrace(), pageSource());
+        return healLocator(pageBy, ex.getStackTrace()).map(driver::findElements);
+    }
+
     /**
      *
      * @param pageBy
