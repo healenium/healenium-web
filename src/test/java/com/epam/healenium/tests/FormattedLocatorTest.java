@@ -40,6 +40,8 @@ public class FormattedLocatorTest extends AbstractBackendIT {
         driver.get(String.format("http://localhost:%d", server.getPort()));
         selectItem("inner");
         selectItem("inner2");
+        selectItems("inner");
+        selectItems("inner2");
     }
 
     @AfterEach
@@ -52,5 +54,10 @@ public class FormattedLocatorTest extends AbstractBackendIT {
     private void selectItem(String itemName) {
         PageAwareBy by = PageAwareBy.by(server.getPageName(), By.xpath(String.format("//div[@title='%s']", itemName)));
         driver.findElement(by).click();
+    }
+
+    private void selectItems(String itemName) {
+        PageAwareBy by = PageAwareBy.by(server.getPageName(), By.xpath(String.format("//div[@title='%s']", itemName)));
+        driver.findElements(by).get(0).click();
     }
 }

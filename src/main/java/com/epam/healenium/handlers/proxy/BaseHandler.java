@@ -26,6 +26,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.InvocationHandler;
+import java.util.List;
 
 @Slf4j
 public abstract class BaseHandler implements InvocationHandler {
@@ -56,6 +57,19 @@ public abstract class BaseHandler implements InvocationHandler {
         }
     }
 
+    protected List<WebElement> findElements(By by) {
+        try {
+            PageAwareBy pageBy = awareBy(by);
+            By inner = pageBy.getBy();
+            if (engine.isHealingEnabled()) {
+                return lookUpElements(pageBy);
+            }
+            return driver.findElements(inner);
+        } catch (Exception ex) {
+            throw new NoSuchElementException("Failed to find elements using " + by.toString(), ex);
+        }
+    }
+
     /**
      * Search target element on a page
      * @param key will be used for checking|saving in cache
@@ -69,6 +83,27 @@ public abstract class BaseHandler implements InvocationHandler {
         } catch (NoSuchElementException e) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
             return healingService.heal(key, e).orElseThrow(() -> e);
+        }
+    }
+
+    /**
+     * Search target elements on a page
+     * @param key will be used for checking|saving in cache
+     * @return proxy web element
+     */
+    protected List<WebElement> lookUpElements(PageAwareBy key) {
+        try {
+            List<WebElement> elements = driver.findElements(key.getBy());
+            if (elements.isEmpty()) {
+                throw new NoSuchElementException("Failed to find elements");
+            }
+            for(WebElement element : elements) {
+                engine.savePath(key, element);
+            }
+            return elements;
+        } catch (NoSuchElementException e) {
+            log.warn("Failed to find elements using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
+            return healingService.healElements(key, e).orElseThrow(() -> e);
         }
     }
 
