@@ -82,10 +82,10 @@ public void clickTestButton() {
 ### 5. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
 ### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
 
-
-# For versions 2.0.5 and earlier file storage is used and no hlm-backend is needed. If you want to use earliest versions for some reasons follow this instruction:
-### 1. Driver initialization
-### 1.1 Init driver instance of SelfHealingDriver with custom config:
+### ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)!Note versions 2.0.5 and earlier are not supported anymore
+For versions 2.0.5 and earlier file storage is used and no hlm-backend is needed. If you want to use earliest versions for some reasons follow this instruction:
+1. Driver initialization
+1.1 Init driver instance of SelfHealingDriver with custom config:
 ``` //declare delegate
             WebDriver delegate = new ChromeDriver();
             //declare configs for sha
@@ -94,13 +94,13 @@ public void clickTestButton() {
             SelfHealingDriver driver = SelfHealingDriver.create(delegate, config);
  ```
 
-### 1.2 Or Init driver instance of SelfHealingDriver with default config:
+1.2 Or Init driver instance of SelfHealingDriver with default config:
 ``` //declare delegate
             WebDriver delegate = new ChromeDriver();
             //create sha driver
             SelfHealingDriver driver = SelfHealingDriver.create(delegate);
 ```
-### 1.2.1 Default config values:
+1.2.1 Default config values:
 ``` recovery-tries = 3
     basePath = sha/healenium
     reportPath = build/reports
@@ -126,13 +126,13 @@ public void clickTestButton() {
 Also you could set configs via -D or System properties, for example to turn off healing for current test run:
 ```-Dheal-enabled=false```
 
-### 2. Locating elements
-### Simply use standard By/@FindBy to locate your elements
+2. Locating elements
+Simply use standard By/@FindBy to locate your elements
 ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) From version **2.0.2** Healium supports either standart **By/@FindBy** or **PageAwareBy/@PageAwareFindBy** usage for healing.
 
 ![#1589F0](https://placehold.it/15/1589F0/000000?text=+) In **2.0.1** and earlier healing will work only for elements that are declared using **PageAwareBy/@PageAwareFindBy**
 
-#### Using PageAwareBy.by instead of By to locate your elements in 2.0.1 and earlier
+Using PageAwareBy.by instead of By to locate your elements in 2.0.1 and earlier
 ```By buttonBy = PageAwareBy.by("MainPage", By.id(testButtonId));```
 
 * where the first argument "MainPage" is the name of the page to which the WebElement belongs.
@@ -143,7 +143,7 @@ Then you can simply call findElement() method as usual
 Or use the shorter form
 ```driver.findElement(PageAwareBy.by("MainPage", By.id(testButtonId))).click();```
 
-#### Using @PageAwareFindBy instead of @FindBy to locate your elements in 2.0.1 and earlier
+Using @PageAwareFindBy instead of @FindBy to locate your elements in 2.0.1 and earlier
 
 ```
     @PageAwareFindBy(page="MainPage", findBy = @FindBy(id = "markup-generation-button"))
@@ -157,5 +157,5 @@ or not declaring the page. In this case page name will be set by default with th
     WebElement testButtonId;
  ```
 
-#### To refactor your project fast you could use Idea hotkeys cmd+shift+r and perform replacement
+To refactor your project fast you could use Idea hotkeys cmd+shift+r and perform replacement
 
