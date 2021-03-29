@@ -24,7 +24,7 @@ dependencies {
     compile group: 'com.epam.healenium', name: 'tree-comparing', version: '0.4.8'
     compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.0'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8.1'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
     compile group: 'commons-codec', name: 'commons-codec', version: '1.12'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
     compile group: 'org.jetbrains', name: 'annotations', version: '18.0.0'
