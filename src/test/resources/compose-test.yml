@@ -30,7 +30,7 @@ services:
       - healenium
 
   healenium:
-    image: healenium/hlm-backend:3.0.8
+    image: healenium/hlm-backend:3.0.9
     ports:
       - "7878:7878"
     links:
