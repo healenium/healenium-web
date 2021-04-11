@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,20 +36,20 @@ public class StackUtils {
      *
      * @return
      */
-    public boolean isAnnotationPresent(Class<? extends Annotation> aClass){
+    public boolean isAnnotationPresent(Class<? extends Annotation> aClass) {
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         return findAnnotatedInTrace(trace, aClass).isPresent();
     }
 
-    public Optional<StackTraceElement> findOriginCaller(){
+    public Optional<StackTraceElement> findOriginCaller() {
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         return findOriginCaller(trace);
     }
 
-    public Optional<StackTraceElement> findOriginCaller(StackTraceElement[] elements){
+    public Optional<StackTraceElement> findOriginCaller(StackTraceElement[] elements) {
         List<StackTraceElement> elementList = normalize(elements);
         String callerName = getCallerPackageName(elementList);
-        if(StringUtils.isBlank(callerName)) return Optional.empty();
+        if (StringUtils.isBlank(callerName)) return Optional.empty();
         return elementList.stream()
                 .filter(it -> it.getClassName().startsWith(callerName))
                 .findFirst();
@@ -110,36 +110,38 @@ public class StackUtils {
      */
     private Predicate<StackTraceElement> redundantPackages() {
         return value -> {
-            Stream<String> skippingPackageStream = Stream.of("java.base","sun.reflect", "java.lang", "org.gradle", "org.junit", "java.util", "com.sun", "com.google","jdk.internal","org.openqa");
+            Stream<String> skippingPackageStream = Stream.of("java.base", "sun.reflect", "java.lang", "org.gradle",
+                    "org.junit", "java.util", "com.sun", "com.google", "jdk.internal", "org.openqa", "com.codeborne",
+                    "ru.yandex");
             return skippingPackageStream.noneMatch(s -> value.getClassName().startsWith(s));
         };
     }
 
-    private List<StackTraceElement> normalize(StackTraceElement[] traceElements){
+    private List<StackTraceElement> normalize(StackTraceElement[] traceElements) {
         List<StackTraceElement> elementList = Arrays.stream(traceElements)
                 .filter(redundantPackages())
                 .collect(Collectors.toList());
         Collections.reverse(elementList);
         elementList = StreamEx.of(elementList)
-                .takeWhile(it-> !it.getClassName().equals(BaseHandler.class.getName()))
+                .takeWhile(it -> !it.getClassName().equals(BaseHandler.class.getName()))
                 .toList();
-        return elementList.subList(0, elementList.size() -1);
+        return elementList.subList(0, elementList.size() - 1);
     }
 
-    private String getCallerPackageName(List<StackTraceElement> traceElements){
+    private String getCallerPackageName(List<StackTraceElement> traceElements) {
         String result = "";
-        try{
+        try {
             StackTraceElement element = Iterables.getLast(traceElements);
             String className = element.getClassName();
             int dotPos = lastDotPosition(className);
-            result = element.getClassName().substring(0, Math.max(dotPos,0));
-        } catch (Exception ex){
+            result = element.getClassName().substring(0, Math.max(dotPos, 0));
+        } catch (Exception ex) {
             log.warn("Failed to find caller package name", ex);
         }
         return result;
     }
 
-    private int lastDotPosition(String input){
+    private int lastDotPosition(String input) {
         int dot1 = input.indexOf(".");
         int dot2 = input.indexOf(".", dot1 + 1);
         return Math.max(dot1, dot2);
