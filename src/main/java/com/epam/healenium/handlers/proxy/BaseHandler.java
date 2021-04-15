@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.InvocationHandler;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -72,43 +73,44 @@ public abstract class BaseHandler implements InvocationHandler {
 
     /**
      * Search target element on a page
+     *
      * @param key will be used for checking|saving in cache
      * @return proxy web element
      */
     protected WebElement lookUp(PageAwareBy key) {
         try {
             WebElement element = driver.findElement(key.getBy());
-            engine.savePath(key, element);
+            engine.savePath(key, Collections.singletonList(element));
             return element;
         } catch (NoSuchElementException e) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
+                    key.getBy().toString(), e.getMessage());
             return healingService.heal(key, e).orElseThrow(() -> e);
         }
     }
 
     /**
      * Search target elements on a page
+     *
      * @param key will be used for checking|saving in cache
      * @return proxy web element
      */
     protected List<WebElement> lookUpElements(PageAwareBy key) {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
         try {
-            List<WebElement> elements = driver.findElements(key.getBy());
-            if (elements.isEmpty()) {
-                throw new NoSuchElementException("Failed to find elements");
+            List<WebElement> pageElements = driver.findElements(key.getBy());
+            if (pageElements.isEmpty()) {
+                throw new NoSuchElementException("Failed to find pageElements");
             }
-            for(WebElement element : elements) {
-                engine.savePath(key, element);
-            }
-            return elements;
+            return healingService.saveAndHealElements(key, pageElements, stackTrace);
         } catch (NoSuchElementException e) {
-            log.warn("Failed to find elements using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), e.getMessage());
-            return healingService.healElements(key, e).orElseThrow(() -> e);
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
+                    key.getBy().toString(), e.getMessage());
+            return healingService.healElements(key, stackTrace, e);
         }
     }
 
     /**
-     *
      * @param by
      * @return
      */

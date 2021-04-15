@@ -80,7 +80,7 @@ public class RestClient {
      * Store info in backend
      * @param by
      */
-    public void selectorRequest(By by, StackTraceElement element, List<Node> nodePath) {
+    public void selectorsRequest(By by, StackTraceElement element, List<List<Node>> nodePath) {
         RequestDto requestDto = mapper.buildDto(by, element, nodePath);
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
@@ -128,8 +128,8 @@ public class RestClient {
      * @param element
      * @return
      */
-    public Optional<List<Node>> getLastValidPath(By locator, StackTraceElement element) {
-        List<Node> nodes = null;
+    public Optional<List<List<Node>>> getLastValidPath(By locator, StackTraceElement element) {
+        List<List<Node>> nodes = null;
         RequestDto requestDto = mapper.buildDto(locator, element);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
@@ -145,8 +145,7 @@ public class RestClient {
             Response response = okHttpClient().newCall(request).execute();
             if (response.code() == 200) {
                 String result = response.body().string();
-                nodes = objectMapper.readValue(result, new TypeReference<List<Node>>() {
-                });
+                nodes = objectMapper.readValue(result, new TypeReference<List<List<Node>>>() {});
             }
         } catch (Exception ex) {
             log.warn("Failed to make response", ex);

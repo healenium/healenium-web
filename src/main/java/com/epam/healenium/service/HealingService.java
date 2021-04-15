@@ -23,6 +23,8 @@ public interface HealingService {
 
     Optional<WebElement> heal(PageAwareBy pageBy, NoSuchElementException e);
 
-    Optional<List<WebElement>> healElements(PageAwareBy pageBy, NoSuchElementException e);
+    List<WebElement> healElements(PageAwareBy pageBy, StackTraceElement[] stackTrace, NoSuchElementException e);
 
+    List<WebElement> saveAndHealElements(PageAwareBy pageBy, List<WebElement> pageElements,
+                                         StackTraceElement[] stackTrace);
 }

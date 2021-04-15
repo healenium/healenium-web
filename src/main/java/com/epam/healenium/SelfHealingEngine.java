@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,7 +14,14 @@ package com.epam.healenium;
 
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
-import com.epam.healenium.treecomparing.*;
+import com.epam.healenium.treecomparing.HeuristicNodeDistance;
+import com.epam.healenium.treecomparing.JsoupHTMLParser;
+import com.epam.healenium.treecomparing.LCSPathDistance;
+import com.epam.healenium.treecomparing.Node;
+import com.epam.healenium.treecomparing.NodeBuilder;
+import com.epam.healenium.treecomparing.Path;
+import com.epam.healenium.treecomparing.PathFinder;
+import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.ResourceReader;
 import com.epam.healenium.utils.StackUtils;
 import com.fasterxml.jackson.core.JsonParser;
@@ -35,7 +42,14 @@ import org.openqa.selenium.WebElement;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.healenium.SelectorComponent.*;
@@ -46,15 +60,20 @@ public class SelfHealingEngine {
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
-    private static final String SCRIPT = ResourceReader.readResource("itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
-    private static final Config DEFAULT_CONFIG = ConfigFactory.systemProperties().withFallback(ConfigFactory.load("healenium.properties").withFallback(ConfigFactory.load()));
+    private static final String SCRIPT = ResourceReader.readResource(
+            "itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
+    private static final Config DEFAULT_CONFIG = ConfigFactory.systemProperties().withFallback(
+            ConfigFactory.load("healenium.properties").withFallback(ConfigFactory.load()));
 
-    @Getter private final Config config;
-    @Getter private final WebDriver webDriver;
+    @Getter
+    private final Config config;
+    @Getter
+    private final WebDriver webDriver;
     private final int recoveryTries;
     private final double scoreCap;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
-    @Getter private final RestClient client;
+    @Getter
+    private final RestClient client;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
@@ -82,6 +101,7 @@ public class SelfHealingEngine {
 
     /**
      * Used, when client not override config explicitly
+     *
      * @param delegate
      */
     public SelfHealingEngine(@NotNull WebDriver delegate) {
@@ -91,17 +111,26 @@ public class SelfHealingEngine {
     /**
      * Stores the valid locator state: the element it found and the page.
      *
-     * @param by         the locator
-     * @param webElement the element while it is still accessible by the locator
+     * @param by          the locator
+     * @param webElements the elements while it is still accessible by the locator
      */
-    public void savePath(PageAwareBy by, WebElement webElement) {
-        StackTraceElement traceElement = StackUtils.findOriginCaller(Thread.currentThread().getStackTrace())
-                .orElseThrow(()-> new IllegalArgumentException("Failed to detect origin method caller"));
-        List<Node> nodes = getNodePath(webElement);
-        client.selectorRequest(by.getBy(), traceElement, nodes);
+    public void savePath(PageAwareBy by, List<WebElement> webElements) {
+        savePath(by, webElements, new ArrayList<>());
     }
 
-    private List<Node> getNodePath(WebElement webElement) {
+    /**
+     * Stores the valid locator state: the element it found and the page.
+     *
+     * @param by          the locator
+     * @param nodesToSave the nodes to save
+     * @param webElements the elements while it is still accessible by the locator
+     */
+    public void savePath(PageAwareBy by, List<WebElement> webElements, List<List<Node>> nodesToSave) {
+        webElements.forEach(e -> nodesToSave.add(getNodePath(e)));
+        save(by, Thread.currentThread().getStackTrace(), nodesToSave);
+    }
+
+    public List<Node> getNodePath(WebElement webElement) {
         JavascriptExecutor executor = (JavascriptExecutor) webDriver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();
@@ -123,6 +152,7 @@ public class SelfHealingEngine {
 
     /**
      * Convert raw data to {@code Node}
+     *
      * @param parser - JSON reader
      * @return path node
      * @throws IOException
@@ -149,25 +179,57 @@ public class SelfHealingEngine {
                 .build();
     }
 
-    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
-        return findNewLocations(by, targetPage, StackUtils.findOriginCaller());
-    }
-
     /**
      * @param by         page aware locator
      * @param targetPage the new HTML page source on which we should search for the element
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage, Optional<StackTraceElement> optionalElement) {
+    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage,
+                                             Optional<StackTraceElement> optionalElement) {
         List<Scored<By>> result = new ArrayList<>();
-
-        optionalElement.flatMap(it -> client.getLastValidPath(by.getBy(), it))
-                // ignore empty result, or will fall on search
-                .filter(it-> !it.isEmpty())
+        getLastValidPaths(by, optionalElement)
                 .ifPresent(nodes -> findNearest(nodes.toArray(new Node[0]), targetPage).stream()
                         .map(this::toLocator)
                         .forEach(result::add));
         return result;
+    }
+
+    public List<Scored<By>> findNewLocationsByNodes(List<Node> nodes, String targetPage) {
+        List<Scored<By>> result = new ArrayList<>();
+        findNearest(nodes.toArray(new Node[0]), targetPage).stream()
+                .map(this::toLocator)
+                .forEach(result::add);
+        return result;
+    }
+
+    public List<List<Node>> findNodesToHeal(PageAwareBy pageBy, StackTraceElement[] stackTrace) {
+        Optional<List<List<Node>>> lastValidPath = getLastValidPaths(pageBy, StackUtils.findOriginCaller(stackTrace));
+        List<List<Node>> needToHealElements = new ArrayList<>();
+        lastValidPath.ifPresent(path -> path
+                .forEach(nodes -> {
+                    WebElement element = nodeToElementConverter(nodes.get(nodes.size() - 1));
+                    if (element == null) {
+                        needToHealElements.add(nodes);
+                    }
+                }));
+        return needToHealElements;
+    }
+
+    public void save(PageAwareBy key, StackTraceElement[] stackTrace, List<List<Node>> elementsToSave) {
+        StackTraceElement traceElement = StackUtils.findOriginCaller(stackTrace)
+                .orElseThrow(() -> new IllegalArgumentException("Failed to detect origin method caller"));
+        client.selectorsRequest(key.getBy(), traceElement, new ArrayList<>(elementsToSave));
+    }
+
+    private WebElement nodeToElementConverter(Node node) {
+        for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
+            By locator = construct(node, detailLevel);
+            List<WebElement> elements = webDriver.findElements(locator);
+            if (elements.size() == 1) {
+                return elements.get(0);
+            }
+        }
+        return null;
     }
 
     private Scored<By> toLocator(Scored<Node> node) {
@@ -203,9 +265,15 @@ public class SelfHealingEngine {
         return new JsoupHTMLParser().parse(new ByteArrayInputStream(tree.getBytes(StandardCharsets.UTF_8)));
     }
 
-    public boolean isHealingEnabled(){
+    public boolean isHealingEnabled() {
         boolean isDisabled = StackUtils.isAnnotationPresent(DisableHealing.class);
         return config.getBoolean("heal-enabled") && !isDisabled;
+    }
+
+    private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
+        return optionalElement
+                .flatMap(it -> client.getLastValidPath(key.getBy(), it))
+                .filter(it -> !it.isEmpty());
     }
 
 }
