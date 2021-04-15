@@ -150,6 +150,10 @@ public class SelfHealingEngine {
         return path;
     }
 
+    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
+        return findNewLocations(by, targetPage, StackUtils.findOriginCaller());
+    }
+
     /**
      * Convert raw data to {@code Node}
      *
