@@ -50,6 +50,7 @@ public class StackUtils {
         List<StackTraceElement> elementList = normalize(elements);
         String callerName = getCallerPackageName(elementList);
         if (StringUtils.isBlank(callerName)) return Optional.empty();
+        Collections.reverse(elementList);
         return elementList.stream()
                 .filter(it -> it.getClassName().startsWith(callerName))
                 .findFirst();
