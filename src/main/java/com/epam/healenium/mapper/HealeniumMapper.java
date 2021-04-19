@@ -40,11 +40,10 @@ public interface HealeniumMapper {
         return dto;
     }
 
-    default RequestDto buildDto(By by, StackTraceElement element, List<Node> nodePath){
+    default RequestDto buildDto(By by, StackTraceElement element, List<List<Node>> nodePath){
         RequestDto dto = buildDto(by, element);
         dto.setNodePath(nodePath);
         return dto;
-
     }
 
     default RequestDto buildDto(By by, StackTraceElement element, String page, List<Scored<By>> healingResults, Scored<By> selected, byte[] screenshot){

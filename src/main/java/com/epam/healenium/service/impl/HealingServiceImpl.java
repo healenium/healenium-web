@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,14 +14,23 @@ package com.epam.healenium.service.impl;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.client.RestClient;
 import com.epam.healenium.service.HealingService;
+import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.*;
+import org.jetbrains.annotations.NotNull;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.Augmenter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,13 +48,30 @@ public class HealingServiceImpl implements HealingService {
     public Optional<WebElement> heal(PageAwareBy pageBy, NoSuchElementException ex) {
         // check if already have healed results
 //        RequestDto request = mapper.buildDto(pageBy.getBy(), e.getStackTrace(), pageSource());
-        return healLocator(pageBy, ex.getStackTrace()).map(driver::findElement);
+        return healLocators(pageBy, null, ex.getStackTrace()).map(driver::findElement);
     }
 
-    public Optional<List<WebElement>> healElements(PageAwareBy pageBy, NoSuchElementException ex) {
-        // check if already have healed results
-//        RequestDto request = mapper.buildDto(pageBy.getBy(), e.getStackTrace(), pageSource());
-        return healLocator(pageBy, ex.getStackTrace()).map(driver::findElements);
+    public List<WebElement> healElements(PageAwareBy pageBy, StackTraceElement[] stackTrace, NoSuchElementException ex) {
+        List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
+        List<WebElement> resultWebElements = getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
+        return Optional.of(resultWebElements).orElseThrow(() -> ex);
+    }
+
+    public List<WebElement> saveAndHealElements(PageAwareBy pageBy, List<WebElement> pageElements,
+                                                StackTraceElement[] stackTrace) {
+        List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
+        engine.savePath(pageBy, pageElements, Optional.of(nodesToHeal).orElse(Collections.emptyList()));
+        return getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
+    }
+
+    @NotNull
+    private List<WebElement> getHealedElementsByNodes(PageAwareBy pageBy, StackTraceElement[] stackTrace, List<List<Node>> nodesToHeal) {
+        List<WebElement> resultWebElements = new ArrayList<>();
+        nodesToHeal.forEach(nodes ->
+                healLocators(pageBy, nodes, stackTrace)
+                        .map(driver::findElement)
+                        .ifPresent(resultWebElements::add));
+        return resultWebElements;
     }
 
     /**
@@ -54,13 +80,15 @@ public class HealingServiceImpl implements HealingService {
      * @param trace
      * @return
      */
-    private Optional<By> healLocator(PageAwareBy pageBy, StackTraceElement[] trace) {
+    public Optional<By> healLocators(PageAwareBy pageBy, List<Node> nodes, StackTraceElement[] trace) {
         // collect page content
         String pageContent = pageSource();
         // search target point in stacktrace
         Optional<StackTraceElement> traceElement = StackUtils.findOriginCaller(trace);
         // search for possible healing results
-        List<Scored<By>> choices = engine.findNewLocations(pageBy, pageSource(), traceElement);
+        List<Scored<By>> choices = nodes == null
+                ? engine.findNewLocations(pageBy, pageSource(), traceElement)
+                : engine.findNewLocationsByNodes(nodes, pageSource());
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
@@ -68,14 +96,13 @@ public class HealingServiceImpl implements HealingService {
             Scored<By> healed = result.get();
             log.warn("Using healed locator: {}", result.toString());
             byte[] screenshot = captureScreen(healed);
-            traceElement.ifPresent(it-> {
+            traceElement.ifPresent(it -> {
                 // build request and send it to server
                 engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot);
             });
         }
         return result.map(Scored::getValue);
     }
-
 
     /**
      * Create screenshot of healed element

@@ -15,6 +15,7 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class WebElementProxyHandler extends BaseHandler {
     protected WebElement lookUp(PageAwareBy key) {
         try {
             WebElement element = delegate.findElement(key.getBy());
-            engine.savePath(key, element);
+            engine.savePath(key, Collections.singletonList(element));
             return element;
         } catch (NoSuchElementException ex) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), ex.getMessage());

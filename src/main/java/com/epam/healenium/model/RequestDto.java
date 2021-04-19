@@ -31,7 +31,7 @@ public class RequestDto {
     // page where search was performed
     private String pageContent;
     // searched element path
-    private List<Node> nodePath = Collections.emptyList();
+    private List<List<Node>> nodePath = Collections.emptyList();
     // healed selectors
     private List<HealingResultDto> results;
     // used selector for healing
