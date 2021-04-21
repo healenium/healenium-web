@@ -12,7 +12,8 @@
  */
 package com.epam.healenium.utils;
 
-import com.epam.healenium.handlers.proxy.BaseHandler;
+import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
+import com.epam.healenium.handlers.proxy.WebElementProxyHandler;
 import com.google.common.collect.Iterables;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -124,9 +125,10 @@ public class StackUtils {
                 .collect(Collectors.toList());
         Collections.reverse(elementList);
         elementList = StreamEx.of(elementList)
-                .takeWhile(it -> !it.getClassName().equals(BaseHandler.class.getName()))
+                .takeWhile(it -> !(it.getClassName().equals(SelfHealingProxyInvocationHandler.class.getName())
+                        || it.getClassName().equals(WebElementProxyHandler.class.getName())))
                 .toList();
-        return elementList.subList(0, elementList.size() - 1);
+        return elementList.subList(0, elementList.size());
     }
 
     private String getCallerPackageName(List<StackTraceElement> traceElements) {
