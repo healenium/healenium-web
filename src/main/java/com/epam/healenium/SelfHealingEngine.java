@@ -192,7 +192,7 @@ public class SelfHealingEngine {
                                              Optional<StackTraceElement> optionalElement) {
         List<Scored<By>> result = new ArrayList<>();
         getLastValidPaths(by, optionalElement)
-                .ifPresent(nodes -> findNearest(nodes.toArray(new Node[0]), targetPage).stream()
+                .ifPresent(nodes -> findNearest(nodes.get(0).toArray(new Node[0]), targetPage).stream()
                         .map(this::toLocator)
                         .forEach(result::add));
         return result;
