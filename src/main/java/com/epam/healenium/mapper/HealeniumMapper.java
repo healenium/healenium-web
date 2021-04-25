@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public interface HealeniumMapper {
 
     default RequestDto buildDto(By by, StackTraceElement element){
-        String[] locatorParts = by.toString().split(":");
+        String[] locatorParts = by.toString().split(":", 2);
         RequestDto dto = new RequestDto()
                 .setLocator(locatorParts[1].trim())
                 .setType(locatorParts[0].trim());
@@ -64,7 +64,7 @@ public interface HealeniumMapper {
     }
 
     default Locator byToLocator(By by){
-        String[] locatorParts = by.toString().split(":");
+        String[] locatorParts = by.toString().split(":", 2);
         return new Locator(locatorParts[1].trim(), locatorParts[0].trim());
     }
 
