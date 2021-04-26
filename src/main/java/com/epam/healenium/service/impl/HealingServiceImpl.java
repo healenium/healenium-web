@@ -52,25 +52,25 @@ public class HealingServiceImpl implements HealingService {
     }
 
     public List<WebElement> healElements(PageAwareBy pageBy, StackTraceElement[] stackTrace, NoSuchElementException ex) {
-        List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
+        Optional<List<List<Node>>> nodesToHeal = engine.getLastValidPaths(pageBy, StackUtils.findOriginCaller(stackTrace));
         List<WebElement> resultWebElements = getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
         return Optional.of(resultWebElements).orElseThrow(() -> ex);
     }
 
     public List<WebElement> saveAndHealElements(PageAwareBy pageBy, List<WebElement> pageElements,
                                                 StackTraceElement[] stackTrace) {
-        List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
-        engine.savePath(pageBy, pageElements, Optional.of(nodesToHeal).orElse(Collections.emptyList()));
+        Optional<List<List<Node>>> nodesToHeal = engine.findNodesToHeal(pageBy, pageElements, stackTrace);
+        engine.savePath(pageBy, pageElements, nodesToHeal.orElse(Collections.emptyList()));
         return getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
     }
 
-    @NotNull
-    private List<WebElement> getHealedElementsByNodes(PageAwareBy pageBy, StackTraceElement[] stackTrace, List<List<Node>> nodesToHeal) {
+    private List<WebElement> getHealedElementsByNodes(PageAwareBy pageBy, StackTraceElement[] stackTrace,
+                                                      Optional<List<List<Node>>> nodesToHeal) {
         List<WebElement> resultWebElements = new ArrayList<>();
-        nodesToHeal.forEach(nodes ->
+        nodesToHeal.ifPresent(n -> n.forEach(nodes ->
                 healLocators(pageBy, nodes, stackTrace)
                         .map(driver::findElement)
-                        .ifPresent(resultWebElements::add));
+                        .ifPresent(resultWebElements::add)));
         return resultWebElements;
     }
 

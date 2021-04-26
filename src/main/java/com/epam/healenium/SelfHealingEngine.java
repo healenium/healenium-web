@@ -38,6 +38,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -122,11 +123,12 @@ public class SelfHealingEngine {
      * Stores the valid locator state: the element it found and the page.
      *
      * @param by          the locator
-     * @param nodesToSave the nodes to save
-     * @param webElements the elements while it is still accessible by the locator
+     * @param nodesToHeal the nodes to save
+     * @param pageElements the elements while it is still accessible by the locator
      */
-    public void savePath(PageAwareBy by, List<WebElement> webElements, List<List<Node>> nodesToSave) {
-        webElements.forEach(e -> nodesToSave.add(getNodePath(e)));
+    public void savePath(PageAwareBy by, List<WebElement> pageElements, List<List<Node>> nodesToHeal) {
+        List<List<Node>> nodesToSave = new ArrayList<>(nodesToHeal);
+        pageElements.forEach(e -> nodesToSave.add(getNodePath(e)));
         save(by, Thread.currentThread().getStackTrace(), nodesToSave);
     }
 
@@ -206,17 +208,21 @@ public class SelfHealingEngine {
         return result;
     }
 
-    public List<List<Node>> findNodesToHeal(PageAwareBy pageBy, StackTraceElement[] stackTrace) {
+    public Optional<List<List<Node>>> findNodesToHeal(PageAwareBy pageBy, List<WebElement> pageElements,
+                                                      StackTraceElement[] stackTrace) {
         Optional<List<List<Node>>> lastValidPath = getLastValidPaths(pageBy, StackUtils.findOriginCaller(stackTrace));
+        List<String> elementIds = pageElements.stream()
+                .map(e -> ((RemoteWebElement) e).getId())
+                .collect(Collectors.toList());
         List<List<Node>> needToHealElements = new ArrayList<>();
         lastValidPath.ifPresent(path -> path
                 .forEach(nodes -> {
                     WebElement element = nodeToElementConverter(nodes.get(nodes.size() - 1));
-                    if (element == null) {
+                    if (element == null || !elementIds.contains(((RemoteWebElement) element).getId())) {
                         needToHealElements.add(nodes);
                     }
                 }));
-        return needToHealElements;
+        return Optional.of(needToHealElements);
     }
 
     public void save(PageAwareBy key, StackTraceElement[] stackTrace, List<List<Node>> elementsToSave) {
@@ -274,7 +280,7 @@ public class SelfHealingEngine {
         return config.getBoolean("heal-enabled") && !isDisabled;
     }
 
-    private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
+    public Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
         return optionalElement
                 .flatMap(it -> client.getLastValidPath(key.getBy(), it))
                 .filter(it -> !it.isEmpty());
