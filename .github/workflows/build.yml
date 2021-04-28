@@ -33,7 +33,5 @@ jobs:
         && sudo mv chromedriver /usr/local/bin/chromedriver \
         && sudo chmod +x /usr/local/bin/chromedriver \
         && chromedriver --version
-    - name: Build with Gradle
-      run: ./gradlew clean build --refresh-dependencies
-    - name: coveralls-report
-      run: ./gradlew jacocoTestReport coveralls 
+    - name: Build with Maven & coveralls-report
+      run: mvn clean install jacoco:report coveralls:report

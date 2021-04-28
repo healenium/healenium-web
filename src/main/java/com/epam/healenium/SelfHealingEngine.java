@@ -102,7 +102,7 @@ public class SelfHealingEngine {
     /**
      * Used, when client not override config explicitly
      *
-     * @param delegate
+     * @param delegate webdriver
      */
     public SelfHealingEngine(@NotNull WebDriver delegate) {
         this(delegate, DEFAULT_CONFIG);
@@ -186,6 +186,7 @@ public class SelfHealingEngine {
     /**
      * @param by         page aware locator
      * @param targetPage the new HTML page source on which we should search for the element
+     * @param optionalElement StackTraceElement
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
     public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage,

@@ -31,10 +31,8 @@ jobs:
         && tar xzf geckodriver-v0.26.0-linux64.tar.gz\
         && sudo mv geckodriver /usr/local/bin/geckodriver\
         && sudo chmod +x /usr/local/bin/geckodriver
-    - name: Build with Gradle
-      run: ./gradlew build
-    - name: coveralls-report
-      run: ./gradlew jacocoTestReport coveralls 
+    - name: Build with Maven & coveralls-report
+      run: mvn clean install jacoco:report coveralls:report
   publish:
     needs: test
     runs-on: ubuntu-latest
@@ -53,7 +51,8 @@ jobs:
         run: |
           echo $RELEASE_VERSION
           echo ${{ steps.vars.outputs.tag }}
-      - name: Build with Gradle
-        run: ./gradlew build -x test -Pversion=${{ steps.vars.outputs.tag }}
+      - name: Build with Maven
+        run: mvn versions:set -DgenerateBackupPoms=false -DnewVersion=${{ steps.vars.outputs.tag }}
       - name: bintray upload
-        run: ./gradlew -Pversion=${{ steps.vars.outputs.tag }} -PBINTRAY_USERNAME=${{ secrets.BINTRAY_USERNAME }} -PBINTRAY_PASSWORD=${{ secrets.BINTRAY_PASSWORD }} bintrayUpload javadoc --info --stacktrace
+        run: mvn clean deploy
+#        run: ./gradlew -Pversion=${{ steps.vars.outputs.tag }} -PBINTRAY_USERNAME=${{ secrets.BINTRAY_USERNAME }} -PBINTRAY_PASSWORD=${{ secrets.BINTRAY_PASSWORD }} bintrayUpload javadoc --info --stacktrace

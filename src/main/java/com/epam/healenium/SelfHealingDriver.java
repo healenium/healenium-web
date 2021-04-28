@@ -28,6 +28,7 @@ public interface SelfHealingDriver extends WebDriver {
      *
      * @param delegate the original driver, like {@link org.openqa.selenium.chrome.ChromeDriver}, {@link
      *                 org.openqa.selenium.firefox.FirefoxDriver}, etc.
+     * @return SelfHealingDriver instance
      */
     static SelfHealingDriver create(WebDriver delegate) {
         return create(new SelfHealingEngine(delegate));
