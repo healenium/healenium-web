@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.0.3-beta-7</version>
+    <version>3.0.3-beta-8</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -67,7 +67,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <typesafe.version>1.3.4</typesafe.version>
-        <treecomparing.version>0.4.8</treecomparing.version>
+        <treecomparing.version>0.4.9</treecomparing.version>
         <selenium.version>3.141.59</selenium.version>
         <jacksondatabind.version>2.10.0</jacksondatabind.version>
         <commonslang3.version>3.11</commonslang3.version>
@@ -233,12 +233,13 @@
             <version>${typesafe.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.epam.healenium/tree-comparing -->
         <dependency>
             <groupId>com.epam.healenium</groupId>
             <artifactId>tree-comparing</artifactId>
             <version>${treecomparing.version}</version>
-            <scope>compile</scope>
         </dependency>
+
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
