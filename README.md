@@ -1,8 +1,6 @@
 # healenium-web
 Self-healing library for Selenium Web-based tests
 
-
-[ ![Download](https://api.bintray.com/packages/epam/healenium/healenium-web/images/download.svg) ](https://bintray.com/epam/healenium/healenium-web/_latestVersion)
 [![Coverage Status](https://coveralls.io/repos/github/healenium/healenium-web/badge.svg)](https://coveralls.io/github/healenium/healenium-web)
 [![Build Status](https://github.com/healenium/healenium-web/workflows/Java-CI-test/badge.svg)](https://github.com/healenium/healenium-web/workflows/Java-CI-test/badge.svg)
 
@@ -14,34 +12,17 @@ Self-healing library for Selenium Web-based tests
 
 for Gradle projects:
 ``` 
-repositories {
-    maven {
-        url  "https://dl.bintray.com/epam/healenium"
-    }
-    mavenCentral()
-}
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0.2'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0.3-beta-8'
 }
 ```
 
 for Maven projects:
 ``` 
-<repositories>
-     <repository>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>
-        <id>bintray-epam-healenium</id>
-        <name>bintray</name>
-        <url>https://dl.bintray.com/epam/healenium</url>
-     </repository>
-</repositories>
-
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.0.2</version>
+	<version>3.0.3-beta-8</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
