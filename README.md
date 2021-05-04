@@ -109,34 +109,4 @@ Also you could set configs via -D or System properties, for example to turn off 
 
 2. Locating elements
 Simply use standard By/@FindBy to locate your elements
-![#f03c15](https://placehold.it/15/f03c15/000000?text=+) From version **2.0.2** Healium supports either standart **By/@FindBy** or **PageAwareBy/@PageAwareFindBy** usage for healing.
-
-![#1589F0](https://placehold.it/15/1589F0/000000?text=+) In **2.0.1** and earlier healing will work only for elements that are declared using **PageAwareBy/@PageAwareFindBy**
-
-Using PageAwareBy.by instead of By to locate your elements in 2.0.1 and earlier
-```By buttonBy = PageAwareBy.by("MainPage", By.id(testButtonId));```
-
-* where the first argument "MainPage" is the name of the page to which the WebElement belongs.
-
-Then you can simply call findElement() method as usual
-``` driver.findElement(buttonBy).click(); ```
-
-Or use the shorter form
-```driver.findElement(PageAwareBy.by("MainPage", By.id(testButtonId))).click();```
-
-Using @PageAwareFindBy instead of @FindBy to locate your elements in 2.0.1 and earlier
-
-```
-    @PageAwareFindBy(page="MainPage", findBy = @FindBy(id = "markup-generation-button"))
-    WebElement testButtonId;
-```
-
-or not declaring the page. In this case page name will be set by default with the class name in which the locator is declared.
-
- ```
-    @PageAwareFindBy(findBy = @FindBy(id = "markup-generation-button"))
-    WebElement testButtonId;
- ```
-
-To refactor your project fast you could use Idea hotkeys cmd+shift+r and perform replacement
 
