@@ -34,8 +34,8 @@ import java.util.stream.Stream;
 public class StackUtils {
 
     /**
-     *
-     * @return
+     * @param aClass annotation class
+     * @return true of false
      */
     public boolean isAnnotationPresent(Class<? extends Annotation> aClass) {
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
@@ -59,9 +59,9 @@ public class StackUtils {
 
     /**
      *
-     * @param elements
-     * @param targetClass
-     * @return
+     * @param elements list of StackTraceElements
+     * @param targetClass targetClass
+     * @return StackTraceElement
      */
     public Optional<StackTraceElement> getElementByClass(StackTraceElement[] elements, String targetClass) {
         return Arrays.stream(elements)

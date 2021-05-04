@@ -76,9 +76,10 @@ public class HealingServiceImpl implements HealingService {
 
     /**
      *
-     * @param pageBy
-     * @param trace
-     * @return
+     * @param pageBy PageAwareBy class
+     * @param trace list of StackTraceElements
+     * @param nodes list of nodes
+     * @return By locator
      */
     public Optional<By> healLocators(PageAwareBy pageBy, List<Node> nodes, StackTraceElement[] trace) {
         // collect page content

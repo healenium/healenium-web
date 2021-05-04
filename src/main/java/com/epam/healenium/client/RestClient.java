@@ -78,7 +78,9 @@ public class RestClient {
 
     /**
      * Store info in backend
-     * @param by
+     * @param by element By locator
+     * @param nodePath List of nodes
+     * @param element StackTraceElement
      */
     public void selectorsRequest(By by, StackTraceElement element, List<List<Node>> nodePath) {
         RequestDto requestDto = mapper.buildDto(by, element, nodePath);
@@ -96,10 +98,12 @@ public class RestClient {
 
     /**
      * Collect results from previous healing
-     * @param locator
-     * @param element
-     * @param page
-     * @return
+     * @param locator By locator
+     * @param element StackTraceElement
+     * @param page pageObject name
+     * @param choices scored By locators
+     * @param healed newly healed locator
+     * @param screenshot image with healed element
      */
     public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices, Scored<By> healed, byte[] screenshot) {
         RequestDto requestDto = mapper.buildDto(locator, element, page, choices, healed, screenshot);
@@ -124,9 +128,9 @@ public class RestClient {
 
     /**
      * Get node path for given selector
-     * @param locator
-     * @param element
-     * @return
+     * @param locator element By locator
+     * @param element StackTraceElement
+     * @return nodes
      */
     public Optional<List<List<Node>>> getLastValidPath(By locator, StackTraceElement element) {
         List<List<Node>> nodes = null;

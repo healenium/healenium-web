@@ -111,8 +111,8 @@ public abstract class BaseHandler implements InvocationHandler {
     }
 
     /**
-     * @param by
-     * @return
+     * @param by locator
+     * @return PageAwareBy element
      */
     protected PageAwareBy awareBy(By by) {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(driver.getTitle(), by);
