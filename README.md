@@ -52,13 +52,21 @@ Also you can set this value via -D or System properties, for example to turn off
  > serverPort - port on which hlm-backend instance is installed (7878 by default)
 
 ### 3. Simply use standard By/@FindBy to locate your elements
-To disable healing for some element you can use @DisableHealing annotation over the method where element is called
+```
+@FindBy(xpath = "//button[@type='submit']")
+private WebElement testButton;
+...
+public void clickTestButton() {
+     driver.findElement(By.cssSelector(".test-button")).click();
+}
+```
+### 4. To disable healing for some element you can use @DisableHealing annotation over the method where element is called
 ```
 @DisableHealing
 public void clickTestButton() {
      testButton.click();
 }
 ```
-### 4. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
-### 5. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
-### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
+### 6. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
+### 7. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
