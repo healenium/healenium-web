@@ -52,7 +52,6 @@ jobs:
           echo $RELEASE_VERSION
           echo ${{ steps.vars.outputs.tag }}
       - name: Build with Maven
-        run: mvn versions:set -DgenerateBackupPoms=false -DnewVersion=${{ steps.vars.outputs.tag }}
-      - name: bintray upload
-        run: mvn clean deploy
-#        run: ./gradlew -Pversion=${{ steps.vars.outputs.tag }} -PBINTRAY_USERNAME=${{ secrets.BINTRAY_USERNAME }} -PBINTRAY_PASSWORD=${{ secrets.BINTRAY_PASSWORD }} bintrayUpload javadoc --info --stacktrace
+        run: mvn clean install -DskipTests versions:set -DgenerateBackupPoms=false -DnewVersion=${{ steps.vars.outputs.tag }}
+      - name: Maven upload
+        run: mvn clean deploy -P sign-artifacts
