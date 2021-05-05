@@ -19,7 +19,6 @@ import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
@@ -33,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class HealingServiceImpl implements HealingService {
@@ -61,7 +62,8 @@ public class HealingServiceImpl implements HealingService {
                                                 StackTraceElement[] stackTrace) {
         Optional<List<List<Node>>> nodesToHeal = engine.findNodesToHeal(pageBy, pageElements, stackTrace);
         engine.savePath(pageBy, pageElements, nodesToHeal.orElse(Collections.emptyList()));
-        return getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
+        return Stream.concat(pageElements.stream(), getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal).stream())
+                .collect(Collectors.toList());
     }
 
     private List<WebElement> getHealedElementsByNodes(PageAwareBy pageBy, StackTraceElement[] stackTrace,
