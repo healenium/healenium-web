@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class HealingServiceImpl implements HealingService {
@@ -61,7 +63,8 @@ public class HealingServiceImpl implements HealingService {
                                                 StackTraceElement[] stackTrace) {
         List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
         engine.savePath(pageBy, pageElements, Optional.of(nodesToHeal).orElse(Collections.emptyList()));
-        return getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
+        return Stream.concat(pageElements.stream(), getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal).stream())
+                .collect(Collectors.toList());
     }
 
     @NotNull
