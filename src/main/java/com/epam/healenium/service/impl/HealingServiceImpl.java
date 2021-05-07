@@ -93,6 +93,7 @@ public class HealingServiceImpl implements HealingService {
         List<Scored<By>> choices = nodes == null
                 ? engine.findNewLocations(pageBy, pageSource(), traceElement)
                 : engine.findNewLocationsByNodes(nodes, pageSource());
+        String healingTime = engine.getHealingTime();
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
@@ -102,7 +103,7 @@ public class HealingServiceImpl implements HealingService {
             byte[] screenshot = captureScreen(healed);
             traceElement.ifPresent(it -> {
                 // build request and send it to server
-                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot);
+                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot, healingTime);
             });
         }
         return result.map(Scored::getValue);

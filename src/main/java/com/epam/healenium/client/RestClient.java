@@ -104,8 +104,10 @@ public class RestClient {
      * @param choices scored By locators
      * @param healed newly healed locator
      * @param screenshot image with healed element
+     * @param healingTime healing time
      */
-    public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices, Scored<By> healed, byte[] screenshot) {
+    public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices,
+                            Scored<By> healed, byte[] screenshot, String healingTime) {
         RequestDto requestDto = mapper.buildDto(locator, element, page, choices, healed, screenshot);
         try {
             RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -115,8 +117,8 @@ public class RestClient {
 
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
-                    .addHeader("instance", SystemUtils.getHostIpAddress())
                     .addHeader("hostProject", SystemUtils.getHostProjectName())
+                    .addHeader("healingTime", healingTime)
                     .url(baseUrl + "/healing")
                     .post(requestBody)
                     .build();
