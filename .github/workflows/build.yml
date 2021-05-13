@@ -31,5 +31,5 @@ jobs:
         && sudo mv chromedriver /usr/local/bin/chromedriver \
         && sudo chmod +x /usr/local/bin/chromedriver \
         && chromedriver --version
-    - name: maven build & coveralls-report
-      run: mvn clean install jacoco:report coveralls:report
+    - name: maven test
+      run: mvn clean install

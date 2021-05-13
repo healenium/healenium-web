@@ -18,6 +18,7 @@ import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.SelfHealingEngine;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ public class HealTurnedOffTest extends AbstractBackendIT {
 
     @BeforeEach
     public void createDriver() {
+        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);

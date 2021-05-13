@@ -13,6 +13,7 @@
 package com.epam.healenium.driver;
 
 import com.epam.healenium.SelfHealingDriver;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -20,6 +21,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 public class InitDriver {
 
     public static SelfHealingDriver getDriver(){
+        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);
