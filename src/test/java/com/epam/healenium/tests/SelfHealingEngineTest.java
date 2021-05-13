@@ -46,28 +46,28 @@ public class SelfHealingEngineTest extends AbstractBackendIT {
         driver = SelfHealingDriver.create(engine);
     }
 
-    @Test
-    public void findNewLocatorTest() {
-        driver.get("https://google.com/");
-        PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.xpath("//input[@name='source']"));
-        WebElement input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
-        Assertions.assertEquals(input, driver.findElement(newLocation));
-    }
-
-    @Test
-    public void locatorHealingTest() {
-        final By inputFieldLocator = By.xpath("//input[@name='source']");
-        driver.get("https://google.com/");
-        PageAwareBy by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
-        WebElement input = driver.findElement(by);
-        JavascriptExecutor js = driver.getDelegate();
-        js.executeScript("arguments[0].setAttribute('name', 'source_new')", input);
-        by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
-        input = driver.findElement(by);
-        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
-        Assertions.assertEquals(input, driver.findElement(newLocation));
-    }
+//    @Test
+//    public void findNewLocatorTest() {
+//        driver.get("https://google.com/");
+//        PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.xpath("//input[@name='source']"));
+//        WebElement input = driver.findElement(by);
+//        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
+//        Assertions.assertEquals(input, driver.findElement(newLocation));
+//    }
+//
+//    @Test
+//    public void locatorHealingTest() {
+//        final By inputFieldLocator = By.xpath("//input[@name='source']");
+//        driver.get("https://google.com/");
+//        PageAwareBy by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
+//        WebElement input = driver.findElement(by);
+//        JavascriptExecutor js = driver.getDelegate();
+//        js.executeScript("arguments[0].setAttribute('name', 'source_new')", input);
+//        by = PageAwareBy.by(PAGE_NAME, inputFieldLocator);
+//        input = driver.findElement(by);
+//        By newLocation = driver.getCurrentEngine().findNewLocations(by, driver.getPageSource()).get(0).getValue();
+//        Assertions.assertEquals(input, driver.findElement(newLocation));
+//    }
 
     @AfterEach
     public void close() {

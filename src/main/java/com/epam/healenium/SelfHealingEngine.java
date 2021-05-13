@@ -74,6 +74,8 @@ public class SelfHealingEngine {
     private final List<Set<SelectorComponent>> selectorDetailLevels;
     @Getter
     private final RestClient client;
+    @Getter
+    private String healingTime;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
@@ -184,8 +186,8 @@ public class SelfHealingEngine {
     }
 
     /**
-     * @param by         page aware locator
-     * @param targetPage the new HTML page source on which we should search for the element
+     * @param by              page aware locator
+     * @param targetPage      the new HTML page source on which we should search for the element
      * @param optionalElement StackTraceElement
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
@@ -261,9 +263,12 @@ public class SelfHealingEngine {
      * @return a list of nodes which are the candidates to be the searched element, ordered by relevance descending.
      */
     private List<Scored<Node>> findNearest(Node[] nodePath, String destinationTree) {
+        final long then = System.currentTimeMillis();
         Node destination = parseTree(destinationTree);
         PathFinder pathFinder = new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
-        return pathFinder.find(new Path(nodePath), destination, recoveryTries, scoreCap);
+        List<Scored<Node>> scoreds = pathFinder.find(new Path(nodePath), destination, recoveryTries, scoreCap);
+        healingTime = String.valueOf((System.currentTimeMillis() - then) / 1000.0);
+        return scoreds;
     }
 
     private Node parseTree(String tree) {
