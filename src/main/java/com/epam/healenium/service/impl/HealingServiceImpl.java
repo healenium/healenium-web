@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class HealingServiceImpl implements HealingService {
@@ -61,7 +63,8 @@ public class HealingServiceImpl implements HealingService {
                                                 StackTraceElement[] stackTrace) {
         List<List<Node>> nodesToHeal = engine.findNodesToHeal(pageBy, stackTrace);
         engine.savePath(pageBy, pageElements, Optional.of(nodesToHeal).orElse(Collections.emptyList()));
-        return getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal);
+        return Stream.concat(pageElements.stream(), getHealedElementsByNodes(pageBy, stackTrace, nodesToHeal).stream())
+                .collect(Collectors.toList());
     }
 
     @NotNull
@@ -90,6 +93,7 @@ public class HealingServiceImpl implements HealingService {
         List<Scored<By>> choices = nodes == null
                 ? engine.findNewLocations(pageBy, pageSource(), traceElement)
                 : engine.findNewLocationsByNodes(nodes, pageSource());
+        String healingTime = engine.getHealingTime();
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
@@ -99,7 +103,7 @@ public class HealingServiceImpl implements HealingService {
             byte[] screenshot = captureScreen(healed);
             traceElement.ifPresent(it -> {
                 // build request and send it to server
-                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot);
+                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot, healingTime);
             });
         }
         return result.map(Scored::getValue);
