@@ -54,4 +54,4 @@ jobs:
       - name: Build with Maven
         run: mvn clean install -DskipTests versions:set -DgenerateBackupPoms=false -DnewVersion=${{ steps.vars.outputs.tag }}
       - name: Maven upload
-        run: mvn deploy -P sign-artifacts
+        run: mvn deploy -DskipTests -P sign-artifacts
