@@ -13,7 +13,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.0.3-beta-8'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.1'
 }
 ```
 
@@ -22,7 +22,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.0.3-beta-8</version>
+	<version>3.1</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
@@ -60,11 +60,16 @@ public void clickTestButton() {
      driver.findElement(By.cssSelector(".test-button")).click();
 }
 ```
-### 4. To disable healing for some element you can use @DisableHealing annotation over the method where element is called
+### 4. To disable healing for some element you can use @DisableHealing annotation over the method where element is called. Ex: If you want to verify that element is not present on the page.
 ```
 @DisableHealing
-public void clickTestButton() {
-     testButton.click();
+public boolean isButtonPresent() {
+    try {
+        driver.findElement(By.cssSelector(".test-button"));
+    } catch (NoSuchElementException e) {
+        return false;
+    }
+    return true;
 }
 ```
 ### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
