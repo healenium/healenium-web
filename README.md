@@ -65,11 +65,10 @@ public void clickTestButton() {
 @DisableHealing
 public boolean isButtonPresent() {
     try {
-        driver.findElement(By.cssSelector(".test-button"));
+        return driver.findElement(By.cssSelector(".test-button")).isDisplayed();
     } catch (NoSuchElementException e) {
         return false;
     }
-    return true;
 }
 ```
 ### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
