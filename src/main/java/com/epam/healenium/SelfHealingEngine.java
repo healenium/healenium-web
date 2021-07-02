@@ -14,6 +14,9 @@ package com.epam.healenium;
 
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
+import com.epam.healenium.model.HealingCandidateDto;
+import com.epam.healenium.model.LastHealingDataDto;
+import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.treecomparing.HeuristicNodeDistance;
 import com.epam.healenium.treecomparing.JsoupHTMLParser;
 import com.epam.healenium.treecomparing.LCSPathDistance;
@@ -50,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.AbstractMap;
 import java.util.stream.Collectors;
 
 import static com.epam.healenium.SelectorComponent.*;
@@ -152,10 +156,6 @@ public class SelfHealingEngine {
         return path;
     }
 
-    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage) {
-        return findNewLocations(by, targetPage, StackUtils.findOriginCaller());
-    }
-
     /**
      * Convert raw data to {@code Node}
      *
@@ -186,24 +186,21 @@ public class SelfHealingEngine {
     }
 
     /**
-     * @param by              page aware locator
      * @param targetPage      the new HTML page source on which we should search for the element
-     * @param optionalElement StackTraceElement
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    public List<Scored<By>> findNewLocations(PageAwareBy by, String targetPage,
-                                             Optional<StackTraceElement> optionalElement) {
+    public List<Scored<By>> findNewLocations(String targetPage, Optional<List<List<Node>>> optionalPaths, MetricsDto metricsDto) {
         List<Scored<By>> result = new ArrayList<>();
-        getLastValidPaths(by, optionalElement)
-                .ifPresent(nodes -> findNearest(nodes.get(0).toArray(new Node[0]), targetPage).stream()
+        optionalPaths
+                .ifPresent(nodes -> findNearest(nodes.get(0).toArray(new Node[0]), targetPage, metricsDto).stream()
                         .map(this::toLocator)
                         .forEach(result::add));
         return result;
     }
 
-    public List<Scored<By>> findNewLocationsByNodes(List<Node> nodes, String targetPage) {
+    public List<Scored<By>> findNewLocationsByNodes(List<Node> nodes, String targetPage, MetricsDto metricsDto) {
         List<Scored<By>> result = new ArrayList<>();
-        findNearest(nodes.toArray(new Node[0]), targetPage).stream()
+        findNearest(nodes.toArray(new Node[0]), targetPage, metricsDto).stream()
                 .map(this::toLocator)
                 .forEach(result::add);
         return result;
@@ -262,13 +259,35 @@ public class SelfHealingEngine {
      * @param destinationTree the HTML code of the current page
      * @return a list of nodes which are the candidates to be the searched element, ordered by relevance descending.
      */
-    private List<Scored<Node>> findNearest(Node[] nodePath, String destinationTree) {
+    private List<Scored<Node>> findNearest(Node[] nodePath, String destinationTree, MetricsDto metricsDto) {
         final long then = System.currentTimeMillis();
         Node destination = parseTree(destinationTree);
         PathFinder pathFinder = new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
-        List<Scored<Node>> scoreds = pathFinder.find(new Path(nodePath), destination, recoveryTries, scoreCap);
+        AbstractMap.SimpleImmutableEntry<Integer, Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> scoresToNodes =
+                pathFinder.findScoresToNodes(new Path(nodePath), destination);
+        List<Scored<Node>> scoreds = pathFinder.getSortedNodes(scoresToNodes.getValue(), recoveryTries, scoreCap);
         healingTime = String.valueOf((System.currentTimeMillis() - then) / 1000.0);
+        collectMetrics(nodePath, scoresToNodes, scoreds, metricsDto);
         return scoreds;
+    }
+
+    private void collectMetrics(Node[] nodePath, AbstractMap.SimpleImmutableEntry<Integer, Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> curPathHeightToScores,
+                                List<Scored<Node>> scoreds, MetricsDto metricsDto) {
+        Integer curPathHeight = curPathHeightToScores.getKey();
+        Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>> scoresToNodes = curPathHeightToScores.getValue();
+        List<HealingCandidateDto> allHealingCandidates = scoresToNodes.keySet().stream()
+                .flatMap(score -> scoresToNodes.get(score).stream()
+                        .map(it -> new HealingCandidateDto(score, it.getValue(), curPathHeight, it.getKey())))
+                .collect(Collectors.toList());
+        HealingCandidateDto mainHealingCandidate = allHealingCandidates.stream()
+                .filter(candidate -> candidate.getScore().equals(scoreds.get(0).getScore())
+                        && candidate.getNode().equals(scoreds.get(0).getValue()))
+                .findFirst()
+                .orElse(null);
+        allHealingCandidates.remove(mainHealingCandidate);
+        metricsDto.setTargetNode(new Path(nodePath).getLastNode())
+                .setMainHealingCandidate(mainHealingCandidate)
+                .setOtherHealingCandidates(allHealingCandidates);
     }
 
     private Node parseTree(String tree) {
@@ -282,7 +301,8 @@ public class SelfHealingEngine {
 
     private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
         return optionalElement
-                .flatMap(it -> client.getLastValidPath(key.getBy(), it))
+                .map(it -> client.getLastHealingData(key.getBy(), it))
+                .flatMap(dto -> dto.map(LastHealingDataDto::getPaths))
                 .filter(it -> !it.isEmpty());
     }
 

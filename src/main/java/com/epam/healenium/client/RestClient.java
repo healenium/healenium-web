@@ -16,6 +16,8 @@ import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.mapper.HealeniumMapperImpl;
+import com.epam.healenium.model.LastHealingDataDto;
+import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
@@ -105,14 +107,16 @@ public class RestClient {
      * @param healed newly healed locator
      * @param screenshot image with healed element
      * @param healingTime healing time
+     * @param metricsDto
      */
     public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices,
-                            Scored<By> healed, byte[] screenshot, String healingTime) {
+                            Scored<By> healed, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
         RequestDto requestDto = mapper.buildDto(locator, element, page, choices, healed, screenshot);
         try {
             RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                     .addFormDataPart("screenshot", buildScreenshotName(), RequestBody.create(MediaType.parse("image/png"), screenshot))
                     .addFormDataPart("dto", objectMapper.writeValueAsString(requestDto))
+                    .addFormDataPart("metrics", objectMapper.writeValueAsString(metricsDto))
                     .build();
 
             Request request = new Request.Builder()
@@ -134,8 +138,8 @@ public class RestClient {
      * @param element StackTraceElement
      * @return nodes
      */
-    public Optional<List<List<Node>>> getLastValidPath(By locator, StackTraceElement element) {
-        List<List<Node>> nodes = null;
+    public Optional<LastHealingDataDto> getLastHealingData(By locator, StackTraceElement element) {
+        LastHealingDataDto lastHealingDataDto = null;
         RequestDto requestDto = mapper.buildDto(locator, element);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
@@ -151,12 +155,12 @@ public class RestClient {
             Response response = okHttpClient().newCall(request).execute();
             if (response.code() == 200) {
                 String result = response.body().string();
-                nodes = objectMapper.readValue(result, new TypeReference<List<List<Node>>>() {});
+                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {});
             }
         } catch (Exception ex) {
             log.warn("Failed to make response", ex);
         }
-        return Optional.ofNullable(nodes);
+        return Optional.ofNullable(lastHealingDataDto);
     }
 
     /**
@@ -165,5 +169,9 @@ public class RestClient {
      */
     private String buildScreenshotName() {
         return "screenshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png";
+    }
+
+    public HealeniumMapper getMapper() {
+        return mapper;
     }
 }

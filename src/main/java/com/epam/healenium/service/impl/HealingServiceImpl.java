@@ -14,6 +14,7 @@ package com.epam.healenium.service.impl;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
@@ -78,10 +79,9 @@ public class HealingServiceImpl implements HealingService {
     }
 
     /**
-     *
      * @param pageBy PageAwareBy class
-     * @param trace list of StackTraceElements
-     * @param nodes list of nodes
+     * @param trace  list of StackTraceElements
+     * @param nodes  list of nodes
      * @return By locator
      */
     public Optional<By> healLocators(PageAwareBy pageBy, List<Node> nodes, StackTraceElement[] trace) {
@@ -90,20 +90,31 @@ public class HealingServiceImpl implements HealingService {
         // search target point in stacktrace
         Optional<StackTraceElement> traceElement = StackUtils.findOriginCaller(trace);
         // search for possible healing results
+        MetricsDto metricsDto = new MetricsDto()
+                .setCurrentDom(pageContent)
+                .setUserSelector(engine.getClient().getMapper().byToLocator(pageBy.getBy()));
+        Optional<List<List<Node>>> paths = traceElement
+                .map(it -> engine.getClient().getLastHealingData(pageBy.getBy(), it)).get()
+                .map(dto -> {
+                    metricsDto.setPreviousSuccessfulDom(dto.getPageContent());
+                    return dto.getPaths();
+                });
+
         List<Scored<By>> choices = nodes == null
-                ? engine.findNewLocations(pageBy, pageSource(), traceElement)
-                : engine.findNewLocationsByNodes(nodes, pageSource());
+                ? engine.findNewLocations(pageSource(), paths, metricsDto)
+                : engine.findNewLocationsByNodes(nodes, pageSource(), metricsDto);
         String healingTime = engine.getHealingTime();
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
         } else {
             Scored<By> healed = result.get();
-            log.warn("Using healed locator: {}", result.toString());
+            log.warn("Using healed locator: {}", result);
             byte[] screenshot = captureScreen(healed);
+            metricsDto.setHealedSelector(engine.getClient().getMapper().byToLocator(healed.getValue()));
             traceElement.ifPresent(it -> {
                 // build request and send it to server
-                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot, healingTime);
+                engine.getClient().healRequest(pageBy.getBy(), it, pageContent, choices, healed, screenshot, healingTime, metricsDto);
             });
         }
         return result.map(Scored::getValue);
@@ -111,6 +122,7 @@ public class HealingServiceImpl implements HealingService {
 
     /**
      * Create screenshot of healed element
+     *
      * @param byScored - healed locator
      * @return path to screenshot location
      */
