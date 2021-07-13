@@ -299,6 +299,10 @@ public class SelfHealingEngine {
         return config.getBoolean("heal-enabled") && !isDisabled;
     }
 
+    public boolean isHealingBacklighted() {
+        return config.getBoolean("backlight-healing");
+    }
+
     private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
         return optionalElement
                 .map(it -> client.getLastHealingData(key.getBy(), it))

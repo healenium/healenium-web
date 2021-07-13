@@ -19,6 +19,8 @@ import com.epam.healenium.service.HealingService;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
+import com.typesafe.config.Config;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
@@ -120,6 +122,7 @@ public class HealingServiceImpl implements HealingService {
         return result.map(Scored::getValue);
     }
 
+
     /**
      * Create screenshot of healed element
      *
@@ -129,8 +132,10 @@ public class HealingServiceImpl implements HealingService {
     //TODO: need pass search context here
     private byte[] captureScreen(Scored<By> byScored) {
         WebElement element = driver.findElement(byScored.getValue());
-        JavascriptExecutor jse = (JavascriptExecutor) driver;
-        jse.executeScript("arguments[0].style.border='3px solid red'", element);
+        if (engine.isHealingBacklighted()) {
+            JavascriptExecutor jse = (JavascriptExecutor) driver;
+            jse.executeScript("arguments[0].style.border='3px solid red'", element);
+        }
         WebDriver augmentedDriver = new Augmenter().augment(driver);
         return ((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.BYTES);
     }
