@@ -19,8 +19,6 @@ import com.epam.healenium.service.HealingService;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
-import com.typesafe.config.Config;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
@@ -96,10 +94,11 @@ public class HealingServiceImpl implements HealingService {
                 .setCurrentDom(pageContent)
                 .setUserSelector(engine.getClient().getMapper().byToLocator(pageBy.getBy()));
         Optional<List<List<Node>>> paths = traceElement
-                .map(it -> engine.getClient().getLastHealingData(pageBy.getBy(), it)).get()
+                .map(it -> engine.getClient().getLastHealingData(pageBy.getBy(), it))
+                .filter(Optional::isPresent)
                 .map(dto -> {
-                    metricsDto.setPreviousSuccessfulDom(dto.getPageContent());
-                    return dto.getPaths();
+                    metricsDto.setPreviousSuccessfulDom(dto.get().getPageContent());
+                    return dto.get().getPaths();
                 });
 
         List<Scored<By>> choices = nodes == null
@@ -121,7 +120,6 @@ public class HealingServiceImpl implements HealingService {
         }
         return result.map(Scored::getValue);
     }
-
 
     /**
      * Create screenshot of healed element
