@@ -74,6 +74,7 @@ public class SelfHealingEngine {
     @Getter
     private final WebDriver webDriver;
     private final int recoveryTries;
+    @Getter
     private final double scoreCap;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
     @Getter
