@@ -109,6 +109,8 @@ public class HealingServiceImpl implements HealingService {
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
             log.warn("New element locators have not been found");
+            double scoreCap = engine.getScoreCap();
+            log.warn("Score property={} is bigger than healing's locator score", scoreCap);
         } else {
             Scored<By> healed = result.get();
             log.warn("Using healed locator: {}", result);
