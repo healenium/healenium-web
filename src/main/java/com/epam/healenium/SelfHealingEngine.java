@@ -193,6 +193,7 @@ public class SelfHealingEngine {
     public List<Scored<By>> findNewLocations(String targetPage, Optional<List<List<Node>>> optionalPaths, MetricsDto metricsDto) {
         List<Scored<By>> result = new ArrayList<>();
         optionalPaths
+                .filter(it -> !it.isEmpty())
                 .ifPresent(nodes -> findNearest(nodes.get(0).toArray(new Node[0]), targetPage, metricsDto).stream()
                         .map(this::toLocator)
                         .forEach(result::add));
@@ -307,8 +308,8 @@ public class SelfHealingEngine {
     private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
         return optionalElement
                 .map(it -> client.getLastHealingData(key.getBy(), it))
-                .flatMap(dto -> dto.map(LastHealingDataDto::getPaths))
-                .filter(it -> !it.isEmpty());
+                .filter(Optional::isPresent)
+                .flatMap(dto -> dto.map(LastHealingDataDto::getPaths));
     }
 
 }
