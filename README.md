@@ -3,7 +3,9 @@ Self-healing library for Selenium Web-based tests
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.epam.healenium/healenium-web.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.epam.healenium%22%20AND%20a:%22healenium-web%22)
 [![Build Status](https://github.com/healenium/healenium-web/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/healenium/healenium-web/actions/workflows/build.yml)
-
+</br>
+ [![@healenium](https://img.shields.io/badge/Telegram-%40healenium-orange.svg)](https://t.me/healenium)<br />
+⇧ Join us! ⇧
 ## How to start
 
 ### 0. Start hlm-backend by [instruction](https://github.com/healenium/healenium-backend)
