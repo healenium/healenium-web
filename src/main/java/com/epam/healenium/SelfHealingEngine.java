@@ -16,6 +16,7 @@ import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
 import com.epam.healenium.model.HealingCandidateDto;
 import com.epam.healenium.model.LastHealingDataDto;
+import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.treecomparing.HeuristicNodeDistance;
 import com.epam.healenium.treecomparing.JsoupHTMLParser;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.Getter;
@@ -47,6 +49,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,6 +57,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.AbstractMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.healenium.SelectorComponent.*;
@@ -61,6 +65,16 @@ import static com.epam.healenium.SelectorComponent.*;
 @Slf4j
 public class SelfHealingEngine {
 
+    private static final Map<String, Function<String, By>> BY_MAP = ImmutableMap.<String, Function<String, By>>builder()
+            .put("By.className", By::className)
+            .put("By.cssSelector", By::cssSelector)
+            .put("By.xpath", By::xpath)
+            .put("By.tagName", By::tagName)
+            .put("By.name", By::name)
+            .put("By.partialLinkText", By::partialLinkText)
+            .put("By.linkText", By::linkText)
+            .put("By.id", By::id)
+            .build();
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
@@ -249,6 +263,17 @@ public class SelfHealingEngine {
         throw new HealException();
     }
 
+    public Optional<Scored<By>> toLocator(List<Locator> imitatedLocators, Double score) {
+        for (Locator imitatedLocator : imitatedLocators) {
+            By locator = BY_MAP.get(imitatedLocator.getType()).apply(imitatedLocator.getValue());
+            List<WebElement> elements = webDriver.findElements(locator);
+            if (elements.size() == 1) {
+                return Optional.of(new Scored<>(score, locator));
+            }
+        }
+        return Optional.empty();
+    }
+
     private By construct(Node node, Set<SelectorComponent> detailLevel) {
         return By.cssSelector(detailLevel.stream()
                 .map(component -> component.createComponent(node))
@@ -273,13 +298,16 @@ public class SelfHealingEngine {
         return scoreds;
     }
 
-    private void collectMetrics(Node[] nodePath, AbstractMap.SimpleImmutableEntry<Integer, Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> curPathHeightToScores,
+    private void collectMetrics(Node[] nodePath, AbstractMap.SimpleImmutableEntry<Integer, Map<Double,
+            List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> curPathHeightToScores,
                                 List<Scored<Node>> scoreds, MetricsDto metricsDto) {
         Integer curPathHeight = curPathHeightToScores.getKey();
         Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>> scoresToNodes = curPathHeightToScores.getValue();
         List<HealingCandidateDto> allHealingCandidates = scoresToNodes.keySet().stream()
+                .sorted(Comparator.reverseOrder())
                 .flatMap(score -> scoresToNodes.get(score).stream()
                         .map(it -> new HealingCandidateDto(score, it.getValue(), curPathHeight, it.getKey())))
+                .limit(10)
                 .collect(Collectors.toList());
         HealingCandidateDto mainHealingCandidate = allHealingCandidates.stream()
                 .filter(candidate -> candidate.getScore().equals(scoreds.get(0).getScore())

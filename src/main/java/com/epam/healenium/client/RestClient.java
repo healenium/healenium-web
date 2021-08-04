@@ -16,7 +16,9 @@ import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.mapper.HealeniumMapperImpl;
+import com.epam.healenium.model.HealeniumSelectorImitatorDto;
 import com.epam.healenium.model.LastHealingDataDto;
+import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
@@ -28,11 +30,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.typesafe.config.Config;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.openqa.selenium.By;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -49,6 +58,7 @@ public class RestClient {
 
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final String baseUrl;
+    private final String imitateUrl;
     private final String sessionKey;
     private final ObjectMapper objectMapper;
     private final HealeniumMapper mapper;
@@ -56,6 +66,7 @@ public class RestClient {
     public RestClient(Config config) {
         objectMapper = initMapper();
         baseUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
+        imitateUrl = "http://" + config.getString("serverHost") + ":" + "8000" + "/imitate";
         sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : "";
         mapper = new HealeniumMapperImpl();
     }
@@ -80,9 +91,10 @@ public class RestClient {
 
     /**
      * Store info in backend
-     * @param by element By locator
+     *
+     * @param by       element By locator
      * @param nodePath List of nodes
-     * @param element StackTraceElement
+     * @param element  StackTraceElement
      */
     public void selectorsRequest(By by, StackTraceElement element, List<List<Node>> nodePath) {
         RequestDto requestDto = mapper.buildDto(by, element, nodePath);
@@ -100,14 +112,15 @@ public class RestClient {
 
     /**
      * Collect results from previous healing
-     * @param locator By locator
-     * @param element StackTraceElement
-     * @param page pageObject name
-     * @param choices scored By locators
-     * @param healed newly healed locator
-     * @param screenshot image with healed element
+     *
+     * @param locator     By locator
+     * @param element     StackTraceElement
+     * @param page        pageObject name
+     * @param choices     scored By locators
+     * @param healed      newly healed locator
+     * @param screenshot  image with healed element
      * @param healingTime healing time
-     * @param metricsDto
+     * @param metricsDto  healenium metrics data
      */
     public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices,
                             Scored<By> healed, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
@@ -134,9 +147,10 @@ public class RestClient {
 
     /**
      * Get node path for given selector
+     *
      * @param locator element By locator
      * @param element StackTraceElement
-     * @return nodes
+     * @return lastHealingDataDto
      */
     public Optional<LastHealingDataDto> getLastHealingData(By locator, StackTraceElement element) {
         LastHealingDataDto lastHealingDataDto = null;
@@ -155,7 +169,8 @@ public class RestClient {
             Response response = okHttpClient().newCall(request).execute();
             if (response.code() == 200) {
                 String result = response.body().string();
-                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {});
+                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
+                });
             }
         } catch (Exception ex) {
             log.warn("Failed to make response", ex);
@@ -164,7 +179,31 @@ public class RestClient {
     }
 
     /**
+     * Get imitated locators by target node and user selector from selector-imitator service
      *
+     * @param healeniumSelectorImitatorDto element By locator
+     * @return locators
+     */
+    public List<Locator> imitate(HealeniumSelectorImitatorDto healeniumSelectorImitatorDto) {
+        try {
+            RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(healeniumSelectorImitatorDto));
+            Request request = new Request.Builder()
+                    .url(imitateUrl)
+                    .post(body)
+                    .build();
+            Response response = okHttpClient().newCall(request).execute();
+            if (response.code() == 200) {
+                String result = response.body().string();
+                return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                });
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to make imitate response", ex);
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * @return
      */
     private String buildScreenshotName() {
