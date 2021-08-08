@@ -15,6 +15,7 @@ package com.epam.healenium.service.impl;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.model.HealeniumSelectorImitatorDto;
+import com.epam.healenium.model.HealingCandidateDto;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.service.HealingService;
@@ -108,7 +109,10 @@ public class HealingServiceImpl implements HealingService {
                 ? engine.findNewLocations(pageSource(), paths, metricsDto)
                 : engine.findNewLocationsByNodes(nodes, pageSource(), metricsDto);
 
-        imitateMainCandidate(userLocator, metricsDto, choices);
+        HealingCandidateDto mainHealingCandidate = metricsDto.getMainHealingCandidate();
+        if (mainHealingCandidate != null) {
+            imitateMainCandidate(userLocator, mainHealingCandidate, choices);
+        }
         String healingTime = engine.getHealingTime();
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
@@ -128,9 +132,9 @@ public class HealingServiceImpl implements HealingService {
         return result.map(Scored::getValue);
     }
 
-    private void imitateMainCandidate(Locator userLocator, MetricsDto metricsDto, List<Scored<By>> choices) {
-        Node targetNode = metricsDto.getMainHealingCandidate().getNode();
-        Double score = metricsDto.getMainHealingCandidate().getScore();
+    private void imitateMainCandidate(Locator userLocator, HealingCandidateDto mainHealingCandidate, List<Scored<By>> choices) {
+        Node targetNode = mainHealingCandidate.getNode();
+        Double score = mainHealingCandidate.getScore();
         if (targetNode != null) {
             HealeniumSelectorImitatorDto healeniumSelectorImitator = new HealeniumSelectorImitatorDto()
                     .setUserSelector(userLocator)
