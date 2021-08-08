@@ -14,6 +14,9 @@ package com.epam.healenium.service.impl;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.model.HealeniumSelectorImitatorDto;
+import com.epam.healenium.model.HealingCandidateDto;
+import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.treecomparing.Node;
@@ -90,9 +93,10 @@ public class HealingServiceImpl implements HealingService {
         // search target point in stacktrace
         Optional<StackTraceElement> traceElement = StackUtils.findOriginCaller(trace);
         // search for possible healing results
+        Locator userLocator = engine.getClient().getMapper().byToLocator(pageBy.getBy());
         MetricsDto metricsDto = new MetricsDto()
                 .setCurrentDom(pageContent)
-                .setUserSelector(engine.getClient().getMapper().byToLocator(pageBy.getBy()));
+                .setUserSelector(userLocator);
         Optional<List<List<Node>>> paths = traceElement
                 .map(it -> engine.getClient().getLastHealingData(pageBy.getBy(), it))
                 .filter(Optional::isPresent)
@@ -104,6 +108,11 @@ public class HealingServiceImpl implements HealingService {
         List<Scored<By>> choices = nodes == null
                 ? engine.findNewLocations(pageSource(), paths, metricsDto)
                 : engine.findNewLocationsByNodes(nodes, pageSource(), metricsDto);
+
+        HealingCandidateDto mainHealingCandidate = metricsDto.getMainHealingCandidate();
+        if (mainHealingCandidate != null) {
+            imitateMainCandidate(userLocator, mainHealingCandidate, choices);
+        }
         String healingTime = engine.getHealingTime();
         Optional<Scored<By>> result = choices.stream().findFirst();
         if (!result.isPresent()) {
@@ -121,6 +130,22 @@ public class HealingServiceImpl implements HealingService {
             });
         }
         return result.map(Scored::getValue);
+    }
+
+    private void imitateMainCandidate(Locator userLocator, HealingCandidateDto mainHealingCandidate, List<Scored<By>> choices) {
+        Node targetNode = mainHealingCandidate.getNode();
+        Double score = mainHealingCandidate.getScore();
+        if (targetNode != null) {
+            HealeniumSelectorImitatorDto healeniumSelectorImitator = new HealeniumSelectorImitatorDto()
+                    .setUserSelector(userLocator)
+                    .setTargetNode(targetNode);
+            List<Locator> imitatedLocators = engine.getClient().imitate(healeniumSelectorImitator);
+            Optional<Scored<By>> byScored = engine.toLocator(imitatedLocators, score);
+            if (byScored.isPresent()) {
+                choices.remove(0);
+                choices.add(0, byScored.get());
+            }
+        }
     }
 
     /**
