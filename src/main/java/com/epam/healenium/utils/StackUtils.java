@@ -137,7 +137,7 @@ public class StackUtils {
             StackTraceElement element = Iterables.getLast(traceElements);
             String className = element.getClassName();
             int dotPos = lastDotPosition(className);
-            result = element.getClassName().substring(0, Math.max(dotPos, 0));
+            result = dotPos == -1 ? className : element.getClassName().substring(0, Math.max(dotPos, 0));
         } catch (Exception ex) {
             log.warn("Failed to find caller package name", ex);
         }
