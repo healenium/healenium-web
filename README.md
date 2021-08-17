@@ -15,7 +15,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.1'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.1.4'
 }
 ```
 
