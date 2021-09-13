@@ -15,14 +15,13 @@ package com.epam.healenium.client;
 import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
-import com.epam.healenium.mapper.HealeniumMapperImpl;
 import com.epam.healenium.model.HealeniumSelectorImitatorDto;
+import com.epam.healenium.model.HealingResultDto;
 import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
-import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -37,6 +36,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.codehaus.plexus.util.StringUtils;
 import org.openqa.selenium.By;
 
 import java.time.LocalDateTime;
@@ -68,7 +68,7 @@ public class RestClient {
         baseUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
         imitateUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("imitatePort") + "/imitate";
         sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : "";
-        mapper = new HealeniumMapperImpl();
+        mapper = new HealeniumMapper();
     }
 
     private OkHttpClient okHttpClient() {
@@ -94,10 +94,9 @@ public class RestClient {
      *
      * @param by       element By locator
      * @param nodePath List of nodes
-     * @param element  StackTraceElement
      */
-    public void selectorsRequest(By by, StackTraceElement element, List<List<Node>> nodePath) {
-        RequestDto requestDto = mapper.buildDto(by, element, nodePath);
+    public void selectorsRequest(By by, List<List<Node>> nodePath) {
+        RequestDto requestDto = mapper.buildDto(by, nodePath);
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
             Request request = new Request.Builder()
@@ -112,19 +111,11 @@ public class RestClient {
 
     /**
      * Collect results from previous healing
-     *
-     * @param locator     By locator
-     * @param element     StackTraceElement
-     * @param page        pageObject name
-     * @param choices     scored By locators
-     * @param healed      newly healed locator
-     * @param screenshot  image with healed element
-     * @param healingTime healing time
-     * @param metricsDto  healenium metrics data
+     * @param screenshot - image with healed element
+     * @param healingTime - healing time
+     * @param metricsDto - healenium metrics data
      */
-    public void healRequest(By locator, StackTraceElement element, String page, List<Scored<By>> choices,
-                            Scored<By> healed, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
-        RequestDto requestDto = mapper.buildDto(locator, element, page, choices, healed, screenshot);
+    public void healRequest(RequestDto requestDto, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
         try {
             RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
                     .addFormDataPart("screenshot", buildScreenshotName(), RequestBody.create(MediaType.parse("image/png"), screenshot))
@@ -149,12 +140,11 @@ public class RestClient {
      * Get node path for given selector
      *
      * @param locator element By locator
-     * @param element StackTraceElement
      * @return lastHealingDataDto
      */
-    public Optional<LastHealingDataDto> getLastHealingData(By locator, StackTraceElement element) {
+    public Optional<LastHealingDataDto> getLastHealingData(By locator) {
         LastHealingDataDto lastHealingDataDto = null;
-        RequestDto requestDto = mapper.buildDto(locator, element);
+        RequestDto requestDto = mapper.buildDto(locator);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())

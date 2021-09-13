@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -12,16 +12,15 @@
  */
 package com.epam.healenium.handlers.proxy;
 
-import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
+
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class WebElementProxyHandler extends BaseHandler {
@@ -41,38 +40,16 @@ public class WebElementProxyHandler extends BaseHandler {
                 WebElement element = findElement((By) args[0]);
                 return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
             }
+            if ("findElements".equals(method.getName())) {
+                List<WebElement> elements = findElements((By) args[0]);
+                return elements.stream().map(it -> wrapElement(it, loader)).collect(Collectors.toList());
+            }
             if ("getWrappedElement".equals(method.getName())) {
                 return delegate;
             }
             return method.invoke(delegate, args);
         } catch (Exception ex) {
             throw ex.getCause();
-        }
-    }
-
-    @Override
-    protected WebElement findElement(By by) {
-        try {
-            PageAwareBy pageBy = awareBy(by);
-            if (engine.isHealingEnabled()) {
-                return lookUp(pageBy);
-            }
-            return delegate.findElement(pageBy.getBy());
-        } catch (Exception ex) {
-            throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
-        }
-
-    }
-
-    @Override
-    protected WebElement lookUp(PageAwareBy key) {
-        try {
-            WebElement element = delegate.findElement(key.getBy());
-            engine.savePath(key, Collections.singletonList(element));
-            return element;
-        } catch (NoSuchElementException ex) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...", key.getBy().toString(), ex.getMessage());
-            return getHealingService().heal(key, ex).orElseThrow(() -> ex);
         }
     }
 }
