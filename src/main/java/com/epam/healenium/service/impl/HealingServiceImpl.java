@@ -34,6 +34,10 @@ public class HealingServiceImpl extends AbstractHealingServiceImpl implements He
     @Override
     public Optional<WebElement> heal(PageAwareBy pageBy, NoSuchElementException ex) {
         Optional<LastHealingDataDto> lastHealingDataDto = getLastHealingDataDto(pageBy);
+        if (!lastHealingDataDto.isPresent() || lastHealingDataDto.get().getPaths().isEmpty()) {
+            log.warn("New element locator have not been found");
+            return Optional.empty();
+        }
         List<Node> paths = lastHealingDataDto.get().getPaths().get(0);
         return healLocator(pageBy, paths, lastHealingDataDto).map(driver::findElement);
     }

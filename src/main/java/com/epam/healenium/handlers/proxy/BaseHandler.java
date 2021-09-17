@@ -14,13 +14,11 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.model.HealingResultDto;
 import com.epam.healenium.service.HealingElementsService;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.service.impl.HealingElementsServiceImpl;
 import com.epam.healenium.service.impl.HealingServiceImpl;
 import com.epam.healenium.utils.ProxyFactory;
-import com.epam.healenium.utils.StackUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebElement;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,10 @@ public class HealingElementsServiceImpl extends AbstractHealingServiceImpl imple
     @Override
     public List<WebElement> heal(PageAwareBy pageBy, List<WebElement> pageElements) {
         Optional<LastHealingDataDto> lastHealingDataDto = getLastHealingDataDto(pageBy);
+        if (!lastHealingDataDto.isPresent() || lastHealingDataDto.get().getPaths().isEmpty()) {
+            log.warn("New element locators have not been found");
+            return Collections.emptyList();
+        }
         List<List<Node>> lastValidPath = new ArrayList<>(lastHealingDataDto.map(LastHealingDataDto::getPaths).get());
         if (lastValidPath.isEmpty() && !pageElements.isEmpty()) {
             engine.saveElements(pageBy, pageElements);

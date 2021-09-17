@@ -12,12 +12,15 @@
  */
 package com.epam.healenium.handlers.proxy;
 
+import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -52,4 +55,32 @@ public class WebElementProxyHandler extends BaseHandler {
             throw ex.getCause();
         }
     }
+
+    @Override
+    protected WebElement findElement(By by) {
+        try {
+            PageAwareBy pageBy = awareBy(by);
+            if (engine.isHealingEnabled()) {
+                return lookUp(pageBy);
+            }
+            return delegate.findElement(pageBy.getBy());
+        } catch (Exception ex) {
+            throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
+        }
+
+    }
+
+    @Override
+    protected WebElement lookUp(PageAwareBy key) {
+        try {
+            WebElement element = delegate.findElement(key.getBy());
+            engine.saveElements(key, Collections.singletonList(element));
+            return element;
+        } catch (NoSuchElementException ex) {
+            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
+                    key.getBy().toString(), ex.getMessage());
+            return getHealingService().heal(key, ex).orElseThrow(() -> ex);
+        }
+    }
+
 }
