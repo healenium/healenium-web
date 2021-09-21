@@ -105,7 +105,7 @@ public class RestClient {
                     .build();
             okHttpClient().newCall(request).execute();
         } catch (Exception e) {
-            log.warn("Failed to make response");
+            log.warn("Failed to make response: " + e.getMessage());
         }
     }
 
