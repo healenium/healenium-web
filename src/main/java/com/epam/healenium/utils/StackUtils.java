@@ -14,17 +14,21 @@ package com.epam.healenium.utils;
 
 import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
 import com.epam.healenium.handlers.proxy.WebElementProxyHandler;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.By;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +36,17 @@ import java.util.stream.Stream;
 @Slf4j
 @UtilityClass
 public class StackUtils {
+
+    public static final Map<String, Function<String, By>> BY_MAP = ImmutableMap.<String, Function<String, By>>builder()
+            .put("By.className", By::className)
+            .put("By.cssSelector", By::cssSelector)
+            .put("By.xpath", By::xpath)
+            .put("By.tagName", By::tagName)
+            .put("By.name", By::name)
+            .put("By.partialLinkText", By::partialLinkText)
+            .put("By.linkText", By::linkText)
+            .put("By.id", By::id)
+            .build();
 
     /**
      * @param aClass annotation class
@@ -58,8 +73,7 @@ public class StackUtils {
     }
 
     /**
-     *
-     * @param elements list of StackTraceElements
+     * @param elements    list of StackTraceElements
      * @param targetClass targetClass
      * @return StackTraceElement
      */
@@ -107,7 +121,6 @@ public class StackUtils {
     }
 
     /**
-     *
      * @return
      */
     private Predicate<StackTraceElement> redundantPackages() {

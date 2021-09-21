@@ -15,7 +15,6 @@ package com.epam.healenium;
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
 import com.epam.healenium.model.HealingCandidateDto;
-import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.treecomparing.HeuristicNodeDistance;
@@ -33,7 +32,6 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.Getter;
@@ -47,6 +45,7 @@ import org.openqa.selenium.WebElement;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,25 +55,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.AbstractMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.epam.healenium.SelectorComponent.*;
+import static com.epam.healenium.SelectorComponent.ATTRIBUTES;
+import static com.epam.healenium.SelectorComponent.CLASS;
+import static com.epam.healenium.SelectorComponent.ID;
+import static com.epam.healenium.SelectorComponent.PARENT;
+import static com.epam.healenium.SelectorComponent.PATH;
+import static com.epam.healenium.SelectorComponent.POSITION;
+import static com.epam.healenium.SelectorComponent.TAG;
 
 @Slf4j
 public class SelfHealingEngine {
 
-    private static final Map<String, Function<String, By>> BY_MAP = ImmutableMap.<String, Function<String, By>>builder()
-            .put("By.className", By::className)
-            .put("By.cssSelector", By::cssSelector)
-            .put("By.xpath", By::xpath)
-            .put("By.tagName", By::tagName)
-            .put("By.name", By::name)
-            .put("By.partialLinkText", By::partialLinkText)
-            .put("By.linkText", By::linkText)
-            .put("By.id", By::id)
-            .build();
     /**
      * A JavaScript source to extract an HTML item with its attributes
      */
@@ -135,20 +128,15 @@ public class SelfHealingEngine {
      * @param by          the locator
      * @param webElements the elements while it is still accessible by the locator
      */
-    public void savePath(PageAwareBy by, List<WebElement> webElements) {
-        savePath(by, webElements, new ArrayList<>());
+    public void saveElements(PageAwareBy by, List<WebElement> webElements) {
+        List<List<Node>> nodesToSave = webElements.stream()
+                .map(this::getNodePath)
+                .collect(Collectors.toList());
+        saveNodes(by, nodesToSave);
     }
 
-    /**
-     * Stores the valid locator state: the element it found and the page.
-     *
-     * @param by          the locator
-     * @param nodesToSave the nodes to save
-     * @param webElements the elements while it is still accessible by the locator
-     */
-    public void savePath(PageAwareBy by, List<WebElement> webElements, List<List<Node>> nodesToSave) {
-        webElements.forEach(e -> nodesToSave.add(getNodePath(e)));
-        save(by, Thread.currentThread().getStackTrace(), nodesToSave);
+    public void saveNodes(PageAwareBy key, List<List<Node>> elementsToSave) {
+        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave));
     }
 
     public List<Node> getNodePath(WebElement webElement) {
@@ -201,56 +189,17 @@ public class SelfHealingEngine {
     }
 
     /**
-     * @param targetPage      the new HTML page source on which we should search for the element
+     * @param targetPage the new HTML page source on which we should search for the element
+     * @param paths      source path to locator
+     * @param metricsDto list of metrics data
      * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
-    public List<Scored<By>> findNewLocations(String targetPage, Optional<List<List<Node>>> optionalPaths, MetricsDto metricsDto) {
-        List<Scored<By>> result = new ArrayList<>();
-        optionalPaths
-                .filter(it -> !it.isEmpty())
-                .ifPresent(nodes -> findNearest(nodes.get(0).toArray(new Node[0]), targetPage, metricsDto).stream()
-                        .map(this::toLocator)
-                        .forEach(result::add));
-        return result;
-    }
-
-    public List<Scored<By>> findNewLocationsByNodes(List<Node> nodes, String targetPage, MetricsDto metricsDto) {
-        List<Scored<By>> result = new ArrayList<>();
-        findNearest(nodes.toArray(new Node[0]), targetPage, metricsDto).stream()
+    public List<Scored<By>> findNewLocations(String targetPage, List<Node> paths, MetricsDto metricsDto) {
+        return findNearest(paths.toArray(new Node[0]), targetPage, metricsDto).stream()
                 .map(this::toLocator)
-                .forEach(result::add);
-        return result;
+                .collect(Collectors.toList());
     }
 
-    public List<List<Node>> findNodesToHeal(PageAwareBy pageBy, StackTraceElement[] stackTrace) {
-        Optional<List<List<Node>>> lastValidPath = getLastValidPaths(pageBy, StackUtils.findOriginCaller(stackTrace));
-        List<List<Node>> needToHealElements = new ArrayList<>();
-        lastValidPath.ifPresent(path -> path
-                .forEach(nodes -> {
-                    WebElement element = nodeToElementConverter(nodes.get(nodes.size() - 1));
-                    if (element == null) {
-                        needToHealElements.add(nodes);
-                    }
-                }));
-        return needToHealElements;
-    }
-
-    public void save(PageAwareBy key, StackTraceElement[] stackTrace, List<List<Node>> elementsToSave) {
-        StackTraceElement traceElement = StackUtils.findOriginCaller(stackTrace)
-                .orElseThrow(() -> new IllegalArgumentException("Failed to detect origin method caller"));
-        client.selectorsRequest(key.getBy(), traceElement, new ArrayList<>(elementsToSave));
-    }
-
-    private WebElement nodeToElementConverter(Node node) {
-        for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
-            By locator = construct(node, detailLevel);
-            List<WebElement> elements = webDriver.findElements(locator);
-            if (elements.size() == 1) {
-                return elements.get(0);
-            }
-        }
-        return null;
-    }
 
     private Scored<By> toLocator(Scored<Node> node) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
@@ -265,7 +214,7 @@ public class SelfHealingEngine {
 
     public Optional<Scored<By>> toLocator(List<Locator> imitatedLocators, Double score) {
         for (Locator imitatedLocator : imitatedLocators) {
-            By locator = BY_MAP.get(imitatedLocator.getType()).apply(imitatedLocator.getValue());
+            By locator = StackUtils.BY_MAP.get(imitatedLocator.getType()).apply(imitatedLocator.getValue());
             List<WebElement> elements = webDriver.findElements(locator);
             if (elements.size() == 1) {
                 return Optional.of(new Scored<>(score, locator));
@@ -331,13 +280,6 @@ public class SelfHealingEngine {
 
     public boolean isHealingBacklighted() {
         return config.getBoolean("backlight-healing");
-    }
-
-    private Optional<List<List<Node>>> getLastValidPaths(PageAwareBy key, Optional<StackTraceElement> optionalElement) {
-        return optionalElement
-                .map(it -> client.getLastHealingData(key.getBy(), it))
-                .filter(Optional::isPresent)
-                .flatMap(dto -> dto.map(LastHealingDataDto::getPaths));
     }
 
 }

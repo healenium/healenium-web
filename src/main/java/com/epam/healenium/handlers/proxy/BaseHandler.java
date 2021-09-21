@@ -14,10 +14,11 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.service.HealingElementsService;
 import com.epam.healenium.service.HealingService;
+import com.epam.healenium.service.impl.HealingElementsServiceImpl;
 import com.epam.healenium.service.impl.HealingServiceImpl;
 import com.epam.healenium.utils.ProxyFactory;
-import com.typesafe.config.Config;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
@@ -34,15 +35,17 @@ public abstract class BaseHandler implements InvocationHandler {
 
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
-    private final Config config;
+
     @Getter
     private final HealingService healingService;
+    @Getter
+    private final HealingElementsService healingElementsService;
 
     public BaseHandler(SelfHealingEngine engine) {
         this.engine = engine;
         this.driver = engine.getWebDriver();
-        this.config = engine.getConfig();
         this.healingService = new HealingServiceImpl(engine);
+        this.healingElementsService = new HealingElementsServiceImpl(engine);
     }
 
     protected WebElement findElement(By by) {
@@ -80,7 +83,7 @@ public abstract class BaseHandler implements InvocationHandler {
     protected WebElement lookUp(PageAwareBy key) {
         try {
             WebElement element = driver.findElement(key.getBy());
-            engine.savePath(key, Collections.singletonList(element));
+            engine.saveElements(key, Collections.singletonList(element));
             return element;
         } catch (NoSuchElementException e) {
             log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
@@ -93,21 +96,14 @@ public abstract class BaseHandler implements InvocationHandler {
      * Search target elements on a page
      *
      * @param key will be used for checking|saving in cache
-     * @return proxy web element
+     * @return proxy web elements
      */
     protected List<WebElement> lookUpElements(PageAwareBy key) {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        try {
-            List<WebElement> pageElements = driver.findElements(key.getBy());
-            if (pageElements.isEmpty()) {
-                throw new NoSuchElementException("Failed to find pageElements");
-            }
-            return healingService.saveAndHealElements(key, pageElements, stackTrace);
-        } catch (NoSuchElementException e) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
-                    key.getBy().toString(), e.getMessage());
-            return healingService.healElements(key, stackTrace, e);
+        List<WebElement> pageElements = driver.findElements(key.getBy());
+        if (pageElements.isEmpty()) {
+            log.warn("Failed to find any elements using locator {}", key.getBy().toString());
         }
+        return healingElementsService.heal(key, pageElements);
     }
 
     /**
