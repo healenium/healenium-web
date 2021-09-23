@@ -24,7 +24,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.1.4</version>
+	<version>3.1.6</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
