@@ -37,10 +37,10 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler {
             switch (method.getName()) {
                 case "findElement":
                     WebElement element = findElement((By) args[0]);
-                    return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
+                    return element;
                 case "findElements":
                     List<WebElement> elements = findElements((By) args[0]);
-                    return elements.stream().map(it -> wrapElement(it, loader)).collect(Collectors.toList());
+                    return elements;
                 case "getCurrentEngine":
                     return engine;
                 case "getDelegate":
