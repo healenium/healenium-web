@@ -1,0 +1,71 @@
+name: Help-support template
+description: Describe you problem happened using Healenium and team will help
+title: "[Need support]: "
+labels: [ help wanted ]
+assignees: ElenaStepuro
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you didn't see the video how to use Healenium, please, firstly, get it know on link https://healenium.io/
+        
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the problem
+      description: |
+        Provide a clear and concise description of the problem you've faced with.
+      placeholder: |
+        Please add as many details as possible to avoid assumptions from our side. 
+    validations:
+      required: true
+      
+  - type: input
+    id: web-hlm
+    attributes:
+      label: Healenium Web version
+      description: What healenium-web version do you use?
+      placeholder: If you're not using Java, write 'None'
+    validations:
+      required: true
+      
+  - type: input
+    id: back-hlm
+    attributes:
+      label: Healenium Backend version
+      description: What healenium-backend version do you use?
+    validations:
+      required: true
+      
+  - type: input
+    id: selenium-version
+    attributes:
+      label: Selenium version
+      description: What Selenium version do you use for testing?
+  - type: input
+    id: platform
+    attributes:
+      label: Platform 
+      placeholder: Java? .NET? Python? Something else?
+
+  - type: textarea
+    id: logs
+    attributes: 
+      label: Logs appeared during using Healenium
+      description: |
+        Provide logs you've seen during investigation
+      placeholder: |
+        Notes:
+        -If the problem appeares during healing process provide stacktrace with exception.
+        -If the problem relates to Docker provide docker hlm-backend container logs.
+        -Add as more logs as you can by your company policy.
+      render: shell
+    validations:
+      required: true  
+      
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here
+      placeholder: For example, screenshot or using of additional frameworks like Sizzle library, Robot Framework or JDI, etc. If you can please, send a link to your project.
