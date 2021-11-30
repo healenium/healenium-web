@@ -1,0 +1,89 @@
+name: Bug report
+description: Create a report to help us improve
+title: "[BUG]: "
+labels: [ bug ]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: |
+        Provide a clear and concise description of what the bug is.
+      placeholder: |
+        Please add as many details as possible to avoid assumptions from our side. 
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce the issue
+      description: |
+        Describe steps to reproduce the behavior. The more details you write, the faster we can help you.
+      placeholder: |
+        Please, describe step by step how you start Healenium: how you start Docker, how you create WebDriver, etc.
+        Notes:
+        -If the problem appeares during healing process provide code with creating locators and creating WebDriver.
+        -If the problem relates to Docker provide folder structure with docker-compose file and what you add to this file.
+        -Write as more as you can by your company policy.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes: 
+      label: Logs appeared during using Healenium
+      description: |
+        Provide logs you've seen during investigation
+      placeholder: |
+        Notes:
+        -If the problem appeares during healing process provide stacktrace with exception.
+        -If the problem relates to Docker provide docker hlm-backend container logs.
+        -Add as more logs as you can by your company policy.
+      render: shell
+    validations:
+      required: true  
+  - type: textarea
+    id: epx-behavior
+    attributes:
+      label: Expected behavior
+      description: |
+        Please provide clear and concise description of what you expected to happen.
+  - type: textarea
+    id: act-behavior
+    attributes:
+      label: Actual behavior
+      description: |
+        Please provide clear and concise description of what you've seen instead.
+  - type: input
+    id: web-hlm
+    attributes:
+      label: Healenium Web version
+      description: What healenium-web version do you use?
+      placeholder: If you're not using Java, write 'None'
+    validations:
+      required: true
+  - type: input
+    id: back-hlm
+    attributes:
+      label: Healenium Backend version
+      description: What healenium-backend version do you use?
+    validations:
+      required: true
+  - type: input
+    id: selenium-version
+    attributes:
+      label: Selenium version
+      description: What Selenium version do you use for testing?
+  - type: input
+    id: platform
+    attributes:
+      label: Platform 
+      placeholder: Java? .NET? Python? Something else?
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context about the problem here
+      placeholder: For example, screenshot or using of additional frameworks like Sizzle library, Robot Framework or JDI, etc. If you can please, send a link to your project.
