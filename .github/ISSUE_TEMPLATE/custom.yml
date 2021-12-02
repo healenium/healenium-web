@@ -47,7 +47,17 @@ body:
     attributes:
       label: Platform 
       placeholder: Java? .NET? Python? Something else?
-
+  - type: textarea
+    id: property
+    attributes:
+      label: Properties file
+      description: What properties did you link in healenium.properties file?
+      placeholder: recovery-tries=1
+                   score-cap=.6
+                   heal-enabled=true
+                   serverHost = localhost
+                   serverPort = 7878
+                   imitatePort = 8000
   - type: textarea
     id: logs
     attributes: 
