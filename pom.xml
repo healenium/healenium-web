@@ -68,7 +68,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <typesafe.version>1.3.4</typesafe.version>
         <treecomparing.version>0.4.10</treecomparing.version>
-        <selenium.version>3.141.59</selenium.version>
+        <selenium.version>4.1.0</selenium.version>
         <jacksondatabind.version>2.10.0</jacksondatabind.version>
         <commonslang3.version>3.11</commonslang3.version>
         <commonscodec.version>1.12</commonscodec.version>
@@ -258,6 +258,11 @@
             <artifactId>commons-codec</artifactId>
             <version>${commonscodec.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.9.3</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

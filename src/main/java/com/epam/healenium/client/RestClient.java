@@ -16,7 +16,6 @@ import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.HealeniumSelectorImitatorDto;
-import com.epam.healenium.model.HealingResultDto;
 import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.MetricsDto;
@@ -36,7 +35,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.codehaus.plexus.util.StringUtils;
 import org.openqa.selenium.By;
 
 import java.time.LocalDateTime;
@@ -103,7 +101,8 @@ public class RestClient {
                     .url(baseUrl)
                     .post(body)
                     .build();
-            okHttpClient().newCall(request).execute();
+            Response response = okHttpClient().newCall(request).execute();
+            response.close();
         } catch (Exception e) {
             log.warn("Failed to make response: " + e.getMessage());
         }
@@ -111,9 +110,10 @@ public class RestClient {
 
     /**
      * Collect results from previous healing
-     * @param screenshot - image with healed element
+     *
+     * @param screenshot  - image with healed element
      * @param healingTime - healing time
-     * @param metricsDto - healenium metrics data
+     * @param metricsDto  - healenium metrics data
      */
     public void healRequest(RequestDto requestDto, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
         try {
@@ -130,7 +130,8 @@ public class RestClient {
                     .url(baseUrl + "/healing")
                     .post(requestBody)
                     .build();
-            okHttpClient().newCall(request).execute();
+            Response response = okHttpClient().newCall(request).execute();
+            response.close();
         } catch (Exception e) {
             log.warn("Failed to make response", e);
         }
@@ -162,6 +163,7 @@ public class RestClient {
                 lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
                 });
             }
+            response.close();
         } catch (Exception ex) {
             log.warn("Failed to make response", ex);
         }
@@ -187,6 +189,7 @@ public class RestClient {
                 return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
                 });
             }
+            response.close();
         } catch (Exception ex) {
             log.warn("Failed to make imitate response: {}", ex.getMessage());
         }

@@ -258,6 +258,9 @@ public class SelfHealingEngine {
                         .map(it -> new HealingCandidateDto(score, it.getValue(), curPathHeight, it.getKey())))
                 .limit(10)
                 .collect(Collectors.toList());
+        if (scoreds.size() == 0) {
+            return;
+        }
         HealingCandidateDto mainHealingCandidate = allHealingCandidates.stream()
                 .filter(candidate -> candidate.getScore().equals(scoreds.get(0).getScore())
                         && candidate.getNode().equals(scoreds.get(0).getValue()))

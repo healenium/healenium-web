@@ -27,6 +27,7 @@ public class HealingElementsServiceImpl extends AbstractHealingServiceImpl imple
     public List<WebElement> heal(PageAwareBy pageBy, List<WebElement> pageElements) {
         Optional<LastHealingDataDto> lastHealingDataDto = getLastHealingDataDto(pageBy);
         if (!lastHealingDataDto.isPresent() || lastHealingDataDto.get().getPaths().isEmpty()) {
+            engine.saveElements(pageBy, pageElements);
             return pageElements;
         }
         List<List<Node>> lastValidPath = new ArrayList<>(lastHealingDataDto.map(LastHealingDataDto::getPaths).get());
