@@ -86,12 +86,12 @@ public abstract class AbstractHealingServiceImpl {
         String healingTime = engine.getHealingTime();
 
         // build request and send it to server
-        RequestDto requestDto = engine.getClient().getMapper().buildDto(pageBy.getBy(), pageContent, choices, healed, screenshot);
+        RequestDto requestDto = engine.getClient().getMapper().buildDto(pageBy.getBy(), pageContent, choices, healed, screenshot, engine.getWebDriver().getCurrentUrl());
         engine.getClient().healRequest(requestDto, screenshot, healingTime, metricsDto);
     }
 
     protected Optional<LastHealingDataDto> getLastHealingDataDto(PageAwareBy pageBy) {
-        return engine.getClient().getLastHealingData(pageBy.getBy());
+        return engine.getClient().getLastHealingData(pageBy.getBy(), engine.getWebDriver().getCurrentUrl());
     }
 
     /**

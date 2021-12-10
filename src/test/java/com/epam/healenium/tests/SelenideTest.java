@@ -21,10 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.*;
@@ -51,8 +51,7 @@ public class SelenideTest extends AbstractBackendIT {
 
     private static class MyGridProvider implements WebDriverProvider {
         @Override
-        public WebDriver createDriver(DesiredCapabilities capabilities) {
-            capabilities.setBrowserName("chrome");
+        public WebDriver createDriver(Capabilities capabilities) {
             ChromeOptions options = new ChromeOptions();
             options.setHeadless(true);
             options.merge(capabilities);

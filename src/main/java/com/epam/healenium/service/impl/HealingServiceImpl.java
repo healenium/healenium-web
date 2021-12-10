@@ -35,7 +35,7 @@ public class HealingServiceImpl extends AbstractHealingServiceImpl implements He
     public Optional<WebElement> heal(PageAwareBy pageBy, NoSuchElementException ex) {
         Optional<LastHealingDataDto> lastHealingDataDto = getLastHealingDataDto(pageBy);
         if (!lastHealingDataDto.isPresent() || lastHealingDataDto.get().getPaths().isEmpty()) {
-            log.warn("New element locator have not been found");
+            log.warn("New element locator have not been found. There is a lack of reference data.");
             return Optional.empty();
         }
         List<Node> paths = lastHealingDataDto.get().getPaths().get(0);

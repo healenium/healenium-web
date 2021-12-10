@@ -19,7 +19,6 @@ import com.epam.healenium.driver.InitDriver;
 import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
-import com.epam.healenium.utils.StackUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -55,7 +54,7 @@ public class MultiPageTest extends AbstractBackendIT {
         driver.get("https://duckduckgo.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input[type=text]"));
         WebElement input = driver.findElement(by);
-        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy());
+        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy(), driver.getCurrentUrl());
         List<Node> paths = lastValidDataDto
                 .map(dto -> dto.getPaths()).get().get(0);
         Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(driver.getPageSource(), paths, null).get(0);

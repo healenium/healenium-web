@@ -136,7 +136,7 @@ public class SelfHealingEngine {
     }
 
     public void saveNodes(PageAwareBy key, List<List<Node>> elementsToSave) {
-        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave));
+        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave), webDriver.getCurrentUrl());
     }
 
     public List<Node> getNodePath(WebElement webElement) {

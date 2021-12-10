@@ -79,10 +79,11 @@
         <streamex.version>0.7.2</streamex.version>
         <jettyserver.version>9.4.41.v20210516</jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
-        <selenide.version>5.20.4</selenide.version>
-        <testcontainersjunit.version>1.15.3</testcontainersjunit.version>
+        <selenide.version>6.1.1</selenide.version>
+        <testcontainersjunit.version>1.16.2</testcontainersjunit.version>
         <junit.version>5.7.1</junit.version>
         <webdrivermanager.version>4.2.0</webdrivermanager.version>
+        <okhttp3.version>4.9.3</okhttp3.version>
     </properties>
 
     <profiles>
@@ -262,7 +263,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.9.3</version>
+            <version>${okhttp3.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

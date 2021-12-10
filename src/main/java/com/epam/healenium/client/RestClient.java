@@ -89,12 +89,12 @@ public class RestClient {
 
     /**
      * Store info in backend
-     *
-     * @param by       element By locator
+     *  @param by       element By locator
      * @param nodePath List of nodes
+     * @param currentUrl
      */
-    public void selectorsRequest(By by, List<List<Node>> nodePath) {
-        RequestDto requestDto = mapper.buildDto(by, nodePath);
+    public void selectorsRequest(By by, List<List<Node>> nodePath, String currentUrl) {
+        RequestDto requestDto = mapper.buildDto(by, nodePath, currentUrl);
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
             Request request = new Request.Builder()
@@ -143,9 +143,9 @@ public class RestClient {
      * @param locator element By locator
      * @return lastHealingDataDto
      */
-    public Optional<LastHealingDataDto> getLastHealingData(By locator) {
+    public Optional<LastHealingDataDto> getLastHealingData(By locator, String currentUrl) {
         LastHealingDataDto lastHealingDataDto = null;
-        RequestDto requestDto = mapper.buildDto(locator);
+        RequestDto requestDto = mapper.buildDto(locator, currentUrl);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())
