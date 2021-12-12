@@ -54,7 +54,8 @@ public class MultiPageTest extends AbstractBackendIT {
         driver.get("https://duckduckgo.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input[type=text]"));
         WebElement input = driver.findElement(by);
-        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy(), driver.getCurrentUrl());
+        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy(),
+                driver.getCurrentEngine().getCurrentUrl());
         List<Node> paths = lastValidDataDto
                 .map(dto -> dto.getPaths()).get().get(0);
         Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(driver.getPageSource(), paths, null).get(0);

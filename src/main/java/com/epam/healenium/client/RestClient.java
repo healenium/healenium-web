@@ -150,7 +150,8 @@ public class RestClient {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
-                    .addQueryParameter("methodName", requestDto.getMethodName());
+                    .addQueryParameter("methodName", requestDto.getMethodName())
+                    .addQueryParameter("url", currentUrl);
 
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)

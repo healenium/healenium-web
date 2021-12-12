@@ -136,7 +136,7 @@ public class SelfHealingEngine {
     }
 
     public void saveNodes(PageAwareBy key, List<List<Node>> elementsToSave) {
-        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave), webDriver.getCurrentUrl());
+        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave), getCurrentUrl());
     }
 
     public List<Node> getNodePath(WebElement webElement) {
@@ -285,4 +285,7 @@ public class SelfHealingEngine {
         return config.getBoolean("backlight-healing");
     }
 
+    public String getCurrentUrl() {
+        return webDriver.getCurrentUrl().split("://")[1];
+    }
 }
