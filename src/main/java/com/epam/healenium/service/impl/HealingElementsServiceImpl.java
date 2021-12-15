@@ -7,6 +7,7 @@ import com.epam.healenium.service.HealingElementsService;
 import com.epam.healenium.treecomparing.Node;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,7 @@ public class HealingElementsServiceImpl extends AbstractHealingServiceImpl imple
                     log.warn("Failed to find an element using locator {}\nTrying to heal...", pageBy.getBy());
                     return healLocator(pageBy, nodes, lastHealingDataDto).orElse(null);
                 })
+                .distinct()
                 .map(driver::findElement)
                 .collect(Collectors.toList());
         addHealedElements(elementsFromPage, elementToNodeFromPage, healedElements);
@@ -77,6 +79,8 @@ public class HealingElementsServiceImpl extends AbstractHealingServiceImpl imple
 
     private void addHealedElements(List<WebElement> elementsFromPage, Map<WebElement, List<Node>> elementToNodeFromPage, List<WebElement> healedElements) {
         if (!healedElements.isEmpty()) {
+            List<String> elementIdsFromPage = elementsFromPage.stream().map(e -> ((RemoteWebElement) e).getId()).collect(Collectors.toList());
+            healedElements.removeIf(healed -> elementIdsFromPage.contains(((RemoteWebElement) healed).getId()));
             elementsFromPage.addAll(healedElements);
             List<List<Node>> healedNodes = healedElements.stream()
                     .map(engine::getNodePath)
