@@ -14,13 +14,14 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.mapper.HealeniumMapper;
+import com.epam.healenium.model.Context;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,27 +60,50 @@ public class WebElementProxyHandler extends BaseHandler {
     @Override
     protected WebElement findElement(By by) {
         try {
+            Context context = new Context();
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
-                return lookUp(pageBy);
+                context.setPageAwareBy(pageBy);
+                context.setAction("findElement");
+                processorConfig.findChildElementChainProcessor()
+                        .setContext(context)
+                        .setDelegateElement(delegate)
+                        .setEngine(engine)
+                        .setRestClient(engine.getClient())
+                        .setMapper(new HealeniumMapper())
+                        .setHealingService(engine.getHealingService())
+                        .process();
+                return context.getElements().get(0);
             }
             return delegate.findElement(pageBy.getBy());
         } catch (Exception ex) {
             throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
         }
-
     }
 
     @Override
-    protected WebElement lookUp(PageAwareBy key) {
+    protected List<WebElement> findElements(By by) {
+        Context context = new Context();
         try {
-            WebElement element = delegate.findElement(key.getBy());
-            engine.saveElements(key, Collections.singletonList(element));
-            return element;
-        } catch (NoSuchElementException ex) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
-                    key.getBy().toString(), ex.getMessage());
-            return getHealingService().heal(key, ex).orElseThrow(() -> ex);
+            PageAwareBy pageBy = awareBy(by);
+            By inner = pageBy.getBy();
+            if (engine.isHealingEnabled()) {
+                context.setPageAwareBy(pageBy);
+                context.setAction("findElements");
+                processorConfig.findChildElementsChainProcessor()
+                        .setContext(context)
+                        .setDelegateElement(delegate)
+                        .setEngine(engine)
+                        .setRestClient(engine.getClient())
+                        .setMapper(new HealeniumMapper())
+                        .setHealingService(engine.getHealingService())
+                        .process();
+
+                return context.getElements();
+            }
+            return delegate.findElements(inner);
+        } catch (Exception ex) {
+            throw new NoSuchElementException("Failed to find elements using " + by.toString(), ex);
         }
     }
 

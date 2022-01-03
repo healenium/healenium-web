@@ -12,8 +12,11 @@
  */
 package com.epam.healenium.mapper;
 
+import com.epam.healenium.model.Context;
+import com.epam.healenium.model.HealingResult;
 import com.epam.healenium.model.HealingResultDto;
 import com.epam.healenium.model.Locator;
+import com.epam.healenium.model.HealingResultRequestDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
@@ -70,5 +73,18 @@ public class HealeniumMapper {
 
     public List<Locator> byToLocator(Collection<By> by) {
         return by.stream().map(this::byToLocator).collect(Collectors.toList());
+    }
+
+    public HealingResultRequestDto buildMultRequest(Context context, HealingResult healingResult,
+                                                    List<Scored<By>> choices, String metrics) {
+        RequestDto requestDto = buildDto(context.getPageAwareBy().getBy(),
+                context.getPageContent(), choices, choices.get(0),
+                healingResult.getScreenshot(), context.getCurrentUrl());
+        HealingResultRequestDto resultRequest = new HealingResultRequestDto();
+        resultRequest
+                .setRequestDto(requestDto)
+                .setMetricsDto(metrics)
+                .setHealingTime(healingResult.getHealingTime());
+        return resultRequest;
     }
 }
