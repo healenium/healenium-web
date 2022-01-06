@@ -82,6 +82,17 @@ body:
     validations:
       required: true
   - type: textarea
+    id: property
+    attributes:
+      label: Properties file
+      description: What properties did you link in healenium.properties file?
+      placeholder: recovery-tries=1
+                   score-cap=.6
+                   heal-enabled=true
+                   serverHost = localhost
+                   serverPort = 7878
+                   imitatePort = 8000
+  - type: textarea
     id: additional
     attributes:
       label: Additional context
