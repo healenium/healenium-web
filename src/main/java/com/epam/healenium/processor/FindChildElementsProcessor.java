@@ -6,6 +6,9 @@ import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.util.List;
 
+/**
+ * Find child webElements from parent webElement processor
+ */
 @Slf4j
 public class FindChildElementsProcessor extends BaseProcessor {
 

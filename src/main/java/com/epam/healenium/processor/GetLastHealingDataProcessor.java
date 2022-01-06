@@ -4,6 +4,9 @@ import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Get Last Healing Data processor to heal element
+ */
 @Slf4j
 public class GetLastHealingDataProcessor extends BaseProcessor {
 

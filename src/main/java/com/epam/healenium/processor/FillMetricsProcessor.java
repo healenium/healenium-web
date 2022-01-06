@@ -7,6 +7,9 @@ import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Path;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Collect metrics for each healing result processor
+ */
 @Slf4j
 public class FillMetricsProcessor extends BaseProcessor {
 

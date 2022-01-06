@@ -83,6 +83,12 @@ public class HealingService {
         }
     }
 
+    /**
+     *
+     * @param node    convert source node to locator
+     * @param context chain context
+     * @return healedElement
+     */
     private HealedElement toLocator(Scored<Node> node, Context context) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
             By locator = construct(node.getValue(), detailLevel);
@@ -98,6 +104,11 @@ public class HealingService {
         return null;
     }
 
+    /**
+     *
+     * @param curPathHeightToScores - all PathToNode candidate collection
+     * @return list healingCandidateDto for metrics
+     */
     private List<HealingCandidateDto> getAllHealingCandidates(AbstractMap.SimpleImmutableEntry<Integer, Map<Double,
             List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> curPathHeightToScores) {
         Integer curPathHeight = curPathHeightToScores.getKey();
@@ -110,6 +121,12 @@ public class HealingService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * construct cssSelector by Node
+     * @param node         - target node
+     * @param detailLevel  - final detail Level collection
+     * @return target user selector
+     */
     private By construct(Node node, Set<SelectorComponent> detailLevel) {
         return By.cssSelector(detailLevel.stream()
                 .map(component -> component.createComponent(node))

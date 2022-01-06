@@ -12,6 +12,9 @@ import org.openqa.selenium.By;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Imitate css locator for healed webElement processor
+ */
 @Slf4j
 public class ImitateProcessor extends BaseProcessor {
 

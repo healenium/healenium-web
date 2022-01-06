@@ -17,6 +17,7 @@ import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.config.ProcessorConfig;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
+import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.utils.ProxyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
@@ -54,14 +55,10 @@ public abstract class BaseHandler implements InvocationHandler {
                 Context context = new Context()
                         .setPageAwareBy(pageBy)
                         .setAction("findElement");
-                processorConfig.findElementChainProcessor()
-                        .setContext(context)
-                        .setDriver(driver)
-                        .setEngine(engine)
-                        .setRestClient(engine.getClient())
-                        .setMapper(new HealeniumMapper())
-                        .setHealingService(engine.getHealingService())
-                        .process();
+                BaseProcessor chainProcessor = processorConfig.findElementChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
+
                 return context.getElements().get(0);
             }
             return driver.findElement(inner);
@@ -87,14 +84,9 @@ public abstract class BaseHandler implements InvocationHandler {
                 Context context = new Context()
                         .setPageAwareBy(pageBy)
                         .setAction("findElements");
-                processorConfig.findElementsChainProcessor()
-                        .setContext(context)
-                        .setDriver(driver)
-                        .setEngine(engine)
-                        .setRestClient(engine.getClient())
-                        .setMapper(new HealeniumMapper())
-                        .setHealingService(engine.getHealingService())
-                        .process();
+                BaseProcessor chainProcessor = processorConfig.findElementsChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
 
                 return context.getElements();
             }
@@ -121,6 +113,15 @@ public abstract class BaseHandler implements InvocationHandler {
     protected WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
         TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
         return ProxyFactory.createTargetLocatorProxy(loader, handler);
+    }
+
+    protected void setBaseProcessorFields(BaseProcessor baseProcessor, Context context) {
+        baseProcessor.setContext(context)
+                .setDriver(driver)
+                .setEngine(engine)
+                .setRestClient(engine.getClient())
+                .setMapper(new HealeniumMapper())
+                .setHealingService(engine.getHealingService());
     }
 
 }

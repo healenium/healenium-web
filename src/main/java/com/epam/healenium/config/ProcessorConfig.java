@@ -18,7 +18,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 
-
+/**
+ * Main purpose - create chain of corresponding processors for each case (findElement/findElements)
+ */
 public class ProcessorConfig {
 
     public BaseProcessor findElementChainProcessor() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {

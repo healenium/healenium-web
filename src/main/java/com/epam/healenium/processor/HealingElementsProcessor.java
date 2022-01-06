@@ -7,6 +7,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
+/**
+ * Healing Elements Processor
+ */
 @Slf4j
 public class HealingElementsProcessor extends BaseProcessor {
 

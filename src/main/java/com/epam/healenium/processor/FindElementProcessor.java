@@ -7,6 +7,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.Collections;
 
+/**
+ * Find webElement from driver processor
+ */
 @Slf4j
 public class FindElementProcessor extends BaseProcessor {
 

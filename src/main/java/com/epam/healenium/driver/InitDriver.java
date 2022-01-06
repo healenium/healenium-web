@@ -18,6 +18,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+/**
+ * Init Self-Healing Driver for tests classes
+ */
 public class InitDriver {
 
     public static SelfHealingDriver getDriver(){

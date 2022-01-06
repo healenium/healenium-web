@@ -6,6 +6,9 @@ import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.util.List;
 
+/**
+ * Find webElements from driver processor
+ */
 @Slf4j
 public class FindElementsProcessor extends BaseProcessor {
 

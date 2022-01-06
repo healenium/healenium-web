@@ -16,6 +16,7 @@ import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
+import com.epam.healenium.processor.BaseProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -60,19 +61,17 @@ public class WebElementProxyHandler extends BaseHandler {
     @Override
     protected WebElement findElement(By by) {
         try {
-            Context context = new Context();
+
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
-                context.setPageAwareBy(pageBy);
-                context.setAction("findElement");
-                processorConfig.findChildElementChainProcessor()
-                        .setContext(context)
-                        .setDelegateElement(delegate)
-                        .setEngine(engine)
-                        .setRestClient(engine.getClient())
-                        .setMapper(new HealeniumMapper())
-                        .setHealingService(engine.getHealingService())
-                        .process();
+                Context context = new Context()
+                        .setPageAwareBy(pageBy)
+                        .setAction("findElement");
+
+                BaseProcessor chainProcessor = processorConfig.findChildElementChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
+
                 return context.getElements().get(0);
             }
             return delegate.findElement(pageBy.getBy());
@@ -83,21 +82,18 @@ public class WebElementProxyHandler extends BaseHandler {
 
     @Override
     protected List<WebElement> findElements(By by) {
-        Context context = new Context();
+
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
-                context.setPageAwareBy(pageBy);
-                context.setAction("findElements");
-                processorConfig.findChildElementsChainProcessor()
-                        .setContext(context)
-                        .setDelegateElement(delegate)
-                        .setEngine(engine)
-                        .setRestClient(engine.getClient())
-                        .setMapper(new HealeniumMapper())
-                        .setHealingService(engine.getHealingService())
-                        .process();
+                Context context = new Context()
+                        .setPageAwareBy(pageBy)
+                        .setAction("findElements");
+
+                BaseProcessor chainProcessor = processorConfig.findChildElementsChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
 
                 return context.getElements();
             }

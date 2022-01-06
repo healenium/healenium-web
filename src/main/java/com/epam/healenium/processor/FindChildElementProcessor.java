@@ -7,6 +7,9 @@ import org.openqa.selenium.WebElement;
 
 import java.util.Collections;
 
+/**
+ * Find child webElement from parent webElement processor
+ */
 @Slf4j
 public class FindChildElementProcessor extends BaseProcessor {
 

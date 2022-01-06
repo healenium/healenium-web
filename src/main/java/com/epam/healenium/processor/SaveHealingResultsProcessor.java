@@ -7,6 +7,9 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebElement;
 
+/**
+ * Save Healing Results Processor
+ */
 @Slf4j
 public class SaveHealingResultsProcessor extends BaseProcessor {
 

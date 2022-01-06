@@ -36,6 +36,11 @@ public class NodeService {
         this.driver = driver;
     }
 
+    /**
+     * build list nodes by source webElement
+     * @param webElement - source element
+     * @return           - list path nodes
+     */
     public List<Node> getNodePath(WebElement webElement) {
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
