@@ -57,7 +57,6 @@ public class HealingService {
      * @param destination the new HTML page source on which we should search for the element
      * @param paths       source path to locator
      * @param context     context data for healing
-     * @return a list of candidate locators, ordered by revelance, or empty list if was unable to heal
      */
     public void findNewLocations(List<Node> paths, Node destination, Context context) {
 
