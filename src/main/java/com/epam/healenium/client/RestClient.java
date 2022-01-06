@@ -134,7 +134,7 @@ public class RestClient {
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
                     .addHeader("hostProject", SystemUtils.getHostProjectName())
-                    .url(baseUrl + "/healings")
+                    .url(baseUrl + "/healing")
                     .post(requestBody)
                     .build();
             okHttpClient().newCall(request).execute().close();

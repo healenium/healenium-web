@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 public class HealingResultRequestDto {
 
     private RequestDto requestDto;
-    private String metricsDto;
+    private String metrics;
     private String healingTime;
 
 }

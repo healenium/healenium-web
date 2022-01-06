@@ -83,7 +83,7 @@ public class HealeniumMapper {
         HealingResultRequestDto resultRequest = new HealingResultRequestDto();
         resultRequest
                 .setRequestDto(requestDto)
-                .setMetricsDto(metrics)
+                .setMetrics(metrics)
                 .setHealingTime(healingResult.getHealingTime());
         return resultRequest;
     }

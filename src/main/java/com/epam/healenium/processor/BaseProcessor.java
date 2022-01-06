@@ -41,9 +41,7 @@ public abstract class BaseProcessor implements ProcessorHandler {
 
     public void process() {
         if (validate()) {
-            final long then = System.currentTimeMillis();
             execute();
-            System.out.println("processor " + this.getClass().getName() + "  finish: " + ((System.currentTimeMillis() - then) / 1000.0));
             if (nextProcessor != null) {
                 nextProcessor.setContext(context)
                         .setDriver(driver)
