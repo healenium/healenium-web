@@ -103,4 +103,8 @@ public class WebElementProxyHandler extends BaseHandler {
         }
     }
 
+    protected void setBaseProcessorFields(BaseProcessor baseProcessor, Context context) {
+        super.setBaseProcessorFields(baseProcessor, context);
+        baseProcessor.setDelegateElement(delegate);
+    }
 }

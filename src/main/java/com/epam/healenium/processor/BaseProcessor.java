@@ -49,6 +49,7 @@ public abstract class BaseProcessor implements ProcessorHandler {
                         .setMapper(mapper)
                         .setRestClient(restClient)
                         .setHealingService(healingService)
+                        .setDelegateElement(delegateElement)
                         .process();
             }
         }
