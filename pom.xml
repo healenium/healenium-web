@@ -68,7 +68,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <typesafe.version>1.3.4</typesafe.version>
         <treecomparing.version>0.4.10</treecomparing.version>
-        <selenium.version>4.1.0</selenium.version>
+        <selenium.version>4.1.1</selenium.version>
         <jacksondatabind.version>2.10.0</jacksondatabind.version>
         <commonslang3.version>3.11</commonslang3.version>
         <commonscodec.version>1.12</commonscodec.version>
@@ -79,7 +79,7 @@
         <streamex.version>0.7.2</streamex.version>
         <jettyserver.version>9.4.41.v20210516</jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
-        <selenide.version>6.1.1</selenide.version>
+        <selenide.version>6.1.2</selenide.version>
         <testcontainersjunit.version>1.16.2</testcontainersjunit.version>
         <junit.version>5.7.1</junit.version>
         <webdrivermanager.version>4.2.0</webdrivermanager.version>
