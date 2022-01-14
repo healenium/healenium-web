@@ -23,6 +23,9 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 import java.io.IOException;
 
+/**
+ * Serializer for Node class (tree-comparing)
+ */
 public class NodeSerializer extends JsonSerializer<Node> {
 
     @Override

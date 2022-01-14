@@ -24,6 +24,9 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Deserializer for Node class (tree-comparing)
+ */
 @SuppressWarnings("unchecked")
 public class NodeDeserializer extends JsonDeserializer<Node> {
 

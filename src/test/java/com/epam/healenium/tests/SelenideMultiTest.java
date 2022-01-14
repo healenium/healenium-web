@@ -25,10 +25,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.remote.DesiredCapabilities;
 
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.$;
@@ -70,11 +70,10 @@ public class SelenideMultiTest extends AbstractBackendIT {
 
     private static class MyGridProvider implements WebDriverProvider {
         @Override
-        public WebDriver createDriver(DesiredCapabilities capabilities) {
+        public WebDriver createDriver(Capabilities capabilities) {
             Configuration.timeout = 15000;
 
             WebDriverManager.chromedriver().setup();
-            capabilities.setBrowserName("chrome");
             ChromeOptions options = new ChromeOptions();
             options.setHeadless(true);
             options.merge(capabilities);

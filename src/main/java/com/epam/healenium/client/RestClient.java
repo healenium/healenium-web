@@ -15,13 +15,16 @@ package com.epam.healenium.client;
 import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
+import com.epam.healenium.model.Context;
+import com.epam.healenium.model.HealedElement;
 import com.epam.healenium.model.HealeniumSelectorImitatorDto;
-import com.epam.healenium.model.HealingResultDto;
+import com.epam.healenium.model.HealingResult;
+import com.epam.healenium.model.HealingResultRequestDto;
 import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
-import com.epam.healenium.model.MetricsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
+import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -31,21 +34,18 @@ import com.typesafe.config.Config;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.codehaus.plexus.util.StringUtils;
 import org.openqa.selenium.By;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -92,78 +92,88 @@ public class RestClient {
     /**
      * Store info in backend
      *
-     * @param by       element By locator
-     * @param nodePath List of nodes
+     * @param by         element By locator
+     * @param nodePath   List of nodes
+     * @param currentUrl url of web page
      */
-    public void selectorsRequest(By by, List<List<Node>> nodePath) {
-        RequestDto requestDto = mapper.buildDto(by, nodePath);
+    public void selectorsRequest(By by, List<List<Node>> nodePath, String currentUrl) {
+        RequestDto requestDto = mapper.buildDto(by, nodePath, currentUrl);
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
             Request request = new Request.Builder()
                     .url(baseUrl)
                     .post(body)
                     .build();
-            okHttpClient().newCall(request).execute();
+            okHttpClient().newCall(request).execute().close();
         } catch (Exception e) {
-            log.warn("Failed to make response: " + e.getMessage());
+            log.warn("Failed to make response of 'selectorsRequest' request." + e);
         }
     }
 
     /**
      * Collect results from previous healing
-     * @param screenshot - image with healed element
-     * @param healingTime - healing time
-     * @param metricsDto - healenium metrics data
+     *
+     * @param context healing context
      */
-    public void healRequest(RequestDto requestDto, byte[] screenshot, String healingTime, MetricsDto metricsDto) {
+    public void healRequest(Context context) {
         try {
-            RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("screenshot", buildScreenshotName(), RequestBody.create(MediaType.parse("image/png"), screenshot))
-                    .addFormDataPart("dto", objectMapper.writeValueAsString(requestDto))
-                    .addFormDataPart("metrics", objectMapper.writeValueAsString(metricsDto))
-                    .build();
+            List<HealingResultRequestDto> resultRequestDtos = new ArrayList<>();
+            for (HealingResult healingResult : context.getHealingResults()) {
+                List<Scored<By>> choices = healingResult.getHealedElements().stream()
+                        .map(HealedElement::getScored)
+                        .collect(Collectors.toList());
+                if (choices.isEmpty()) {
+                    return;
+                }
+                String metrics = objectMapper.writeValueAsString(healingResult.getMetricsDto());
+                resultRequestDtos.add(mapper.buildMultRequest(context, healingResult, choices, metrics));
+            }
+
+            RequestBody requestBody = RequestBody.create(JSON, objectMapper.writeValueAsString(resultRequestDtos));
 
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
                     .addHeader("hostProject", SystemUtils.getHostProjectName())
-                    .addHeader("healingTime", healingTime)
                     .url(baseUrl + "/healing")
                     .post(requestBody)
                     .build();
-            okHttpClient().newCall(request).execute();
+            okHttpClient().newCall(request).execute().close();
         } catch (Exception e) {
-            log.warn("Failed to make response", e);
+            log.warn("Failed to make response of 'healRequest' request. ", e);
         }
     }
 
     /**
      * Get node path for given selector
      *
-     * @param locator element By locator
-     * @return lastHealingDataDto
+     * @param locator    element By locator
+     * @param currentUrl url of web page
+     * @return lastHealingDataDto   previous success healing data
      */
-    public Optional<LastHealingDataDto> getLastHealingData(By locator) {
+    public Optional<LastHealingDataDto> getLastHealingData(By locator, String currentUrl) {
         LastHealingDataDto lastHealingDataDto = null;
-        RequestDto requestDto = mapper.buildDto(locator);
+        RequestDto requestDto = mapper.buildDto(locator, currentUrl);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
-                    .addQueryParameter("methodName", requestDto.getMethodName());
+                    .addQueryParameter("methodName", requestDto.getMethodName())
+                    .addQueryParameter("url", currentUrl);
 
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
                     .url(httpBuilder.build())
                     .get()
                     .build();
-            Response response = okHttpClient().newCall(request).execute();
-            if (response.code() == 200) {
-                String result = response.body().string();
-                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
-                });
+            try (Response response = okHttpClient().newCall(request).execute()) {
+                if (response.code() == 200) {
+                    String result = response.body().string();
+                    lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
+                    });
+                }
             }
         } catch (Exception ex) {
-            log.warn("Failed to make response", ex);
+            log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
         }
         return Optional.ofNullable(lastHealingDataDto);
     }
@@ -181,26 +191,17 @@ public class RestClient {
                     .url(imitateUrl)
                     .post(body)
                     .build();
-            Response response = okHttpClient().newCall(request).execute();
-            if (response.code() == 200) {
-                String result = response.body().string();
-                return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                });
+            try (Response response = okHttpClient().newCall(request).execute()) {
+                if (response.code() == 200) {
+                    String result = response.body().string();
+                    return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                    });
+                }
             }
         } catch (Exception ex) {
-            log.warn("Failed to make imitate response: {}", ex.getMessage());
+            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
         }
         return Collections.emptyList();
     }
 
-    /**
-     * @return
-     */
-    private String buildScreenshotName() {
-        return "screenshot_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MMM-yyyy-hh-mm-ss").withLocale(Locale.US)) + ".png";
-    }
-
-    public HealeniumMapper getMapper() {
-        return mapper;
-    }
 }
