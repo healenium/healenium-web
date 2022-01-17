@@ -62,6 +62,10 @@ public class StackUtils {
         return findOriginCaller(trace);
     }
 
+    /**
+     * @param elements - StackTrace Elements by Caller
+     * @return caller method
+     */
     public Optional<StackTraceElement> findOriginCaller(StackTraceElement[] elements) {
         List<StackTraceElement> elementList = normalize(elements);
         String callerName = getCallerPackageName(elementList);
@@ -132,6 +136,10 @@ public class StackUtils {
         };
     }
 
+    /**
+     * @param traceElements - StackTrace Elements by Caller
+     * @return sorted and filtered list Stack Trace Elements
+     */
     private List<StackTraceElement> normalize(StackTraceElement[] traceElements) {
         List<StackTraceElement> elementList = Arrays.stream(traceElements)
                 .filter(redundantPackages())

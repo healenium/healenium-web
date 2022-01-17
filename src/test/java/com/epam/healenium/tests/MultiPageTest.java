@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,10 @@ import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.driver.InitDriver;
+import com.epam.healenium.model.Context;
 import com.epam.healenium.model.LastHealingDataDto;
+import com.epam.healenium.service.HealingService;
 import com.epam.healenium.treecomparing.Node;
-import com.epam.healenium.treecomparing.Scored;
-import com.epam.healenium.utils.StackUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 public class MultiPageTest extends AbstractBackendIT {
 
     public static final String PAGE_NAME = MultiPageTest.class.getSimpleName();
+    private static HealingService healingService;
 
     private SelfHealingDriver create() {
         return InitDriver.getDriver();
@@ -52,14 +53,19 @@ public class MultiPageTest extends AbstractBackendIT {
 
     private void run() {
         SelfHealingDriver driver = create();
+        String targetPage = driver.getPageSource();
+        Node destination = driver.getCurrentEngine().parseTree(targetPage);
+        healingService = new HealingService(driver.getCurrentEngine().getConfig(), driver);
         driver.get("https://duckduckgo.com/");
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.cssSelector("form input[type=text]"));
         WebElement input = driver.findElement(by);
-        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy());
+        Optional<LastHealingDataDto> lastValidDataDto = driver.getCurrentEngine().getClient().getLastHealingData(by.getBy(),
+                driver.getCurrentEngine().getCurrentUrl());
         List<Node> paths = lastValidDataDto
                 .map(dto -> dto.getPaths()).get().get(0);
-        Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(driver.getPageSource(), paths, null).get(0);
-        Assertions.assertEquals(input, driver.findElement(newLocation.getValue()));
+        Context context = new Context();
+        healingService.findNewLocations(paths, destination, context);
+        Assertions.assertEquals(input, driver.findElement(context.getHealingResults().get(0).getHealedElements().get(0).getScored().getValue()));
         driver.quit();
     }
 }

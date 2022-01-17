@@ -14,12 +14,11 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.service.HealingElementsService;
-import com.epam.healenium.service.HealingService;
-import com.epam.healenium.service.impl.HealingElementsServiceImpl;
-import com.epam.healenium.service.impl.HealingServiceImpl;
+import com.epam.healenium.config.ProcessorConfig;
+import com.epam.healenium.mapper.HealeniumMapper;
+import com.epam.healenium.model.Context;
+import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.utils.ProxyFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -27,7 +26,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.lang.reflect.InvocationHandler;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -35,38 +33,62 @@ public abstract class BaseHandler implements InvocationHandler {
 
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
-
-    @Getter
-    private final HealingService healingService;
-    @Getter
-    private final HealingElementsService healingElementsService;
+    protected final ProcessorConfig processorConfig;
 
     public BaseHandler(SelfHealingEngine engine) {
         this.engine = engine;
         this.driver = engine.getWebDriver();
-        this.healingService = new HealingServiceImpl(engine);
-        this.healingElementsService = new HealingElementsServiceImpl(engine);
+        this.processorConfig = new ProcessorConfig();
     }
 
+    /**
+     * Search target element on a page
+     *
+     * @param by will be used for checking|saving in cache
+     * @return proxy web element
+     */
     protected WebElement findElement(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
-                return lookUp(pageBy);
+                Context context = new Context()
+                        .setPageAwareBy(pageBy)
+                        .setAction("findElement");
+                BaseProcessor chainProcessor = processorConfig.findElementChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
+
+                return context.getElements().get(0);
             }
             return driver.findElement(inner);
+        } catch (NoSuchElementException ex) {
+            throw ex;
         } catch (Exception ex) {
+            log.warn("Error during findElement: ", ex);
             throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
         }
     }
 
+    /**
+     * Search target elements on a page
+     *
+     * @param by will be used for checking|saving in cache
+     * @return proxy web elements
+     */
     protected List<WebElement> findElements(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
-                return lookUpElements(pageBy);
+                Context context = new Context()
+                        .setPageAwareBy(pageBy)
+                        .setAction("findElements");
+                BaseProcessor chainProcessor = processorConfig.findElementsChainProcessor();
+                setBaseProcessorFields(chainProcessor, context);
+                chainProcessor.process();
+
+                return context.getElements();
             }
             return driver.findElements(inner);
         } catch (Exception ex) {
@@ -74,37 +96,6 @@ public abstract class BaseHandler implements InvocationHandler {
         }
     }
 
-    /**
-     * Search target element on a page
-     *
-     * @param key will be used for checking|saving in cache
-     * @return proxy web element
-     */
-    protected WebElement lookUp(PageAwareBy key) {
-        try {
-            WebElement element = driver.findElement(key.getBy());
-            engine.saveElements(key, Collections.singletonList(element));
-            return element;
-        } catch (NoSuchElementException e) {
-            log.warn("Failed to find an element using locator {}\nReason: {}\nTrying to heal...",
-                    key.getBy().toString(), e.getMessage());
-            return healingService.heal(key, e).orElseThrow(() -> e);
-        }
-    }
-
-    /**
-     * Search target elements on a page
-     *
-     * @param key will be used for checking|saving in cache
-     * @return proxy web elements
-     */
-    protected List<WebElement> lookUpElements(PageAwareBy key) {
-        List<WebElement> pageElements = driver.findElements(key.getBy());
-        if (pageElements.isEmpty()) {
-            log.warn("Failed to find any elements using locator {}", key.getBy().toString());
-        }
-        return healingElementsService.heal(key, pageElements);
-    }
 
     /**
      * @param by locator
@@ -122,6 +113,15 @@ public abstract class BaseHandler implements InvocationHandler {
     protected WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
         TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
         return ProxyFactory.createTargetLocatorProxy(loader, handler);
+    }
+
+    protected void setBaseProcessorFields(BaseProcessor baseProcessor, Context context) {
+        baseProcessor.setContext(context)
+                .setDriver(driver)
+                .setEngine(engine)
+                .setRestClient(engine.getClient())
+                .setMapper(new HealeniumMapper())
+                .setHealingService(engine.getHealingService());
     }
 
 }

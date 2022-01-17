@@ -37,4 +37,5 @@ public class RequestDto {
     // used selector for healing
     private HealingResultDto usedResult;
     private byte[] screenshot;
+    private String url;
 }

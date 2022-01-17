@@ -21,10 +21,10 @@ import lombok.experimental.UtilityClass;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.WrapsElement;
 import org.openqa.selenium.interactions.HasInputDevices;
 import org.openqa.selenium.interactions.Interactive;
 import org.openqa.selenium.interactions.Locatable;
-import org.openqa.selenium.internal.WrapsElement;
 
 @UtilityClass
 @SuppressWarnings("unchecked")
