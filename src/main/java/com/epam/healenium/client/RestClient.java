@@ -25,12 +25,14 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
+import com.epam.healenium.utils.StackTraceReader;
 import com.epam.healenium.utils.SystemUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.typesafe.config.Config;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -54,21 +56,22 @@ import java.util.stream.Collectors;
  */
 
 @Slf4j
+@Data
 public class RestClient {
 
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final String baseUrl;
     private final String imitateUrl;
     private final String sessionKey;
-    private final ObjectMapper objectMapper;
-    private final HealeniumMapper mapper;
+    private ObjectMapper objectMapper;
+    private HealeniumMapper mapper;
 
     public RestClient(Config config) {
         objectMapper = initMapper();
         baseUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
         imitateUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("imitatePort") + "/imitate";
         sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : "";
-        mapper = new HealeniumMapper();
+        mapper = new HealeniumMapper(new StackTraceReader());
     }
 
     private OkHttpClient okHttpClient() {

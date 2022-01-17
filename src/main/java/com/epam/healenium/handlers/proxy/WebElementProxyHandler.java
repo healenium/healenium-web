@@ -14,7 +14,6 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
-import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.processor.BaseProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +21,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class WebElementProxyHandler extends BaseHandler {
+public class WebElementProxyHandler extends BaseHandler implements InvocationHandler {
 
     private final WebElement delegate;
 
@@ -61,7 +61,6 @@ public class WebElementProxyHandler extends BaseHandler {
     @Override
     protected WebElement findElement(By by) {
         try {
-
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
@@ -82,7 +81,6 @@ public class WebElementProxyHandler extends BaseHandler {
 
     @Override
     protected List<WebElement> findElements(By by) {
-
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();

@@ -23,11 +23,13 @@ import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import lombok.Getter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -40,23 +42,19 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
+@Data
 public class SelfHealingEngine {
 
     private static final Config DEFAULT_CONFIG = ConfigFactory.systemProperties().withFallback(
             ConfigFactory.load("healenium.properties").withFallback(ConfigFactory.load()));
 
-    @Getter
     private final Config config;
-    @Getter
     private final WebDriver webDriver;
-    @Getter
     private final double scoreCap;
-    @Getter
-    private final RestClient client;
-    @Getter
-    private final NodeService nodeService;
-    @Getter
-    private final HealingService healingService;
+
+    private RestClient client;
+    private NodeService nodeService;
+    private HealingService healingService;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
@@ -135,5 +133,13 @@ public class SelfHealingEngine {
 
     public String getCurrentUrl() {
         return webDriver.getCurrentUrl().split("://")[1];
+    }
+
+    public byte[] captureScreen(WebElement element) {
+        if (isHealingBacklighted()) {
+            JavascriptExecutor jse = (JavascriptExecutor) webDriver;
+            jse.executeScript("arguments[0].style.border='3px solid red'", element);
+        }
+        return ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.BYTES);
     }
 }

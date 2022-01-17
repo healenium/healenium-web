@@ -16,10 +16,12 @@ import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
 import com.epam.healenium.handlers.proxy.WebElementProxyHandler;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 
 import java.lang.annotation.Annotation;
@@ -55,25 +57,6 @@ public class StackUtils {
     public boolean isAnnotationPresent(Class<? extends Annotation> aClass) {
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         return findAnnotatedInTrace(trace, aClass).isPresent();
-    }
-
-    public Optional<StackTraceElement> findOriginCaller() {
-        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
-        return findOriginCaller(trace);
-    }
-
-    /**
-     * @param elements - StackTrace Elements by Caller
-     * @return caller method
-     */
-    public Optional<StackTraceElement> findOriginCaller(StackTraceElement[] elements) {
-        List<StackTraceElement> elementList = normalize(elements);
-        String callerName = getCallerPackageName(elementList);
-        if (StringUtils.isBlank(callerName)) return Optional.empty();
-        Collections.reverse(elementList);
-        return elementList.stream()
-                .filter(it -> it.getClassName().startsWith(callerName))
-                .findFirst();
     }
 
     /**
@@ -127,47 +110,15 @@ public class StackUtils {
     /**
      * @return
      */
-    private Predicate<StackTraceElement> redundantPackages() {
+    public Predicate<StackTraceElement> redundantPackages() {
         return value -> {
             Stream<String> skippingPackageStream = Stream.of("java.base", "sun.reflect", "java.lang", "org.gradle",
                     "org.junit", "java.util", "com.sun", "com.google", "jdk.internal", "org.openqa", "com.codeborne",
-                    "ru.yandex", "jdk.proxy2");
+                    "ru.yandex", "jdk.proxy2", "io.appium");
             return skippingPackageStream.noneMatch(s -> value.getClassName().startsWith(s));
         };
     }
 
-    /**
-     * @param traceElements - StackTrace Elements by Caller
-     * @return sorted and filtered list Stack Trace Elements
-     */
-    private List<StackTraceElement> normalize(StackTraceElement[] traceElements) {
-        List<StackTraceElement> elementList = Arrays.stream(traceElements)
-                .filter(redundantPackages())
-                .collect(Collectors.toList());
-        Collections.reverse(elementList);
-        elementList = StreamEx.of(elementList)
-                .takeWhile(it -> !(it.getClassName().equals(SelfHealingProxyInvocationHandler.class.getName())
-                        || it.getClassName().equals(WebElementProxyHandler.class.getName())))
-                .toList();
-        return elementList.subList(0, elementList.size());
-    }
 
-    private String getCallerPackageName(List<StackTraceElement> traceElements) {
-        String result = "";
-        try {
-            StackTraceElement element = Iterables.getLast(traceElements);
-            String className = element.getClassName();
-            int dotPos = lastDotPosition(className);
-            result = dotPos == -1 ? className : element.getClassName().substring(0, Math.max(dotPos, 0));
-        } catch (Exception ex) {
-            log.warn("Failed to find caller package name", ex);
-        }
-        return result;
-    }
 
-    private int lastDotPosition(String input) {
-        int dot1 = input.indexOf(".");
-        int dot2 = input.indexOf(".", dot1 + 1);
-        return Math.max(dot1, dot2);
-    }
 }

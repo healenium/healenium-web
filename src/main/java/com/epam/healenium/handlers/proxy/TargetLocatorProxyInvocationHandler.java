@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 @AllArgsConstructor
-class TargetLocatorProxyInvocationHandler implements InvocationHandler {
+public class TargetLocatorProxyInvocationHandler implements InvocationHandler {
 
     private final TargetLocator delegate;
     private final SelfHealingEngine engine;

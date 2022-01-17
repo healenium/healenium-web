@@ -20,7 +20,9 @@ import com.epam.healenium.model.HealingResultRequestDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
+import com.epam.healenium.utils.StackTraceReader;
 import com.epam.healenium.utils.StackUtils;
+import lombok.Data;
 import org.openqa.selenium.By;
 
 import java.util.Collection;
@@ -29,8 +31,14 @@ import java.util.stream.Collectors;
 
 public class HealeniumMapper {
 
+    private StackTraceReader stackTraceReader;
+
+    public HealeniumMapper(StackTraceReader stackTraceReader) {
+        this.stackTraceReader = stackTraceReader;
+    }
+
     public RequestDto buildDto(By by, String currentUrl) {
-        StackTraceElement traceElement = StackUtils.findOriginCaller(Thread.currentThread().getStackTrace())
+        StackTraceElement traceElement = stackTraceReader.findOriginCaller(Thread.currentThread().getStackTrace())
                 .orElseThrow(() -> new IllegalArgumentException("Failed to detect origin method caller"));
         String[] locatorParts = by.toString().split(":", 2);
         RequestDto dto = new RequestDto()
