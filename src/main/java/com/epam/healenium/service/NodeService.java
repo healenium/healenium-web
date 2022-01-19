@@ -30,7 +30,7 @@ public class NodeService {
     private static final String SCRIPT = ResourceReader.readResource(
             "itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
 
-    private final WebDriver driver;
+    protected final WebDriver driver;
 
     public NodeService(WebDriver driver) {
         this.driver = driver;
@@ -38,8 +38,9 @@ public class NodeService {
 
     /**
      * build list nodes by source webElement
+     *
      * @param webElement - source element
-     * @return           - list path nodes
+     * @return - list path nodes
      */
     public List<Node> getNodePath(WebElement webElement) {
         JavascriptExecutor executor = (JavascriptExecutor) driver;

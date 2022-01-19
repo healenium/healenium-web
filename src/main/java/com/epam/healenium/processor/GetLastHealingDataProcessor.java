@@ -26,7 +26,7 @@ public class GetLastHealingDataProcessor extends BaseProcessor {
                 context.getPageAwareBy().getBy(), currentUrl).orElse(null);
         context.setLastHealingData(lastHealingDataDto);
         context.setCurrentUrl(currentUrl);
-        Locator userLocator = mapper.byToLocator(context.getPageAwareBy().getBy());
+        Locator userLocator = restClient.getMapper().byToLocator(context.getPageAwareBy().getBy());
         context.setUserLocator(userLocator);
     }
 }

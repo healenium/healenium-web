@@ -26,8 +26,6 @@ public abstract class BaseProcessor implements ProcessorHandler {
     @Setter
     protected WebDriver driver;
     @Setter
-    protected HealeniumMapper mapper;
-    @Setter
     protected WebElement delegateElement;
     @Setter
     protected HealingService healingService;
@@ -46,7 +44,6 @@ public abstract class BaseProcessor implements ProcessorHandler {
                 nextProcessor.setContext(context)
                         .setDriver(driver)
                         .setEngine(engine)
-                        .setMapper(mapper)
                         .setRestClient(restClient)
                         .setHealingService(healingService)
                         .setDelegateElement(delegateElement)

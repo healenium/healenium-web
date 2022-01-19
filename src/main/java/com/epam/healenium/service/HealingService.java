@@ -83,7 +83,6 @@ public class HealingService {
     }
 
     /**
-     *
      * @param node    convert source node to locator
      * @param context chain context
      * @return healedElement
@@ -104,7 +103,6 @@ public class HealingService {
     }
 
     /**
-     *
      * @param curPathHeightToScores - all PathToNode candidate collection
      * @return list healingCandidateDto for metrics
      */
@@ -122,11 +120,12 @@ public class HealingService {
 
     /**
      * construct cssSelector by Node
-     * @param node         - target node
-     * @param detailLevel  - final detail Level collection
+     *
+     * @param node        - target node
+     * @param detailLevel - final detail Level collection
      * @return target user selector
      */
-    private By construct(Node node, Set<SelectorComponent> detailLevel) {
+    protected By construct(Node node, Set<SelectorComponent> detailLevel) {
         return By.cssSelector(detailLevel.stream()
                 .map(component -> component.createComponent(node))
                 .collect(Collectors.joining()));

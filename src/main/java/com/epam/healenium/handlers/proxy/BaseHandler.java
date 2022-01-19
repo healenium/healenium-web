@@ -25,11 +25,10 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-import java.lang.reflect.InvocationHandler;
 import java.util.List;
 
 @Slf4j
-public abstract class BaseHandler implements InvocationHandler {
+public class BaseHandler {
 
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
@@ -120,7 +119,6 @@ public abstract class BaseHandler implements InvocationHandler {
                 .setDriver(driver)
                 .setEngine(engine)
                 .setRestClient(engine.getClient())
-                .setMapper(new HealeniumMapper())
                 .setHealingService(engine.getHealingService());
     }
 
