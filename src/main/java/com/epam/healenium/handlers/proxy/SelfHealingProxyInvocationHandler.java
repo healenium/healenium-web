@@ -18,13 +18,14 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver.TargetLocator;
 import org.openqa.selenium.WebElement;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class SelfHealingProxyInvocationHandler extends BaseHandler {
+public class SelfHealingProxyInvocationHandler extends BaseHandler implements InvocationHandler {
 
     public SelfHealingProxyInvocationHandler(SelfHealingEngine engine) {
         super(engine);

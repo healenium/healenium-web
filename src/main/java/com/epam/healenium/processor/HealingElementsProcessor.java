@@ -20,9 +20,12 @@ public class HealingElementsProcessor extends BaseProcessor {
     @Override
     public boolean validate() {
         LastHealingDataDto lastHealingData = context.getLastHealingData();
-        if ((lastHealingData == null || lastHealingData.getPaths().isEmpty())
-                && !context.getElements().isEmpty()) {
-            engine.saveElements(context.getPageAwareBy(), context.getElements());
+        if (lastHealingData == null || lastHealingData.getPaths().isEmpty()) {
+            if (!context.getElements().isEmpty()) {
+                engine.saveElements(context.getPageAwareBy(), context.getElements());
+            } else {
+                log.warn("New element locator have not been found. There is a lack of reference data.");
+            }
             return false;
         }
         return true;
