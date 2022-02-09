@@ -69,7 +69,7 @@
         <typesafe.version>1.3.4</typesafe.version>
         <treecomparing.version>0.4.10</treecomparing.version>
         <selenium.version>4.1.1</selenium.version>
-        <jacksondatabind.version>2.10.0</jacksondatabind.version>
+        <jacksondatabind.version>2.13.1</jacksondatabind.version>
         <commonslang3.version>3.11</commonslang3.version>
         <commonscodec.version>1.12</commonscodec.version>
         <slf4jsimple.version>1.7.30</slf4jsimple.version>
