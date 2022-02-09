@@ -37,9 +37,15 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler implements In
         switch (method.getName()) {
             case "findElement":
                 WebElement element = findElement((By) args[0]);
+                if (engine.isProxy()) {
+                    return element;
+                }
                 return Optional.ofNullable(element).map(it -> wrapElement(it, loader)).orElse(null);
             case "findElements":
                 List<WebElement> elements = findElements((By) args[0]);
+                if (engine.isProxy()) {
+                    return elements;
+                }
                 return elements.stream().map(it -> wrapElement(it, loader)).collect(Collectors.toList());
             case "getCurrentEngine":
                 return engine;

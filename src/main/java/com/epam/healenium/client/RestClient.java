@@ -69,7 +69,7 @@ public class RestClient {
     public RestClient(Config config) {
         objectMapper = initMapper();
         baseUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
-        imitateUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("imitatePort") + "/imitate";
+        imitateUrl = "http://" + config.getString("imitateHost") + ":" + config.getInt("imitatePort") + "/imitate";
         sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : "";
         mapper = new HealeniumMapper(new StackTraceReader());
     }
