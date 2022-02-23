@@ -15,7 +15,6 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.config.ProcessorConfig;
-import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.utils.ProxyFactory;

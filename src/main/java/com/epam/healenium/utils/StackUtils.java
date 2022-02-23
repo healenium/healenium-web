@@ -12,27 +12,17 @@
  */
 package com.epam.healenium.utils;
 
-import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
-import com.epam.healenium.handlers.proxy.WebElementProxyHandler;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import one.util.streamex.StreamEx;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.By;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -109,6 +99,7 @@ public class StackUtils {
 
     /**
      * @return
+     * redundant packages
      */
     public Predicate<StackTraceElement> redundantPackages() {
         return value -> {

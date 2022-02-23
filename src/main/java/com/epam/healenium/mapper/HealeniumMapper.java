@@ -21,8 +21,6 @@ import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackTraceReader;
-import com.epam.healenium.utils.StackUtils;
-import lombok.Data;
 import org.openqa.selenium.By;
 
 import java.util.Collection;
