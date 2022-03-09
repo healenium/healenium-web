@@ -97,10 +97,6 @@ public class StackUtils {
                 .findFirst();
     }
 
-    /**
-     * @return
-     * redundant packages
-     */
     public Predicate<StackTraceElement> redundantPackages() {
         return value -> {
             Stream<String> skippingPackageStream = Stream.of("java.base", "sun.reflect", "java.lang", "org.gradle",
