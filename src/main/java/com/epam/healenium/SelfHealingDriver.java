@@ -12,7 +12,10 @@
  */
 package com.epam.healenium;
 
+import com.epam.healenium.client.RestClient;
 import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
+import com.epam.healenium.service.HealingService;
+import com.epam.healenium.service.NodeService;
 import com.epam.healenium.utils.ProxyFactory;
 import com.typesafe.config.Config;
 import org.openqa.selenium.WebDriver;
@@ -31,11 +34,22 @@ public interface SelfHealingDriver extends WebDriver {
      * @return SelfHealingDriver instance
      */
     static SelfHealingDriver create(WebDriver delegate) {
-        return create(new SelfHealingEngine(delegate));
+        SelfHealingEngine selfHealingEngine = new SelfHealingEngine(delegate);
+        setEngineFields(delegate, selfHealingEngine);
+        return create(selfHealingEngine);
     }
 
     static SelfHealingDriver create(WebDriver delegate, Config config) {
-        return create(new SelfHealingEngine(delegate, config));
+        SelfHealingEngine selfHealingEngine = new SelfHealingEngine(delegate, config);
+        setEngineFields(delegate, selfHealingEngine);
+        return create(selfHealingEngine);
+    }
+
+    static void setEngineFields(WebDriver delegate, SelfHealingEngine selfHealingEngine) {
+        Config finalizedConfig = selfHealingEngine.getConfig();
+        selfHealingEngine.setClient(new RestClient(finalizedConfig));
+        selfHealingEngine.setNodeService(new NodeService(delegate));
+        selfHealingEngine.setHealingService(new HealingService(finalizedConfig, delegate));
     }
 
     static SelfHealingDriver create(SelfHealingEngine engine) {

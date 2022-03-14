@@ -3,7 +3,6 @@ package com.epam.healenium.processor;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.client.RestClient;
 import com.epam.healenium.handlers.processor.ProcessorHandler;
-import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.service.HealingService;
 import lombok.Setter;

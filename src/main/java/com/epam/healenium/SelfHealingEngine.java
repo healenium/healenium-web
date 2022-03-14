@@ -51,6 +51,7 @@ public class SelfHealingEngine {
     private final Config config;
     private final WebDriver webDriver;
     private final double scoreCap;
+    private final boolean isProxy;
 
     private RestClient client;
     private NodeService nodeService;
@@ -67,10 +68,7 @@ public class SelfHealingEngine {
         this.webDriver = delegate;
         this.config = finalizedConfig;
         this.scoreCap = finalizedConfig.getDouble("score-cap");
-
-        this.client = new RestClient(finalizedConfig);
-        this.nodeService = new NodeService(delegate);
-        this.healingService = new HealingService(finalizedConfig, delegate);
+        this.isProxy = finalizedConfig.getBoolean("proxy");
     }
 
     /**
