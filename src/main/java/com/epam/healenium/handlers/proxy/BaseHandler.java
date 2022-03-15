@@ -103,7 +103,7 @@ public class BaseHandler {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(driver.getTitle(), by);
     }
 
-    protected WebElement wrapElement(WebElement element, ClassLoader loader) {
+    public WebElement wrapElement(WebElement element, ClassLoader loader) {
         WebElementProxyHandler elementProxyHandler = new WebElementProxyHandler(element, engine);
         return ProxyFactory.createWebElementProxy(loader, elementProxyHandler);
     }
