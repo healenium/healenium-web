@@ -15,7 +15,6 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.config.ProcessorConfig;
-import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.utils.ProxyFactory;
@@ -104,7 +103,7 @@ public class BaseHandler {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(driver.getTitle(), by);
     }
 
-    protected WebElement wrapElement(WebElement element, ClassLoader loader) {
+    public WebElement wrapElement(WebElement element, ClassLoader loader) {
         WebElementProxyHandler elementProxyHandler = new WebElementProxyHandler(element, engine);
         return ProxyFactory.createWebElementProxy(loader, elementProxyHandler);
     }
