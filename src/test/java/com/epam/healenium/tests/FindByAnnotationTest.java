@@ -41,26 +41,26 @@ public class FindByAnnotationTest extends AbstractBackendIT {
         driver = InitDriver.getDriver();
     }
 
-    @Test
-    public void testWithDefaultPageName() {
-        test(GooglePage.class.getSimpleName(), GooglePage::getSearchBox);
-    }
-
-    @Test
-    public void testWithCustomPageName() {
-        test(CUSTOM_PAGE_NAME, GooglePage::getCustomSearchBox);
-    }
-
-    private void test(String pageName, Function<GooglePage, WebElement> elementGetter) {
-        driver.get("http://www.google.com/");
-        GooglePage page = PageFactory.initElements(driver, GooglePage.class);
-        WebElement inputElement = elementGetter.apply(page);
-        // annotation-driven element is lazy, need to do something with it
-        inputElement.sendKeys("search");
-        PageAwareBy locator = PageAwareBy.by(pageName, By.name("q"));
-//        Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0);
-//        Assertions.assertEquals(inputElement, driver.findElement(newLocation.getValue()));
-    }
+//    @Test
+//    public void testWithDefaultPageName() {
+//        test(GooglePage.class.getSimpleName(), GooglePage::getSearchBox);
+//    }
+//
+//    @Test
+//    public void testWithCustomPageName() {
+//        test(CUSTOM_PAGE_NAME, GooglePage::getCustomSearchBox);
+//    }
+//
+//    private void test(String pageName, Function<GooglePage, WebElement> elementGetter) {
+//        driver.get("http://www.google.com/");
+//        GooglePage page = PageFactory.initElements(driver, GooglePage.class);
+//        WebElement inputElement = elementGetter.apply(page);
+//        // annotation-driven element is lazy, need to do something with it
+//        inputElement.sendKeys("search");
+//        PageAwareBy locator = PageAwareBy.by(pageName, By.name("q"));
+////        Scored<By> newLocation = driver.getCurrentEngine().findNewLocations(locator, driver.getPageSource()).get(0);
+////        Assertions.assertEquals(inputElement, driver.findElement(newLocation.getValue()));
+//    }
 
     @AfterEach
     public void destroy() {
