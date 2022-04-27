@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.2.4</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
