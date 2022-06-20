@@ -40,6 +40,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ import java.util.stream.Collectors;
 public class RestClient {
 
     private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    private final String baseUrl;
+    private final String serverUrl;
     private final String imitateUrl;
     private final String sessionKey;
     private ObjectMapper objectMapper;
@@ -68,9 +69,16 @@ public class RestClient {
 
     public RestClient(Config config) {
         objectMapper = initMapper();
-        baseUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
-        imitateUrl = "http://" + config.getString("imitateHost") + ":" + config.getInt("imitatePort") + "/imitate";
-        sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : "";
+        if (config.hasPath("hlm.server.url")) {
+            String hlmServerUrl = config.getString("hlm.server.url");
+            serverUrl = (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat("/healenium");
+            String hlmImitatorUrl = config.getString("hlm.imitator.url");
+            imitateUrl = (hlmImitatorUrl.startsWith("http") ? hlmImitatorUrl : "http://".concat(hlmImitatorUrl)).concat("/imitate");
+        } else {
+            serverUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
+            imitateUrl = "http://" + config.getString("imitateHost") + ":" + config.getInt("imitatePort") + "/imitate";
+        }
+        sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : StringUtils.EMPTY;
         mapper = new HealeniumMapper(new StackTraceReader());
     }
 
@@ -104,7 +112,7 @@ public class RestClient {
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
             Request request = new Request.Builder()
-                    .url(baseUrl)
+                    .url(serverUrl)
                     .post(body)
                     .build();
             okHttpClient().newCall(request).execute().close();
@@ -137,7 +145,7 @@ public class RestClient {
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
                     .addHeader("hostProject", SystemUtils.getHostProjectName())
-                    .url(baseUrl + "/healing")
+                    .url(serverUrl + "/healing")
                     .post(requestBody)
                     .build();
             okHttpClient().newCall(request).execute().close();
@@ -157,7 +165,7 @@ public class RestClient {
         LastHealingDataDto lastHealingDataDto = null;
         RequestDto requestDto = mapper.buildDto(locator, currentUrl);
         try {
-            HttpUrl.Builder httpBuilder = HttpUrl.parse(baseUrl).newBuilder()
+            HttpUrl.Builder httpBuilder = HttpUrl.parse(serverUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
                     .addQueryParameter("methodName", requestDto.getMethodName())

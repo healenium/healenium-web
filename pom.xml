@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.2.4</version>
+    <version>3.2.5</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -102,7 +102,7 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.6</version>
                         <configuration>
-                            <passphrase>${gpg.passhprase}</passphrase>
+                            <passphrase>${gpg.passphrase}</passphrase>
                             <gpgArguments>
                                 <arg>--no-tty</arg>
                             </gpgArguments>
