@@ -15,7 +15,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.2.4'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.2.5'
 }
 ```
 
@@ -24,7 +24,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.2.4</version>
+	<version>3.2.5</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
@@ -39,9 +39,8 @@ SelfHealingDriver driver = SelfHealingDriver.create(delegate);
 recovery-tries = 1
 score-cap = 0.5
 heal-enabled = true
-serverHost = localhost
-serverPort = 7878
-imitatePort = 8000
+hlm.server.url = http://localhost:7878
+hlm.imitator.url = http://localhost:8000
  ```
 > recovery-tries - list of proposed healed locators
 
@@ -50,11 +49,9 @@ Also you can set this value via -D or System properties, for example to turn off
 
 > score-cap - score value to enable healing with predefined probability of match (0.5 means that healing will be performed for new healed locators where probability of match with target one is >=50% )
 
-> serverHost - ip or name where hlm-backend instance is installed
+> hlm.server.url - ip:port or name where hlm-backend instance is installed
 
-> serverPort - port on which hlm-backend instance is installed (7878 by default)
-
-> imitatePort - port on which imitate instance is installed (8000 by default)
+> hlm.imitator.url - ip:port or name where imitate instance is installed
 
 ### 3. Simply use standard By/@FindBy to locate your elements
 ```
