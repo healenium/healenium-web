@@ -210,7 +210,7 @@ public class RestClient {
                 }
             }
         } catch (Exception ex) {
-            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
+            log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
         }
         return Collections.emptyList();
     }
