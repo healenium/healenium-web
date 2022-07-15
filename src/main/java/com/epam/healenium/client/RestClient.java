@@ -92,7 +92,7 @@ public class RestClient {
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
         this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}", 
+        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}",
                 sessionKey, serverUrl, imitateUrl, selectorType);
     }
 
@@ -290,10 +290,10 @@ public class RestClient {
                 log.error("[Get Xpath Selector] Node is null, cannot proceed with request");
                 return null;
             }
-            
-            log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}", 
+
+            log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}",
                 node.getTag(), node.getId(), node.getClasses());
-                
+
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/selectors/xpath");
             String content = objectMapper.writeValueAsString(node);
             log.debug("[Get Xpath Selector] Request body: {}", content);
