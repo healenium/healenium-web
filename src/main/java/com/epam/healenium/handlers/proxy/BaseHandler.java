@@ -100,7 +100,7 @@ public class BaseHandler {
      * @return PageAwareBy element
      */
     protected PageAwareBy awareBy(By by) {
-        return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(driver.getTitle(), by);
+        return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(null, by);
     }
 
     public WebElement wrapElement(WebElement element, ClassLoader loader) {
