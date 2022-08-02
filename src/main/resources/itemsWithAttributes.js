@@ -16,7 +16,9 @@ while (a != document) {
   var child = a;
   var i=0; while(child=child.previousElementSibling) i++;
   var node = {tag:null,id:null,index:null,classes:[],other:{},innerText:""};
-  node.tag = a.tagName.toLowerCase();
+  if (a.tagName !== undefined) {
+    node.tag = a.tagName.toLowerCase();
+  }
   node.id = a.id;
   node.index = i;
   node.innerText = a.innerText;

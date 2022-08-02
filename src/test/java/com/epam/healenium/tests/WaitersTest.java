@@ -16,6 +16,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
+
 public class WaitersTest extends AbstractBackendIT {
 
     private SelfHealingDriver driver;
@@ -28,7 +30,7 @@ public class WaitersTest extends AbstractBackendIT {
     @Test
     public void name() {
         driver.get("https://accounts.google.com/signin/v2/identifier?hl=en");
-        WebDriverWait waiter = new WebDriverWait(driver, 15);
+        WebDriverWait waiter = new WebDriverWait(driver, Duration.ofSeconds(15));
         waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("input#Email"))));
         driver.findElement(By.cssSelector("a.need-help")).click();
         waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("input#Email")));
