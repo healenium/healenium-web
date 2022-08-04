@@ -176,12 +176,11 @@ public class RestClient {
                     .url(httpBuilder.build())
                     .get()
                     .build();
-            try (Response response = okHttpClient().newCall(request).execute()) {
-                if (response.code() == 200) {
-                    String result = response.body().string();
-                    lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
-                    });
-                }
+            Response response = okHttpClient().newCall(request).execute();
+            if (response.code() == 200) {
+                String result = response.body().string();
+                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
+                });
             }
         } catch (Exception ex) {
             log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
@@ -202,15 +201,14 @@ public class RestClient {
                     .url(imitateUrl)
                     .post(body)
                     .build();
-            try (Response response = okHttpClient().newCall(request).execute()) {
-                if (response.code() == 200) {
-                    String result = response.body().string();
-                    return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                    });
-                }
+            Response response = okHttpClient().newCall(request).execute();
+            if (response.code() == 200) {
+                String result = response.body().string();
+                return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                });
             }
         } catch (Exception ex) {
-            log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
+            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
         }
         return Collections.emptyList();
     }
