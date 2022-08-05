@@ -14,9 +14,10 @@ package com.epam.healenium.tests;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.WebDriverProvider;
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.TestServer;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -29,19 +30,21 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.*;
 
-public class SelenideTest extends AbstractBackendIT {
+@Slf4j
+public class SelenideTest {
 
     @RegisterExtension
     static TestServer server = new TestServer("SomeNewRoot");
 
     @BeforeEach
-    public void setUp() {
+    public void before() {
         Configuration.browser = MyGridProvider.class.getName();
+        open(String.format("http://localhost:%d", server.getPort()));
+        $(By.id("user_name")).click();
     }
 
     @Test
     public void userCanLoginByUsername() {
-        open(String.format("http://localhost:%d", server.getPort()));
         $(By.id("user_name")).setValue("erin");
         $(By.id("password")).setValue("secret");
         $(By.xpath("//div/button[@type='submit']")).click();
@@ -49,9 +52,29 @@ public class SelenideTest extends AbstractBackendIT {
         closeWebDriver();
     }
 
+
+    @Test
+    public void userNameTest() {
+        $(By.id("user_name")).setValue("erin");
+        $(By.id("user_name")).shouldHave(value("erin"));
+
+        $(By.xpath("//div/button[@type='submit']")).click();
+    }
+
+    @Test
+    public void passwordTest() {
+        $(By.id("password")).setValue("secret");
+        $(By.id("password")).shouldHave(value("secret"));
+
+        $(By.xpath("//div/button[@type='submit']")).click();
+    }
+
     private static class MyGridProvider implements WebDriverProvider {
         @Override
         public WebDriver createDriver(Capabilities capabilities) {
+            Configuration.timeout = 15000;
+
+            WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
             options.setHeadless(true);
             options.merge(capabilities);
