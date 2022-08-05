@@ -40,12 +40,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -178,9 +180,11 @@ public class RestClient {
                     .build();
             Response response = okHttpClient().newCall(request).execute();
             if (response.code() == 200) {
-                String result = response.body().string();
+                ResponseBody responseBody = response.body();
+                String result = responseBody.string();
                 lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
                 });
+                responseBody.close();
             }
         } catch (Exception ex) {
             log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
@@ -195,6 +199,7 @@ public class RestClient {
      * @return locators
      */
     public List<Locator> imitate(HealeniumSelectorImitatorDto healeniumSelectorImitatorDto) {
+        List<Locator> locators = new ArrayList<>();
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(healeniumSelectorImitatorDto));
             Request request = new Request.Builder()
@@ -203,14 +208,16 @@ public class RestClient {
                     .build();
             Response response = okHttpClient().newCall(request).execute();
             if (response.code() == 200) {
-                String result = response.body().string();
-                return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                ResponseBody responseBody = response.body();
+                String result = responseBody.string();
+                locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
                 });
+                responseBody.close();
             }
         } catch (Exception ex) {
-            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
+            log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
         }
-        return Collections.emptyList();
+        return locators;
     }
 
 }
