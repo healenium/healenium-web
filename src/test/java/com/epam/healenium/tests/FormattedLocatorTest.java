@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.TestServer;
@@ -23,17 +22,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
 
-public class FormattedLocatorTest extends AbstractBackendIT {
+public class FormattedLocatorTest {
+
+    protected static SelfHealingDriver driver;
+
+    @BeforeEach
+    public  void createDriver() {
+        if (driver == null){
+            driver = InitDriver.getDriver();
+        }
+    }
+
+    @AfterEach
+    public  void close() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 
     @RegisterExtension
     static TestServer server = new TestServer(FormattedLocatorTest.class.getSimpleName());
-
-    private SelfHealingDriver driver;
-
-    @BeforeEach
-    public void createDriver() {
-        driver = InitDriver.getDriver();
-    }
 
     @Test
     public void testNotThrowingExceptionWithFormattedLocator() {
@@ -42,13 +50,6 @@ public class FormattedLocatorTest extends AbstractBackendIT {
         selectItem("inner2");
         selectItems("inner");
         selectItems("inner2");
-    }
-
-    @AfterEach
-    public void close() {
-        if (driver != null) {
-            driver.quit();
-        }
     }
 
     private void selectItem(String itemName) {

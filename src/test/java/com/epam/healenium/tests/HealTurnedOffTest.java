@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.SelfHealingEngine;
@@ -30,7 +29,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-public class HealTurnedOffTest extends AbstractBackendIT {
+public class HealTurnedOffTest {
 
     private static final String PAGE_NAME = HealTurnedOffTest.class.getSimpleName();
 

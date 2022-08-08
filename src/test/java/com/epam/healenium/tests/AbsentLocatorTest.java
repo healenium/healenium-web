@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.driver.InitDriver;
@@ -25,15 +24,24 @@ import org.openqa.selenium.NoSuchElementException;
 
 import java.util.Collections;
 
-public class AbsentLocatorTest extends AbstractBackendIT {
+public class AbsentLocatorTest {
 
     private static final String PAGE_NAME = AbsentLocatorTest.class.getSimpleName();
 
-    private SelfHealingDriver driver;
+    protected static SelfHealingDriver driver;
 
     @BeforeEach
-    public void createDriver() {
-        driver = InitDriver.getDriver();
+    public  void createDriver() {
+        if (driver == null){
+            driver = InitDriver.getDriver();
+        }
+    }
+
+    @AfterEach
+    public  void close() {
+        if (driver != null) {
+            driver.quit();
+        }
     }
 
     @Test
@@ -42,12 +50,5 @@ public class AbsentLocatorTest extends AbstractBackendIT {
         PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.tagName("nonexistenttag"));
         Assertions.assertThrows(NoSuchElementException.class, () -> driver.findElement(by));
         Assertions.assertIterableEquals(Collections.emptyList(), driver.findElements(by));
-    }
-
-    @AfterEach
-    public void close() {
-        if (driver != null) {
-            driver.quit();
-        }
     }
 }

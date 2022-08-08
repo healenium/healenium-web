@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.TestServer;
@@ -25,17 +24,26 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
-public class IFrameTest extends AbstractBackendIT {
+public class IFrameTest {
+
+    protected static SelfHealingDriver driver;
+
+    @BeforeEach
+    public  void createDriver() {
+        if (driver == null){
+            driver = InitDriver.getDriver();
+        }
+    }
+
+    @AfterEach
+    public  void close() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 
     @RegisterExtension
     public static final TestServer server = new TestServer(IFrameTest.class.getSimpleName());
-
-    private SelfHealingDriver driver;
-
-    @BeforeEach
-    public void createDriver() {
-        driver = InitDriver.getDriver();
-    }
 
     @Test
     public void testIFrame() {
@@ -43,12 +51,5 @@ public class IFrameTest extends AbstractBackendIT {
         driver.get("http://localhost:" + server.getPort());
         WebElement element = driver.switchTo().frame("internal").findElement(locator);
         Assertions.assertNotNull(element);
-    }
-
-    @AfterEach
-    public void close() {
-        if (driver != null) {
-            driver.quit();
-        }
     }
 }

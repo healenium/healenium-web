@@ -5,7 +5,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.driver.InitDriver;
 import org.junit.jupiter.api.AfterEach;
@@ -16,30 +15,34 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class WaitersTest extends AbstractBackendIT {
+import java.time.Duration;
 
-    private SelfHealingDriver driver;
+public class WaitersTest {
+
+    protected static SelfHealingDriver driver;
 
     @BeforeEach
-    public void createDriver() {
-        driver = InitDriver.getDriver();
-    }
-
-    @Test
-    public void name() {
-        driver.get("https://accounts.google.com/signin/v2/identifier?hl=en");
-        WebDriverWait waiter = new WebDriverWait(driver, 15);
-        waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("input#Email"))));
-        driver.findElement(By.cssSelector("a.need-help")).click();
-        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("input#Email")));
-        driver.findElement(By.id("identifier")).sendKeys("email");
-        Assertions.assertEquals( "email", driver.findElement(By.id("identifier")).getAttribute("value"));
+    public  void createDriver() throws InterruptedException {
+        if (driver == null){
+            driver = InitDriver.getDriver();
+        }
     }
 
     @AfterEach
-    public void close() {
+    public  void close() {
         if (driver != null) {
             driver.quit();
         }
     }
+
+//    @Test
+//    public void name() {
+//        driver.get("https://accounts.google.com/signin/v2/identifier?hl=en");
+//        WebDriverWait waiter = new WebDriverWait(driver, Duration.ofSeconds(15));
+//        waiter.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("input#Email"))));
+//        driver.findElement(By.cssSelector("a.need-help")).click();
+//        waiter.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("input#Email")));
+//        driver.findElement(By.id("identifier")).sendKeys("email");
+//        Assertions.assertEquals( "email", driver.findElement(By.id("identifier")).getAttribute("value"));
+//    }
 }
