@@ -15,11 +15,11 @@ public class ActionsTest {
 
     private String urlShaTest = "https://elenastepuro.github.io/test_env/index.html";
 
-    protected static SelfHealingDriver driver;
+    private static SelfHealingDriver driver;
 
     @BeforeAll
     public static void createDriver() {
-        if (driver == null){
+        if (driver == null) {
             driver = InitDriver.getDriver();
         }
     }
@@ -34,13 +34,13 @@ public class ActionsTest {
     @Test
     public void testFindElementByName() {
         driver.get(urlShaTest);
-        try{
+        try {
             new Actions(driver)
-                .moveToElement(driver.findElement(By.name("change_name")))
-                .click()
-                .sendKeys("search")
-                .build()
-                .perform();
+                    .moveToElement(driver.findElement(By.name("change_name")))
+                    .click()
+                    .sendKeys("search")
+                    .build()
+                    .perform();
         } catch (Exception e) {
             Assertions.fail();
         }
@@ -49,13 +49,13 @@ public class ActionsTest {
     @Test
     public void nameFindElementsByName() {
         driver.get(urlShaTest);
-        try{
+        try {
             new Actions(driver)
-                .moveToElement(driver.findElements(By.name("change_name")).get(0))
-                .click()
-                .sendKeys("search")
-                .build()
-                .perform();
+                    .moveToElement(driver.findElements(By.name("change_name")).get(0))
+                    .click()
+                    .sendKeys("search")
+                    .build()
+                    .perform();
         } catch (Exception e) {
             Assertions.fail();
         }

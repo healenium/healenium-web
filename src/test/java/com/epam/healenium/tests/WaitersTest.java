@@ -19,17 +19,17 @@ import java.time.Duration;
 
 public class WaitersTest {
 
-    protected static SelfHealingDriver driver;
+    private SelfHealingDriver driver;
 
     @BeforeEach
-    public  void createDriver() throws InterruptedException {
-        if (driver == null){
+    public void createDriver() throws InterruptedException {
+        if (driver == null) {
             driver = InitDriver.getDriver();
         }
     }
 
     @AfterEach
-    public  void close() {
+    public void close() {
         if (driver != null) {
             driver.quit();
         }
