@@ -177,14 +177,13 @@ public class RestClient {
                     .url(httpBuilder.build())
                     .get()
                     .build();
-            Response response = okHttpClient().newCall(request).execute();
-            if (response.code() == 200) {
-                ResponseBody responseBody = response.body();
-                String result = responseBody.string();
-                lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
-                });
+            try (Response response = okHttpClient().newCall(request).execute()) {
+                if (response.code() == 200) {
+                    String result = response.body().string();
+                    lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
+                    });
+                }
             }
-            response.close();
         } catch (Exception ex) {
             log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
         }
