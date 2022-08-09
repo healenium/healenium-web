@@ -206,13 +206,12 @@ public class RestClient {
                     .url(imitateUrl)
                     .post(body)
                     .build();
-            Response response = okHttpClient().newCall(request).execute();
-            if (response.code() == 200) {
-                ResponseBody responseBody = response.body();
-                String result = responseBody.string();
-                locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                });
-                responseBody.close();
+            try (Response response = okHttpClient().newCall(request).execute()) {
+                if (response.code() == 200) {
+                    String result = response.body().string();
+                    locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                    });
+                }
             }
         } catch (Exception ex) {
             log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
