@@ -5,69 +5,69 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.driver.InitDriver;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.interactions.Actions;
 
-public class ActionsTest extends AbstractBackendIT {
+public class ActionsTest {
 
-    private SelfHealingDriver driver;
-    private String urlShaTest = "https://sha-test-app.herokuapp.com/";
+    private String urlShaTest = "https://elenastepuro.github.io/test_env/index.html";
 
-    @BeforeEach
-    public void createDriver() {
-        driver = InitDriver.getDriver();
-    }
+    private static SelfHealingDriver driver;
 
-    @Test
-    public void name() {
-        driver.get(urlShaTest);
-        try{
-            new Actions(driver)
-                .moveToElement(driver.findElement(By.name("q")))
-                .click()
-                .sendKeys("search")
-                .build()
-                .perform();
-        } catch (Exception e) {
-            Assertions.fail();
+    @BeforeAll
+    public static void createDriver() {
+        if (driver == null) {
+            driver = InitDriver.getDriver();
         }
     }
 
-    @Test
-    public void nameElements() {
-        driver.get(urlShaTest);
-        try{
-            new Actions(driver)
-                .moveToElement(driver.findElements(By.name("q")).get(0))
-                .click()
-                .sendKeys("search")
-                .build()
-                .perform();
-        } catch (Exception e) {
-            Assertions.fail();
-        }
-    }
-
-    @Test
-    public void userExecuteJS() {
-        driver.get(urlShaTest);
-        String value = ((JavascriptExecutor) driver)
-                .executeScript("return document.querySelector('#logo').getAttribute('alt')").toString();
-        Assertions.assertTrue(value.equalsIgnoreCase("Healenium"));
-    }
-
-    @AfterEach
-    public void close() {
+    @AfterAll
+    public static void close() {
         if (driver != null) {
             driver.quit();
         }
     }
+
+    @Test
+    public void testFindElementByName() {
+        driver.get(urlShaTest);
+        try {
+            new Actions(driver)
+                    .moveToElement(driver.findElement(By.name("change_name")))
+                    .click()
+                    .sendKeys("search")
+                    .build()
+                    .perform();
+        } catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void nameFindElementsByName() {
+        driver.get(urlShaTest);
+        try {
+            new Actions(driver)
+                    .moveToElement(driver.findElements(By.name("change_name")).get(0))
+                    .click()
+                    .sendKeys("search")
+                    .build()
+                    .perform();
+        } catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+//    @Ignore
+//    @Test
+//    public void userExecuteJS() {
+//        driver.get(urlShaTest);
+//        String value = ((JavascriptExecutor) driver)
+//                .executeScript("return document.querySelector('#logo').getAttribute('alt')").toString();
+//        Assertions.assertTrue(value.equalsIgnoreCase("Healenium"));
+//    }
+
 }
