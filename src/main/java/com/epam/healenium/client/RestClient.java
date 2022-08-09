@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -197,25 +198,23 @@ public class RestClient {
      * @return locators
      */
     public List<Locator> imitate(HealeniumSelectorImitatorDto healeniumSelectorImitatorDto) {
-        List<Locator> locators = new ArrayList<>();
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(healeniumSelectorImitatorDto));
-            HttpUrl.Builder httpBuilder = HttpUrl.parse(imitateUrl).newBuilder();
             Request request = new Request.Builder()
-                    .url(httpBuilder.build())
+                    .url(imitateUrl)
                     .post(body)
                     .build();
-            Response response = okHttpClient().newCall(request).execute();
-            if (response.code() == 200) {
-                String result = response.body().string();
-                locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                });
+            try (Response response = okHttpClient().newCall(request).execute()) {
+                if (response.code() == 200) {
+                    String result = response.body().string();
+                    return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                    });
+                }
             }
-            response.close();
         } catch (Exception ex) {
-            log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
+            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
         }
-        return locators;
+        return Collections.emptyList();
     }
 
 }
