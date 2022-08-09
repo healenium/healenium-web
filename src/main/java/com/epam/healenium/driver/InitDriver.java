@@ -26,6 +26,7 @@ public class InitDriver {
     public static SelfHealingDriver getDriver(){
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
+        options.addArguments("--disable-dev-shm-usage");
         options.setHeadless(true);
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.create(delegate);
