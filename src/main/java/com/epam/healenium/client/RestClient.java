@@ -202,8 +202,9 @@ public class RestClient {
         List<Locator> locators = new ArrayList<>();
         try {
             RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(healeniumSelectorImitatorDto));
+            HttpUrl.Builder httpBuilder = HttpUrl.parse(imitateUrl).newBuilder();
             Request request = new Request.Builder()
-                    .url(imitateUrl)
+                    .url(httpBuilder.build())
                     .post(body)
                     .build();
             try (Response response = okHttpClient().newCall(request).execute()) {
