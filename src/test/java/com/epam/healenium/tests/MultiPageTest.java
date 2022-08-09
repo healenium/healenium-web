@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.AbstractBackendIT;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.driver.InitDriver;
@@ -31,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class MultiPageTest extends AbstractBackendIT {
+public class MultiPageTest {
 
     public static final String PAGE_NAME = MultiPageTest.class.getSimpleName();
     private static HealingService healingService;
