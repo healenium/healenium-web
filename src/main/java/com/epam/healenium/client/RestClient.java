@@ -45,9 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -184,8 +182,8 @@ public class RestClient {
                 String result = responseBody.string();
                 lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
                 });
-                responseBody.close();
             }
+            response.close();
         } catch (Exception ex) {
             log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
         }
@@ -207,13 +205,13 @@ public class RestClient {
                     .url(httpBuilder.build())
                     .post(body)
                     .build();
-            try (Response response = okHttpClient().newCall(request).execute()) {
-                if (response.code() == 200) {
-                    String result = response.body().string();
-                    locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                    });
-                }
+            Response response = okHttpClient().newCall(request).execute();
+            if (response.code() == 200) {
+                String result = response.body().string();
+                locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                });
             }
+            response.close();
         } catch (Exception ex) {
             log.warn("Failed to make imitate response of 'imitate' request. Message: {}", ex.getMessage());
         }
