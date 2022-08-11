@@ -14,6 +14,7 @@ package com.epam.healenium;
 
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
+import com.epam.healenium.model.HealedElement;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.service.NodeService;
@@ -32,6 +33,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -97,15 +99,14 @@ public class SelfHealingEngine {
         client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave), getCurrentUrl());
     }
 
-    public Optional<Scored<By>> toLocator(List<Locator> imitatedLocators, Double score) {
+    public void replaceHealedElementLocator(List<Locator> imitatedLocators, Double score, HealedElement healedElement) {
         for (Locator imitatedLocator : imitatedLocators) {
             By locator = StackUtils.BY_MAP.get(imitatedLocator.getType()).apply(imitatedLocator.getValue());
             List<WebElement> elements = webDriver.findElements(locator);
-            if (elements.size() == 1) {
-                return Optional.of(new Scored<>(score, locator));
+            if (elements.size() == 1 && ((RemoteWebElement) elements.get(0)).getId().equals(((RemoteWebElement) healedElement.getElement()).getId())) {
+                healedElement.setScored(new Scored<>(score, locator));
             }
         }
-        return Optional.empty();
     }
 
     public String pageSource() {

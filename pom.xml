@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.2.5</version>
+    <version>3.3.0</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -61,16 +61,12 @@
 
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
         <maven.apache>3.8.4</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.10</treecomparing.version>
-        <selenium.version>4.1.0</selenium.version>
-        <jacksondatabind.version>2.13.1</jacksondatabind.version>
+        <selenium.version>4.3.0</selenium.version>
+        <jacksondatabind.version>2.13.2.1</jacksondatabind.version>
         <commonslang3.version>3.12.0</commonslang3.version>
         <commonscodec.version>1.15</commonscodec.version>
         <okhttp3.version>4.9.3</okhttp3.version>
@@ -78,7 +74,7 @@
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <lombok.version>1.18.22</lombok.version>
         <streamex.version>0.8.1</streamex.version>
-        <jettyserver.version>9.4.41.v20210516</jettyserver.version>
+        <jettyserver.version>10.0.10 </jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
         <selenide.version>6.1.1</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
