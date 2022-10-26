@@ -17,6 +17,7 @@ onKeyPress
 onSubmit
 onReset
 onClick
+onclick
 onFocus
 onLoad
 media

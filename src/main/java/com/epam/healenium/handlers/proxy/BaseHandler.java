@@ -15,6 +15,7 @@ package com.epam.healenium.handlers.proxy;
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.config.ProcessorConfig;
+import com.epam.healenium.handlers.SelfHealingHandler;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.processor.BaseProcessor;
 import com.epam.healenium.utils.ProxyFactory;
@@ -27,7 +28,7 @@ import org.openqa.selenium.WebElement;
 import java.util.List;
 
 @Slf4j
-public class BaseHandler {
+public class BaseHandler implements SelfHealingHandler {
 
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
@@ -45,7 +46,8 @@ public class BaseHandler {
      * @param by will be used for checking|saving in cache
      * @return proxy web element
      */
-    protected WebElement findElement(By by) {
+    @Override
+    public WebElement findElement(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
@@ -74,7 +76,8 @@ public class BaseHandler {
      * @param by will be used for checking|saving in cache
      * @return proxy web elements
      */
-    protected List<WebElement> findElements(By by) {
+    @Override
+    public List<WebElement> findElements(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
@@ -103,12 +106,14 @@ public class BaseHandler {
         return (by instanceof PageAwareBy) ? (PageAwareBy) by : PageAwareBy.by(null, by);
     }
 
+    @Override
     public WebElement wrapElement(WebElement element, ClassLoader loader) {
         WebElementProxyHandler elementProxyHandler = new WebElementProxyHandler(element, engine);
         return ProxyFactory.createWebElementProxy(loader, elementProxyHandler);
     }
 
-    protected WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
+    @Override
+    public WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
         TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
         return ProxyFactory.createTargetLocatorProxy(loader, handler);
     }
