@@ -63,7 +63,7 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
     }
 
     @Override
-    protected WebElement findElement(By by) {
+    public WebElement findElement(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
@@ -84,7 +84,7 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
     }
 
     @Override
-    protected List<WebElement> findElements(By by) {
+    public List<WebElement> findElements(By by) {
         try {
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
