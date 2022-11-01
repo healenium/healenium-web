@@ -35,7 +35,7 @@ public class HealingService {
     private final int recoveryTries;
     private final double scoreCap;
     private final List<Set<SelectorComponent>> selectorDetailLevels;
-    private final WebDriver driver;
+    protected final WebDriver driver;
 
     private final static List<Set<SelectorComponent>> TEMP = new ArrayList<Set<SelectorComponent>>() {{
         add(EnumSet.of(SelectorComponent.TAG, SelectorComponent.ID));
@@ -87,7 +87,7 @@ public class HealingService {
      * @param context chain context
      * @return healedElement
      */
-    private HealedElement toLocator(Scored<Node> node, Context context) {
+    protected HealedElement toLocator(Scored<Node> node, Context context) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
             By locator = construct(node.getValue(), detailLevel);
             List<WebElement> elements = driver.findElements(locator);

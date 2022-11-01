@@ -12,6 +12,10 @@
  */
 package com.epam.healenium.mapper;
 
+import com.epam.healenium.mapper.by.ByAllOrByChainedMapper;
+import com.epam.healenium.mapper.by.ByDefaultMapper;
+import com.epam.healenium.mapper.by.ByIdOrNameMapper;
+import com.epam.healenium.mapper.by.ByRelativeMapper;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealingResult;
 import com.epam.healenium.model.HealingResultDto;
@@ -21,13 +25,27 @@ import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackTraceReader;
+import com.google.common.collect.ImmutableMap;
 import org.openqa.selenium.By;
+import org.openqa.selenium.support.ByIdOrName;
+import org.openqa.selenium.support.locators.RelativeLocator;
+import org.openqa.selenium.support.pagefactory.ByAll;
+import org.openqa.selenium.support.pagefactory.ByChained;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HealeniumMapper {
+
+    Map<Class<?>, Function<By, String[]>> BY_MAPPERS = ImmutableMap.<Class<?>, Function<By, String[]>>builder()
+            .put(ByIdOrName.class, new ByIdOrNameMapper())
+            .put(ByAll.class, new ByAllOrByChainedMapper())
+            .put(ByChained.class, new ByAllOrByChainedMapper())
+            .put(RelativeLocator.RelativeBy.class, new ByRelativeMapper())
+            .build();
 
     private StackTraceReader stackTraceReader;
 
@@ -38,7 +56,7 @@ public class HealeniumMapper {
     public RequestDto buildDto(By by, String currentUrl) {
         StackTraceElement traceElement = stackTraceReader.findOriginCaller(Thread.currentThread().getStackTrace())
                 .orElseThrow(() -> new IllegalArgumentException("Failed to detect origin method caller"));
-        String[] locatorParts = by.toString().split(":", 2);
+        String[] locatorParts = getLocatorParts(by);
         RequestDto dto = new RequestDto()
                 .setLocator(locatorParts[1].trim())
                 .setType(locatorParts[0].trim());
@@ -73,7 +91,7 @@ public class HealeniumMapper {
     }
 
     public Locator byToLocator(By by) {
-        String[] locatorParts = by.toString().split(":", 2);
+        String[] locatorParts = getLocatorParts(by);
         return new Locator(locatorParts[1].trim(), locatorParts[0].trim());
     }
 
@@ -93,4 +111,9 @@ public class HealeniumMapper {
                 .setHealingTime(healingResult.getHealingTime());
         return resultRequest;
     }
+
+    private String[] getLocatorParts(By by) {
+        return BY_MAPPERS.getOrDefault(by.getClass(), new ByDefaultMapper()).apply(by);
+    }
+
 }
