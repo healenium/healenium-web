@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Find child webElements from parent webElement processor
  */
-@Slf4j
+@Slf4j(topic = "healenium")
 public class FindChildElementsProcessor extends BaseProcessor {
 
     public FindChildElementsProcessor(BaseProcessor nextProcessor) {
@@ -18,11 +18,9 @@ public class FindChildElementsProcessor extends BaseProcessor {
 
     @Override
     public void execute() {
-        List<WebElement> pageElements = delegateElement.findElements(context.getPageAwareBy().getBy());
-        if (pageElements.isEmpty()) {
-            log.warn("Failed to find any elements using locator {}", context.getPageAwareBy().getBy().toString());
-        }
+        List<WebElement> pageElements = delegateElement.findElements(context.getBy());
         pageElements.forEach(e -> context.getElementIds().add(((RemoteWebElement) e).getId()));
+        engine.saveElements(context, pageElements);
         context.setElements(pageElements);
     }
 }

@@ -25,7 +25,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 @UtilityClass
 public class StackUtils {
 

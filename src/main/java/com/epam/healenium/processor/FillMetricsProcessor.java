@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Collect metrics for each healing result processor
  */
-@Slf4j
+@Slf4j(topic = "healenium")
 public class FillMetricsProcessor extends BaseProcessor {
 
     public FillMetricsProcessor(BaseProcessor nextProcessor) {
@@ -28,7 +28,6 @@ public class FillMetricsProcessor extends BaseProcessor {
             healingResult.setMetricsDto(new MetricsDto()
                     .setCurrentDom(context.getPageContent())
                     .setUserSelector(context.getUserLocator())
-                    .setPreviousSuccessfulDom(context.getLastHealingData().getPageContent())
                     .setTargetNode(new Path(healingResult.getPaths().toArray(new Node[0])).getLastNode())
                     .setMainHealingCandidate(mainHealingCandidate)
                     .setOtherHealingCandidates(healingResult.getAllHealingCandidates()));

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class LastHealingDataDto {
+public class ReferenceElementsDto {
 
     private String pageContent;
     private List<List<Node>> paths;

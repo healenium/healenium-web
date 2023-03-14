@@ -30,7 +30,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selenide.*;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class SelenideTest {
 
     @RegisterExtension
@@ -76,6 +76,7 @@ public class SelenideTest {
 
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
+            options.addArguments("--remote-allow-origins=*");
             options.setHeadless(true);
             options.merge(capabilities);
             WebDriver wd = new ChromeDriver(options);

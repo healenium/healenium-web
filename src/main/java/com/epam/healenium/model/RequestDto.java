@@ -14,6 +14,7 @@ package com.epam.healenium.model;
 
 import com.epam.healenium.treecomparing.Node;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.Collections;
@@ -28,14 +29,23 @@ public class RequestDto {
     private String type;
     private String className;
     private String methodName;
+    private String command;
     // page where search was performed
+    @ToString.Exclude
     private String pageContent;
     // searched element path
+    @ToString.Exclude
     private List<List<Node>> nodePath = Collections.emptyList();
     // healed selectors
     private List<HealingResultDto> results;
     // used selector for healing
     private HealingResultDto usedResult;
+    @ToString.Exclude
     private byte[] screenshot;
     private String url;
+    private List<String> elementIds;
+    private boolean enableHealing;
+    private String sessionId;
+    @ToString.Exclude
+    private String metrics;
 }

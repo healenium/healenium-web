@@ -14,6 +14,7 @@ package com.epam.healenium.handlers.proxy;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.config.ProcessorConfig;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.processor.BaseProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,14 +28,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class WebElementProxyHandler extends BaseHandler implements InvocationHandler {
 
-    private final WebElement delegate;
+    private WebElement delegate;
 
     public WebElementProxyHandler(WebElement delegate, SelfHealingEngine engine) {
         super(engine);
         this.delegate = delegate;
+        this.findElementChainProcessor = ProcessorConfig.findChildElementChainProcessor();
+        this.findElementsChainProcessor = ProcessorConfig.findChildElementsChainProcessor();
+    }
+
+    public WebElementProxyHandler(SelfHealingEngine engine) {
+        super(engine);
+        this.findElementChainProcessor = ProcessorConfig.findChildElementChainProcessor();
+        this.findElementsChainProcessor = ProcessorConfig.findChildElementsChainProcessor();
     }
 
     @Override
@@ -68,14 +77,15 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setPageAwareBy(pageBy)
+                        .setBy(pageBy)
                         .setAction("findElement");
+                setBaseProcessorFields(findElementChainProcessor, context);
+                findElementChainProcessor.process();
 
-                BaseProcessor chainProcessor = processorConfig.findChildElementChainProcessor();
-                setBaseProcessorFields(chainProcessor, context);
-                chainProcessor.process();
-
-                return context.getElements().get(0);
+                if (context.getElements().size() > 0) {
+                    return context.getElements().get(0);
+                }
+                throw context.getNoSuchElementException();
             }
             return delegate.findElement(pageBy.getBy());
         } catch (Exception ex) {
@@ -90,12 +100,10 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setPageAwareBy(pageBy)
+                        .setBy(pageBy)
                         .setAction("findElements");
-
-                BaseProcessor chainProcessor = processorConfig.findChildElementsChainProcessor();
-                setBaseProcessorFields(chainProcessor, context);
-                chainProcessor.process();
+                setBaseProcessorFields(findElementsChainProcessor, context);
+                findElementsChainProcessor.process();
 
                 return context.getElements();
             }
@@ -108,5 +116,10 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
     protected void setBaseProcessorFields(BaseProcessor baseProcessor, Context context) {
         super.setBaseProcessorFields(baseProcessor, context);
         baseProcessor.setDelegateElement(delegate);
+    }
+
+    public WebElementProxyHandler setDelegate(WebElement delegate) {
+        this.delegate = delegate;
+        return this;
     }
 }

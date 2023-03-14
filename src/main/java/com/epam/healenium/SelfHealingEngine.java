@@ -14,8 +14,19 @@ package com.epam.healenium;
 
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
+import com.epam.healenium.client.callback.HttpCallback;
+import com.epam.healenium.function.DomainNameUrlFunction;
+import com.epam.healenium.function.EmptyUrlFunction;
+import com.epam.healenium.function.FullUrlFunction;
+import com.epam.healenium.function.PathUrlFunction;
+import com.epam.healenium.message.MessageAction;
+import com.epam.healenium.model.ConfigSelectorDto;
+import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealedElement;
 import com.epam.healenium.model.Locator;
+import com.epam.healenium.model.RequestDto;
+import com.epam.healenium.model.SelectorDto;
+import com.epam.healenium.model.SessionContext;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.service.NodeService;
 import com.epam.healenium.treecomparing.JsoupHTMLParser;
@@ -24,6 +35,7 @@ import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -33,17 +45,18 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 
-@Slf4j
+@Slf4j(topic = "healenium")
 @Data
 public class SelfHealingEngine {
 
@@ -58,6 +71,7 @@ public class SelfHealingEngine {
     private RestClient client;
     private NodeService nodeService;
     private HealingService healingService;
+    private SessionContext sessionContext;
 
     /**
      * @param delegate a delegate driver, not actually {@link SelfHealingDriver} instance.
@@ -65,7 +79,8 @@ public class SelfHealingEngine {
      */
     public SelfHealingEngine(@NotNull WebDriver delegate, @NotNull Config config) {
         // merge given config with default values
-        Config finalizedConfig = ConfigFactory.load(config).withFallback(DEFAULT_CONFIG);
+        Config finalizedConfig = ConfigFactory.load(config).withFallback(DEFAULT_CONFIG)
+                .withValue("sessionKey", ConfigValueFactory.fromAnyRef(((RemoteWebDriver) delegate).getSessionId().toString()));
 
         this.webDriver = delegate;
         this.config = finalizedConfig;
@@ -82,21 +97,34 @@ public class SelfHealingEngine {
         this(delegate, DEFAULT_CONFIG);
     }
 
-    /**
-     * Stores the valid locator state: the element it found and the page.
-     *
-     * @param by          the locator
-     * @param webElements the elements while it is still accessible by the locator
-     */
-    public void saveElements(PageAwareBy by, List<WebElement> webElements) {
-        List<List<Node>> nodesToSave = webElements.stream()
-                .map(nodeService::getNodePath)
-                .collect(Collectors.toList());
-        saveNodes(by, nodesToSave);
+    public void saveElements(Context context, List<WebElement> webElements) {
+        try {
+            String by = context.getBy().toString();
+            List<String> ids = context.getElementIds();
+            Map<String, List<String>> sessionSelectors = sessionContext.getSessionSelectors();
+            List<String> storedIds = sessionSelectors.get(by);
+            if (storedIds == null || (!storedIds.containsAll(ids) && storedIds.size() != ids.size())) {
+                sessionSelectors.put(by, ids);
+                RequestDto requestDto = client.getMapper().buildDto(context.getBy(), context.getAction(), null);
+                requestDto.setElementIds(ids);
+                requestDto.setSessionId(((RemoteWebDriver) webDriver).getSessionId().toString());
+                if (!isProxy) {
+                    requestDto.setNodePath(getNodePath(webElements));
+                    String currentUrl = getWebDriver().getCurrentUrl();
+                    context.setCurrentUrl(currentUrl);
+                    requestDto.setUrl(currentUrl);
+                }
+                client.saveElements(requestDto);
+            }
+        } catch (Exception e) {
+            log.warn("[Save Elements] Error during save elements: {}. Message: {}", context.getElementIds(), e.getMessage());
+        }
     }
 
-    public void saveNodes(PageAwareBy key, List<List<Node>> elementsToSave) {
-        client.selectorsRequest(key.getBy(), new ArrayList<>(elementsToSave), getCurrentUrl());
+    public List<List<Node>> getNodePath(List<WebElement> webElements) {
+        return webElements.stream()
+                .map(e -> nodeService.getNodePath(webDriver, e))
+                .collect(Collectors.toList());
     }
 
     public void replaceHealedElementLocator(List<Locator> imitatedLocators, Double score, HealedElement healedElement) {
@@ -130,8 +158,17 @@ public class SelfHealingEngine {
         return config.getBoolean("backlight-healing");
     }
 
-    public String getCurrentUrl() {
-        return webDriver.getCurrentUrl().split("://")[1];
+    public BiFunction<WebDriver, String, String> getUrlFunction(boolean urlForKey, boolean pathForKey) {
+        if (!urlForKey && !pathForKey) {
+            return new EmptyUrlFunction();
+        }
+        if (urlForKey && !pathForKey) {
+            return new DomainNameUrlFunction();
+        }
+        if (!urlForKey && pathForKey) {
+            return new PathUrlFunction();
+        }
+        return new FullUrlFunction();
     }
 
     public byte[] captureScreen(WebElement element) {
@@ -141,4 +178,36 @@ public class SelfHealingEngine {
         }
         return ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.BYTES);
     }
+
+    public void loadStoredSelectors() {
+        ConfigSelectorDto configSelectorDto = client.getElements();
+        if (configSelectorDto != null) {
+            List<SelectorDto> disableHealingElementDto = configSelectorDto.getDisableHealingElementDto();
+            List<SelectorDto> enableHealingElementsDto = configSelectorDto.getEnableHealingElementsDto();
+            BiFunction<WebDriver, String, String> urlFunction = getUrlFunction(configSelectorDto.isUrlForKey(),
+                    configSelectorDto.isPathForKey());
+            sessionContext
+                    .setFunctionUrl(urlFunction)
+                    .setEnableHealingElements(enableHealingElementsDto.stream()
+                            .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)))
+                    .setDisableHealingElement(disableHealingElementDto.stream()
+                            .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)));
+                    }
+    }
+
+    public void initReport() {
+        client.initReport(((RemoteWebDriver) webDriver).getSessionId().toString());
+    }
+
+    public void quit() {
+        HttpCallback httpCallback = client.getHttpCallback();
+        httpCallback.updateActiveMessageAmount(MessageAction.PUSH);
+        try {
+            httpCallback.getCountDownLatch().await();
+            webDriver.quit();
+        } catch (InterruptedException e) {
+            log.warn("Error during quit call. Message: {}. Exception: {}", e.getMessage(), e);
+        }
+    }
+
 }

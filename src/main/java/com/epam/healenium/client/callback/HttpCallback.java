@@ -1,0 +1,58 @@
+package com.epam.healenium.client.callback;
+
+import com.epam.healenium.message.MessageAction;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+
+
+@Data
+@Slf4j(topic = "healenium")
+public class HttpCallback implements Callback {
+
+    protected int messageCount = 0;
+    protected CountDownLatch countDownLatch;
+
+    @Override
+    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+        updateActiveMessageAmount(MessageAction.DELETE);
+        log.warn("[Queue] Error during request: {}. Message: {}. Exception: {}", call.request(), e.getMessage(), e);
+    }
+
+    @Override
+    public void onResponse(@NotNull Call call, @NotNull Response response) {
+        updateActiveMessageAmount(MessageAction.DELETE);
+        log.debug("[Queue] Successful response: {}", response);
+        response.close();
+    }
+
+    public HttpCallback asyncCall() {
+        updateActiveMessageAmount(MessageAction.ADD);
+        return this;
+    }
+
+    public synchronized void updateActiveMessageAmount(MessageAction messageAction) {
+        switch (messageAction) {
+            case ADD:
+                messageCount++;
+                break;
+            case DELETE:
+                messageCount--;
+                if (countDownLatch != null) {
+                    countDownLatch.countDown();
+                }
+                break;
+            case PUSH:
+                countDownLatch = new CountDownLatch(messageCount);
+                break;
+        }
+        log.debug("[Queue] Active messages amount: {}", messageCount);
+    }
+
+}
