@@ -64,7 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.apache>3.8.4</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
-        <treecomparing.version>0.4.12</treecomparing.version>
+        <treecomparing.version>0.4.11</treecomparing.version>
         <selenium.version>4.8.1</selenium.version>
         <jacksondatabind.version>2.13.4.1</jacksondatabind.version>
         <commonslang3.version>3.12.0</commonslang3.version>
