@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class TestServer implements BeforeAllCallback, AfterAllCallback {
 
     private final String folder;

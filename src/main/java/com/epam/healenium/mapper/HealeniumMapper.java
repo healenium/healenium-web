@@ -20,9 +20,7 @@ import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealingResult;
 import com.epam.healenium.model.HealingResultDto;
 import com.epam.healenium.model.Locator;
-import com.epam.healenium.model.HealingResultRequestDto;
 import com.epam.healenium.model.RequestDto;
-import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.StackTraceReader;
 import com.google.common.collect.ImmutableMap;
@@ -53,28 +51,23 @@ public class HealeniumMapper {
         this.stackTraceReader = stackTraceReader;
     }
 
-    public RequestDto buildDto(By by, String currentUrl) {
+    public RequestDto buildDto(By by, String command, String currentUrl) {
         StackTraceElement traceElement = stackTraceReader.findOriginCaller(Thread.currentThread().getStackTrace())
                 .orElseThrow(() -> new IllegalArgumentException("Failed to detect origin method caller"));
         String[] locatorParts = getLocatorParts(by);
         RequestDto dto = new RequestDto()
                 .setLocator(locatorParts[1].trim())
-                .setType(locatorParts[0].trim());
-        dto.setClassName(traceElement.getClassName());
-        dto.setMethodName(traceElement.getMethodName());
-        dto.setUrl(currentUrl);
+                .setType(locatorParts[0].trim())
+                .setClassName(traceElement.getClassName())
+                .setMethodName(traceElement.getMethodName())
+                .setCommand(command)
+                .setUrl(currentUrl);
         return dto;
     }
 
-    public RequestDto buildDto(By by, List<List<Node>> nodePath, String currentUrl) {
-        RequestDto dto = buildDto(by, currentUrl);
-        dto.setNodePath(nodePath);
-        return dto;
-    }
-
-    public RequestDto buildDto(By by, String page, List<Scored<By>> healingResults,
+    public RequestDto buildDto(By by, String command, String page, List<Scored<By>> healingResults,
                                Scored<By> selected, byte[] screenshot, String currentUrl) {
-        RequestDto dto = buildDto(by, currentUrl);
+        RequestDto dto = buildDto(by, command, currentUrl);
         dto.setPageContent(page)
                 .setResults(buildResultDto(healingResults))
                 .setUsedResult(buildResultDto(selected))
@@ -99,20 +92,16 @@ public class HealeniumMapper {
         return by.stream().map(this::byToLocator).collect(Collectors.toList());
     }
 
-    public HealingResultRequestDto buildMultRequest(Context context, HealingResult healingResult,
+    public RequestDto buildMultRequest(Context context, HealingResult healingResult,
                                                     List<Scored<By>> choices, String metrics) {
-        RequestDto requestDto = buildDto(context.getPageAwareBy().getBy(),
+        return buildDto(context.getBy(), context.getAction(),
                 context.getPageContent(), choices, choices.get(0),
-                healingResult.getScreenshot(), context.getCurrentUrl());
-        HealingResultRequestDto resultRequest = new HealingResultRequestDto();
-        resultRequest
-                .setRequestDto(requestDto)
-                .setMetrics(metrics)
-                .setHealingTime(healingResult.getHealingTime());
-        return resultRequest;
+                healingResult.getScreenshot(), context.getCurrentUrl())
+                .setElementIds(context.getElementIds())
+                .setMetrics(metrics);
     }
 
-    private String[] getLocatorParts(By by) {
+    public String[] getLocatorParts(By by) {
         return BY_MAPPERS.getOrDefault(by.getClass(), new ByDefaultMapper()).apply(by);
     }
 

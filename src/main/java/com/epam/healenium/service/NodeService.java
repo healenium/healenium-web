@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class NodeService {
 
     /**
@@ -30,19 +30,14 @@ public class NodeService {
     private static final String SCRIPT = ResourceReader.readResource(
             "itemsWithAttributes.js", s -> s.collect(Collectors.joining()));
 
-    protected final WebDriver driver;
-
-    public NodeService(WebDriver driver) {
-        this.driver = driver;
-    }
-
     /**
      * build list nodes by source webElement
      *
      * @param webElement - source element
+     * @param driver - web driver
      * @return - list path nodes
      */
-    public List<Node> getNodePath(WebElement webElement) {
+    public List<Node> getNodePath(WebDriver driver, WebElement webElement) {
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();

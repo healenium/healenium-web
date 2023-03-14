@@ -6,15 +6,14 @@ import com.epam.healenium.processor.FindChildElementProcessor;
 import com.epam.healenium.processor.FindChildElementsProcessor;
 import com.epam.healenium.processor.FindElementProcessor;
 import com.epam.healenium.processor.FindElementsProcessor;
-import com.epam.healenium.processor.GetLastHealingDataProcessor;
+import com.epam.healenium.processor.GetReferenceElementsProcessor;
 import com.epam.healenium.processor.HealingElementsProcessor;
 import com.epam.healenium.processor.HealingProcessor;
 import com.epam.healenium.processor.ImitateProcessor;
 import com.epam.healenium.processor.SaveHealingResultsProcessor;
-import com.epam.healenium.processor.SaveSelectorsProcessor;
+import lombok.SneakyThrows;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -23,10 +22,10 @@ import java.util.Collections;
  */
 public class ProcessorConfig {
 
-    public BaseProcessor findElementChainProcessor() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static BaseProcessor findElementChainProcessor() {
         return buildChain(
                 FindElementProcessor.class,
-                GetLastHealingDataProcessor.class,
+                GetReferenceElementsProcessor.class,
                 HealingProcessor.class,
                 ImitateProcessor.class,
                 FillMetricsProcessor.class,
@@ -34,20 +33,19 @@ public class ProcessorConfig {
         );
     }
 
-    public BaseProcessor findElementsChainProcessor() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static BaseProcessor findElementsChainProcessor() {
         return buildChain(
                 FindElementsProcessor.class,
-                GetLastHealingDataProcessor.class,
+                GetReferenceElementsProcessor.class,
                 HealingElementsProcessor.class,
-                SaveSelectorsProcessor.class,
                 FillMetricsProcessor.class,
                 SaveHealingResultsProcessor.class);
     }
 
-    public BaseProcessor findChildElementChainProcessor() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static BaseProcessor findChildElementChainProcessor() {
         return buildChain(
                 FindChildElementProcessor.class,
-                GetLastHealingDataProcessor.class,
+                GetReferenceElementsProcessor.class,
                 HealingProcessor.class,
                 ImitateProcessor.class,
                 FillMetricsProcessor.class,
@@ -55,12 +53,11 @@ public class ProcessorConfig {
         );
     }
 
-    public BaseProcessor findChildElementsChainProcessor() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static BaseProcessor findChildElementsChainProcessor() {
         return buildChain(
                 FindChildElementsProcessor.class,
-                GetLastHealingDataProcessor.class,
+                GetReferenceElementsProcessor.class,
                 HealingElementsProcessor.class,
-                SaveSelectorsProcessor.class,
                 FillMetricsProcessor.class,
                 SaveHealingResultsProcessor.class);
     }
@@ -69,7 +66,8 @@ public class ProcessorConfig {
      * @param clazz list of streamlined classes for build processor's chain
      * @return BaseProcessor root processor
      */
-    private BaseProcessor buildChain(Class<?>... clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    @SneakyThrows
+    private static BaseProcessor buildChain(Class<?>... clazz) {
         Collections.reverse(Arrays.asList(clazz));
         Constructor<?> constructor;
         BaseProcessor param = null;

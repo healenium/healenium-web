@@ -27,17 +27,19 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class BaseHandler implements SelfHealingHandler {
 
     protected final SelfHealingEngine engine;
     protected final WebDriver driver;
-    protected final ProcessorConfig processorConfig;
+    protected BaseProcessor findElementChainProcessor;
+    protected BaseProcessor findElementsChainProcessor;
 
     public BaseHandler(SelfHealingEngine engine) {
         this.engine = engine;
         this.driver = engine.getWebDriver();
-        this.processorConfig = new ProcessorConfig();
+        this.findElementChainProcessor = ProcessorConfig.findElementChainProcessor();
+        this.findElementsChainProcessor = ProcessorConfig.findElementsChainProcessor();
     }
 
     /**
@@ -49,19 +51,20 @@ public class BaseHandler implements SelfHealingHandler {
     @Override
     public WebElement findElement(By by) {
         try {
-            PageAwareBy pageBy = awareBy(by);
-            By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setPageAwareBy(pageBy)
+                        .setBy(by)
                         .setAction("findElement");
-                BaseProcessor chainProcessor = processorConfig.findElementChainProcessor();
-                setBaseProcessorFields(chainProcessor, context);
-                chainProcessor.process();
 
-                return context.getElements().get(0);
+                setBaseProcessorFields(findElementChainProcessor, context);
+                findElementChainProcessor.process();
+
+                if (context.getElements().size() > 0) {
+                    return context.getElements().get(0);
+                }
+                throw context.getNoSuchElementException();
             }
-            return driver.findElement(inner);
+            return driver.findElement(by);
         } catch (NoSuchElementException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -79,19 +82,16 @@ public class BaseHandler implements SelfHealingHandler {
     @Override
     public List<WebElement> findElements(By by) {
         try {
-            PageAwareBy pageBy = awareBy(by);
-            By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setPageAwareBy(pageBy)
+                        .setBy(by)
                         .setAction("findElements");
-                BaseProcessor chainProcessor = processorConfig.findElementsChainProcessor();
-                setBaseProcessorFields(chainProcessor, context);
-                chainProcessor.process();
+                setBaseProcessorFields(findElementsChainProcessor, context);
+                findElementsChainProcessor.process();
 
                 return context.getElements();
             }
-            return driver.findElements(inner);
+            return driver.findElements(by);
         } catch (Exception ex) {
             throw new NoSuchElementException("Failed to find elements using " + by.toString(), ex);
         }
@@ -116,6 +116,11 @@ public class BaseHandler implements SelfHealingHandler {
     public WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader) {
         TargetLocatorProxyInvocationHandler handler = new TargetLocatorProxyInvocationHandler(locator, engine);
         return ProxyFactory.createTargetLocatorProxy(loader, handler);
+    }
+
+    @Override
+    public void quit() {
+        engine.quit();
     }
 
     protected void setBaseProcessorFields(BaseProcessor baseProcessor, Context context) {

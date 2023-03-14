@@ -15,4 +15,6 @@ public interface SelfHealingHandler {
     WebElement wrapElement(WebElement element, ClassLoader loader);
 
     WebDriver.TargetLocator wrapTarget(WebDriver.TargetLocator locator, ClassLoader loader);
+
+    void quit();
 }

@@ -26,9 +26,7 @@ public class InitDriver {
     public static SelfHealingDriver getDriver(){
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.setHeadless(true);
+        options.addArguments("--remote-allow-origins=*");
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.create(delegate);
     }

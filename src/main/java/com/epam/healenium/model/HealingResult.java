@@ -4,6 +4,7 @@ import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
@@ -18,7 +19,8 @@ public class HealingResult {
     private List<Scored<Node>> targetNodes;
     private List<HealingCandidateDto> allHealingCandidates;
     private List<HealedElement> healedElements = new ArrayList<>();
+    @ToString.Exclude
     private MetricsDto metricsDto;
-    private String healingTime;
+    @ToString.Exclude
     private byte[] screenshot;
 }
