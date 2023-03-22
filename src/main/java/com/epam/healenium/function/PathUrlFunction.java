@@ -1,15 +1,15 @@
 package com.epam.healenium.function;
 
-import org.openqa.selenium.WebDriver;
+import com.epam.healenium.SelfHealingEngine;
 
 import java.util.function.BiFunction;
 
-public class PathUrlFunction implements BiFunction<WebDriver, String, String> {
+public class PathUrlFunction implements BiFunction<SelfHealingEngine, String, String> {
 
     @Override
-    public String apply(WebDriver webDriver, String url) {
+    public String apply(SelfHealingEngine engine, String url) {
         if (url == null) {
-            url = webDriver.getCurrentUrl();
+            url = engine.getCurrentUrl();
         }
         return url.substring(url.indexOf("/"));
     }

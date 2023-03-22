@@ -28,7 +28,6 @@ public class HttpCallback implements Callback {
     @Override
     public void onResponse(@NotNull Call call, @NotNull Response response) {
         updateActiveMessageAmount(MessageAction.DELETE);
-        log.debug("[Queue] Successful response: {}", response);
         response.close();
     }
 
@@ -52,7 +51,6 @@ public class HttpCallback implements Callback {
                 countDownLatch = new CountDownLatch(messageCount);
                 break;
         }
-        log.debug("[Queue] Active messages amount: {}", messageCount);
     }
 
 }

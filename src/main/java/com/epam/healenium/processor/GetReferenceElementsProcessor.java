@@ -67,7 +67,7 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
 
     private void populateUrlKey() {
         if (context.getUrlKey() == null) {
-            String urlKey = engine.getSessionContext().getFunctionUrl().apply(driver, context.getCurrentUrl());
+            String urlKey = engine.getSessionContext().getFunctionUrl().apply(engine, context.getCurrentUrl());
             context.setUrlKey(urlKey);
         }
     }

@@ -110,14 +110,15 @@ public class SelfHealingEngine {
                 requestDto.setSessionId(((RemoteWebDriver) webDriver).getSessionId().toString());
                 if (!isProxy) {
                     requestDto.setNodePath(getNodePath(webElements));
-                    String currentUrl = getWebDriver().getCurrentUrl();
+                    String currentUrl = getCurrentUrl();
                     context.setCurrentUrl(currentUrl);
                     requestDto.setUrl(currentUrl);
                 }
                 client.saveElements(requestDto);
             }
         } catch (Exception e) {
-            log.warn("[Save Elements] Error during save elements: {}. Message: {}", context.getElementIds(), e.getMessage());
+            log.warn("[Save Elements] Error during save elements: {}. Message: {}. Exception: {}",
+                    context.getElementIds(), e.getMessage(), e);
         }
     }
 
@@ -158,7 +159,7 @@ public class SelfHealingEngine {
         return config.getBoolean("backlight-healing");
     }
 
-    public BiFunction<WebDriver, String, String> getUrlFunction(boolean urlForKey, boolean pathForKey) {
+    public BiFunction<SelfHealingEngine, String, String> getUrlFunction(boolean urlForKey, boolean pathForKey) {
         if (!urlForKey && !pathForKey) {
             return new EmptyUrlFunction();
         }
@@ -179,14 +180,18 @@ public class SelfHealingEngine {
         return ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.BYTES);
     }
 
+    public String getCurrentUrl() {
+        return webDriver.getCurrentUrl();
+    }
+
     public void loadStoredSelectors() {
         ConfigSelectorDto configSelectorDto = client.getElements();
         if (configSelectorDto != null) {
             List<SelectorDto> disableHealingElementDto = configSelectorDto.getDisableHealingElementDto();
             List<SelectorDto> enableHealingElementsDto = configSelectorDto.getEnableHealingElementsDto();
-            BiFunction<WebDriver, String, String> urlFunction = getUrlFunction(configSelectorDto.isUrlForKey(),
+            BiFunction<SelfHealingEngine, String, String> urlFunction = getUrlFunction(configSelectorDto.isUrlForKey(),
                     configSelectorDto.isPathForKey());
-            sessionContext
+            sessionContext = new SessionContext()
                     .setFunctionUrl(urlFunction)
                     .setEnableHealingElements(enableHealingElementsDto.stream()
                             .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)))
