@@ -117,7 +117,7 @@ public class RestClient {
                     .url(serverUrl)
                     .post(body)
                     .build();
-            log.debug("[Save Elements] Request: {}. Request body: {}", request, bodyStr);
+            log.debug("[Save Elements] Request: {}. Request body: {}", request, requestDto);
             okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
         } catch (Exception e) {
             log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);

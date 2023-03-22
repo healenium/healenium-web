@@ -1,14 +1,14 @@
 package com.epam.healenium.function;
 
+import com.epam.healenium.SelfHealingEngine;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.WebDriver;
 
 import java.util.function.BiFunction;
 
-public class EmptyUrlFunction implements BiFunction<WebDriver, String, String> {
+public class EmptyUrlFunction implements BiFunction<SelfHealingEngine, String, String> {
 
     @Override
-    public String apply(WebDriver webDriver, String url) {
+    public String apply(SelfHealingEngine engine, String url) {
         return StringUtils.EMPTY;
     }
 }

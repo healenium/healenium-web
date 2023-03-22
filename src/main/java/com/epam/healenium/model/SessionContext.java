@@ -1,9 +1,9 @@
 package com.epam.healenium.model;
 
 
+import com.epam.healenium.SelfHealingEngine;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.openqa.selenium.WebDriver;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +18,6 @@ public class SessionContext {
     private Map<String, String> enableHealingElements = new HashMap<>();
     private Map<String, String> disableHealingElement = new HashMap<>();
     private Map<String, List<String>> sessionSelectors = new HashMap<>();
-    private BiFunction<WebDriver, String, String> functionUrl;
+    private BiFunction<SelfHealingEngine, String, String> functionUrl;
 
 }
