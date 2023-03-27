@@ -26,19 +26,12 @@
         <developer>
             <id>engineer</id>
             <name>Anna Chernyshova</name>
-            <email>anna_chernyshova@epam.com</email>
             <timezone>UTC+3</timezone>
         </developer>
         <developer>
             <id>engineer</id>
             <name>Aliaksei Ashukha</name>
             <email>aliaksei_ashukha@epam.com</email>
-            <timezone>UTC+3</timezone>
-        </developer>
-        <developer>
-            <id>engineer</id>
-            <name>Anatoli Zaitsau</name>
-            <email>anatoli_zaitsau@epam.com</email>
             <timezone>UTC+3</timezone>
         </developer>
     </developers>
