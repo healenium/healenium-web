@@ -71,6 +71,6 @@ public boolean isButtonPresent() {
     }
 }
 ```
-### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
-### 6. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
-### 7. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+
+### 5. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
+### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
