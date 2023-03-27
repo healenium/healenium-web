@@ -8,7 +8,7 @@ import org.openqa.selenium.WebElement;
 /**
  * Save Healing Results Processor
  */
-@Slf4j
+@Slf4j(topic = "healenium")
 public class SaveHealingResultsProcessor extends BaseProcessor {
 
     public SaveHealingResultsProcessor(BaseProcessor nextProcessor) {

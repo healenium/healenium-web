@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Find webElements from driver processor
  */
-@Slf4j
+@Slf4j(topic = "healenium")
 public class FindElementsProcessor extends BaseProcessor {
 
     public FindElementsProcessor(BaseProcessor nextProcessor) {
@@ -18,11 +18,9 @@ public class FindElementsProcessor extends BaseProcessor {
 
     @Override
     public void execute() {
-        List<WebElement> pageElements = driver.findElements(context.getPageAwareBy().getBy());
-        if (pageElements.isEmpty()) {
-            log.warn("Failed to find any elements using locator {}\nTrying to heal...", context.getPageAwareBy().getBy().toString());
-        }
+        List<WebElement> pageElements = driver.findElements(context.getBy());
         pageElements.forEach(e -> context.getElementIds().add(((RemoteWebElement) e).getId()));
+        engine.saveElements(context, pageElements);
         context.setElements(pageElements);
     }
 }

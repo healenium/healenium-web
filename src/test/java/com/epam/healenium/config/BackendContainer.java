@@ -18,7 +18,7 @@ import org.testcontainers.containers.DockerComposeContainer;
 
 import java.io.File;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class BackendContainer extends DockerComposeContainer<BackendContainer> {
 
     private static BackendContainer container;

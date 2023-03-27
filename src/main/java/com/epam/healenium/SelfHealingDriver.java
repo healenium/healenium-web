@@ -14,9 +14,12 @@ package com.epam.healenium;
 
 import com.epam.healenium.client.RestClient;
 import com.epam.healenium.handlers.proxy.SelfHealingProxyInvocationHandler;
+import com.epam.healenium.mapper.HealeniumMapper;
+import com.epam.healenium.model.SessionContext;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.service.NodeService;
 import com.epam.healenium.utils.ProxyFactory;
+import com.epam.healenium.utils.StackTraceReader;
 import com.typesafe.config.Config;
 import org.openqa.selenium.WebDriver;
 
@@ -36,20 +39,31 @@ public interface SelfHealingDriver extends WebDriver {
     static SelfHealingDriver create(WebDriver delegate) {
         SelfHealingEngine selfHealingEngine = new SelfHealingEngine(delegate);
         setEngineFields(delegate, selfHealingEngine);
+        callInitActions(selfHealingEngine);
         return create(selfHealingEngine);
     }
 
     static SelfHealingDriver create(WebDriver delegate, Config config) {
         SelfHealingEngine selfHealingEngine = new SelfHealingEngine(delegate, config);
         setEngineFields(delegate, selfHealingEngine);
+        callInitActions(selfHealingEngine);
         return create(selfHealingEngine);
     }
 
     static void setEngineFields(WebDriver delegate, SelfHealingEngine selfHealingEngine) {
         Config finalizedConfig = selfHealingEngine.getConfig();
-        selfHealingEngine.setClient(new RestClient(finalizedConfig));
-        selfHealingEngine.setNodeService(new NodeService(delegate));
+        HealeniumMapper healeniumMapper = new HealeniumMapper(new StackTraceReader());
+        RestClient restClient = new RestClient(finalizedConfig);
+        restClient.setMapper(healeniumMapper);
+        selfHealingEngine.setClient(restClient);
+        selfHealingEngine.setNodeService(new NodeService());
         selfHealingEngine.setHealingService(new HealingService(finalizedConfig, delegate));
+        selfHealingEngine.setSessionContext(new SessionContext());
+    }
+
+    static void callInitActions(SelfHealingEngine selfHealingEngine) {
+        selfHealingEngine.loadStoredSelectors();
+        selfHealingEngine.initReport();
     }
 
     static SelfHealingDriver create(SelfHealingEngine engine) {

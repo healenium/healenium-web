@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class SelfHealingProxyInvocationHandler extends BaseHandler implements InvocationHandler {
 
     public SelfHealingProxyInvocationHandler(SelfHealingEngine engine) {
@@ -54,6 +54,8 @@ public class SelfHealingProxyInvocationHandler extends BaseHandler implements In
             case "switchTo":
                 TargetLocator switched = (TargetLocator) method.invoke(driver, args);
                 return wrapTarget(switched, loader);
+            case "quit":
+                quit();
             default:
                 return method.invoke(driver, args);
         }

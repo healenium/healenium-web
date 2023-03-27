@@ -12,20 +12,20 @@
  */
 package com.epam.healenium.client;
 
+import com.epam.healenium.client.callback.HttpCallback;
 import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
+import com.epam.healenium.model.ConfigSelectorDto;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealedElement;
-import com.epam.healenium.model.HealeniumSelectorImitatorDto;
 import com.epam.healenium.model.HealingResult;
-import com.epam.healenium.model.HealingResultRequestDto;
-import com.epam.healenium.model.LastHealingDataDto;
 import com.epam.healenium.model.Locator;
+import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.model.RequestDto;
+import com.epam.healenium.model.SelectorImitatorDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
-import com.epam.healenium.utils.StackTraceReader;
 import com.epam.healenium.utils.SystemUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -40,24 +40,24 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 
 /**
  * Wrapper for {@code RestTemplate} class.
  * Main purpose - encapsulate consumer from really used client and invocation complexity
  */
 
-@Slf4j
+@Slf4j(topic = "healenium")
 @Data
 public class RestClient {
 
@@ -67,23 +67,24 @@ public class RestClient {
     private final String sessionKey;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
+    private OkHttpClient okHttpClient;
+    private HttpCallback httpCallback;
 
     public RestClient(Config config) {
-        objectMapper = initMapper();
-        if (config.hasPath("hlm.server.url")) {
-            String hlmServerUrl = config.getString("hlm.server.url");
-            serverUrl = (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat("/healenium");
-            String hlmImitatorUrl = config.getString("hlm.imitator.url");
-            imitateUrl = (hlmImitatorUrl.startsWith("http") ? hlmImitatorUrl : "http://".concat(hlmImitatorUrl)).concat("/imitate");
-        } else {
-            serverUrl = "http://" + config.getString("serverHost") + ":" + config.getInt("serverPort") + "/healenium";
-            imitateUrl = "http://" + config.getString("imitateHost") + ":" + config.getInt("imitatePort") + "/imitate";
-        }
-        sessionKey = config.hasPath("sessionKey") ? config.getString("sessionKey") : StringUtils.EMPTY;
-        mapper = new HealeniumMapper(new StackTraceReader());
+        this.okHttpClient = initOkHttpClient();
+        this.httpCallback = new HttpCallback();
+        this.objectMapper = initMapper();
+        this.sessionKey = config.getString("sessionKey");
+        this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
+        this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
+        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}", sessionKey, serverUrl, imitateUrl);
     }
 
-    private OkHttpClient okHttpClient() {
+    private String getHttpUrl(String hlmServerUrl, String path) {
+        return (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat(path);
+    }
+
+    private OkHttpClient initOkHttpClient() {
         return new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
@@ -103,23 +104,50 @@ public class RestClient {
 
     /**
      * Store info in backend
-     *
-     * @param by         element By locator
-     * @param nodePath   List of nodes
-     * @param currentUrl url of web page
+     * <p>
+     * //     * @param by         element By locator
+     * //     * @param nodePath   List of nodes
+     * //     * @param currentUrl url of web page
      */
-    public void selectorsRequest(By by, List<List<Node>> nodePath, String currentUrl) {
-        RequestDto requestDto = mapper.buildDto(by, nodePath, currentUrl);
+    public void saveElements(RequestDto requestDto) {
         try {
-            RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(requestDto));
+            String bodyStr = objectMapper.writeValueAsString(requestDto);
+            RequestBody body = RequestBody.create(JSON, bodyStr);
             Request request = new Request.Builder()
                     .url(serverUrl)
                     .post(body)
                     .build();
-            okHttpClient().newCall(request).execute().close();
+            log.debug("[Save Elements] Request: {}. Request body: {}", request, requestDto);
+            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
         } catch (Exception e) {
-            log.warn("Failed to make response of 'selectorsRequest' request." + e);
+            log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
+    }
+
+    public ConfigSelectorDto getElements() {
+        ConfigSelectorDto configSelectorDto = null;
+        try {
+            Request request = new Request.Builder()
+                    .url(serverUrl + "/elements")
+                    .get()
+                    .build();
+            log.debug("[Get Elements] Request: {}", request);
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                if (HTTP_NOT_FOUND == response.code()) {
+                      throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
+                            "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
+                }
+                String result = Objects.requireNonNull(response.body()).string();
+                configSelectorDto = objectMapper.readValue(result, new TypeReference<ConfigSelectorDto>() {
+                });
+            }
+            log.debug("[Get Elements] Response: {}", configSelectorDto);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("[Get Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+        }
+        return configSelectorDto;
     }
 
     /**
@@ -129,7 +157,7 @@ public class RestClient {
      */
     public void healRequest(Context context) {
         try {
-            List<HealingResultRequestDto> resultRequestDtos = new ArrayList<>();
+            List<RequestDto> requestDtos = new ArrayList<>();
             for (HealingResult healingResult : context.getHealingResults()) {
                 List<Scored<By>> choices = healingResult.getHealedElements().stream()
                         .map(HealedElement::getScored)
@@ -138,10 +166,11 @@ public class RestClient {
                     return;
                 }
                 String metrics = objectMapper.writeValueAsString(healingResult.getMetricsDto());
-                resultRequestDtos.add(mapper.buildMultRequest(context, healingResult, choices, metrics));
+                requestDtos.add(mapper.buildMultRequest(context, healingResult, choices, metrics));
             }
 
-            RequestBody requestBody = RequestBody.create(JSON, objectMapper.writeValueAsString(resultRequestDtos));
+            String bodyStr = objectMapper.writeValueAsString(requestDtos);
+            RequestBody requestBody = RequestBody.create(JSON, bodyStr);
 
             Request request = new Request.Builder()
                     .addHeader("sessionKey", sessionKey)
@@ -149,9 +178,10 @@ public class RestClient {
                     .url(serverUrl + "/healing")
                     .post(requestBody)
                     .build();
-            okHttpClient().newCall(request).execute().close();
+            log.debug("[Heal Element] Request: {}. Request body: {}", request, requestDtos);
+            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
         } catch (Exception e) {
-            log.warn("Failed to make response of 'healRequest' request. ", e);
+            log.warn("[Heal Element] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
     }
 
@@ -160,16 +190,18 @@ public class RestClient {
      *
      * @param locator    element By locator
      * @param currentUrl url of web page
+     * @param command name of command
      * @return lastHealingDataDto   previous success healing data
      */
-    public Optional<LastHealingDataDto> getLastHealingData(By locator, String currentUrl) {
-        LastHealingDataDto lastHealingDataDto = null;
-        RequestDto requestDto = mapper.buildDto(locator, currentUrl);
+    public Optional<ReferenceElementsDto> getReferenceElements(By locator, String command, String currentUrl) {
+        ReferenceElementsDto referenceElementsDto = null;
+        RequestDto requestDto = mapper.buildDto(locator, command, currentUrl);
         try {
             HttpUrl.Builder httpBuilder = HttpUrl.parse(serverUrl).newBuilder()
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
                     .addQueryParameter("methodName", requestDto.getMethodName())
+                    .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
 
             Request request = new Request.Builder()
@@ -177,43 +209,62 @@ public class RestClient {
                     .url(httpBuilder.build())
                     .get()
                     .build();
-            try (Response response = okHttpClient().newCall(request).execute()) {
+
+            log.debug("[Get Reference Elements] Request: {}", request);
+            try (Response response = okHttpClient.newCall(request).execute()) {
                 if (response.code() == 200) {
                     String result = response.body().string();
-                    lastHealingDataDto = objectMapper.readValue(result, new TypeReference<LastHealingDataDto>() {
+                    referenceElementsDto = objectMapper.readValue(result, new TypeReference<ReferenceElementsDto>() {
                     });
                 }
             }
-        } catch (Exception ex) {
-            log.warn("Failed to make response of 'getLastHealingData' request. ", ex);
+            log.debug("[Get Reference Elements] Response: {}", referenceElementsDto);
+        } catch (Exception e) {
+            log.warn("[Get Reference Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
-        return Optional.ofNullable(lastHealingDataDto);
+        return Optional.ofNullable(referenceElementsDto);
     }
 
     /**
      * Get imitated locators by target node and user selector from selector-imitator service
      *
-     * @param healeniumSelectorImitatorDto element By locator
+     * @param selectorImitatorDto element By locator
      * @return locators
      */
-    public List<Locator> imitate(HealeniumSelectorImitatorDto healeniumSelectorImitatorDto) {
+    public List<Locator> imitate(SelectorImitatorDto selectorImitatorDto) {
         try {
-            RequestBody body = RequestBody.create(JSON, objectMapper.writeValueAsString(healeniumSelectorImitatorDto));
+            String bodyStr = objectMapper.writeValueAsString(selectorImitatorDto);
+            RequestBody body = RequestBody.create(JSON, bodyStr);
             Request request = new Request.Builder()
                     .url(imitateUrl)
                     .post(body)
                     .build();
-            try (Response response = okHttpClient().newCall(request).execute()) {
+            log.debug("[Selector Imitate] Request: {}. Request body: {}", request, bodyStr);
+            try (Response response = okHttpClient.newCall(request).execute()) {
                 if (response.code() == 200) {
                     String result = response.body().string();
-                    return objectMapper.readValue(result, new TypeReference<List<Locator>>() {
+                    List<Locator> locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
                     });
+                    log.debug("[Selector Imitate] Response: {}", locators);
+                    return locators;
                 }
             }
-        } catch (Exception ex) {
-            log.warn("Failed to make imitate response of 'imitate' request. ", ex);
+        } catch (Exception e) {
+            log.warn("[Selector Imitate] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
         return Collections.emptyList();
     }
 
+    public void initReport(String sessionId) {
+        try {
+            Request request = new Request.Builder()
+                    .url(serverUrl + "/report/init/" + sessionId)
+                    .post(RequestBody.create(new byte[0]))
+                    .build();
+            log.debug("[Init Report] Request: {}", request);
+            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
+        } catch (Exception e) {
+            log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+        }
+    }
 }

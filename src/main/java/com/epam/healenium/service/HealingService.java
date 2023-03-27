@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 public class HealingService {
 
     private final int recoveryTries;
@@ -59,8 +59,6 @@ public class HealingService {
      * @param context     context data for healing
      */
     public void findNewLocations(List<Node> paths, Node destination, Context context) {
-
-        final long then = System.currentTimeMillis();
         PathFinder pathFinder = new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
         AbstractMap.SimpleImmutableEntry<Integer, Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> scoresToNodes =
                 pathFinder.findScoresToNodes(new Path(paths.toArray(new Node[0])), destination);
@@ -70,13 +68,11 @@ public class HealingService {
                 .map(node -> toLocator(node, context))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        String healingTime = String.valueOf((System.currentTimeMillis() - then) / 1000.0);
         if (!healedElements.isEmpty()) {
             HealingResult healingResult = new HealingResult()
                     .setPaths(paths)
                     .setTargetNodes(scoreds)
                     .setAllHealingCandidates(getAllHealingCandidates(scoresToNodes))
-                    .setHealingTime(healingTime)
                     .setHealedElements(healedElements);
             context.getHealingResults().add(healingResult);
         }

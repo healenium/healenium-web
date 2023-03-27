@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 @Accessors(chain = true)
 public abstract class BaseProcessor implements ProcessorHandler {
 
@@ -37,7 +37,8 @@ public abstract class BaseProcessor implements ProcessorHandler {
     }
 
     public void process() {
-        if (validate()) {
+        boolean validate = validate();
+        if (validate) {
             execute();
             if (nextProcessor != null) {
                 nextProcessor.setContext(context)

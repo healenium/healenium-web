@@ -1,10 +1,10 @@
 package com.epam.healenium.model;
 
-import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.treecomparing.Node;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
@@ -18,12 +18,13 @@ import java.util.Map;
 @NoArgsConstructor
 public class Context {
 
-    private PageAwareBy pageAwareBy;
+    private By by;
     private NoSuchElementException noSuchElementException;
-    private LastHealingDataDto lastHealingData;
+    private ReferenceElementsDto referenceElementsDto;
     private String pageContent;
     private Locator userLocator;
     private String currentUrl;
+    private String urlKey;
     private List<WebElement> elements = new ArrayList<>();
     private List<String> elementIds = new ArrayList<>();
 

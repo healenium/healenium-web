@@ -1,7 +1,7 @@
 package com.epam.healenium.processor;
 
 import com.epam.healenium.model.HealedElement;
-import com.epam.healenium.model.HealeniumSelectorImitatorDto;
+import com.epam.healenium.model.SelectorImitatorDto;
 import com.epam.healenium.model.HealingResult;
 import com.epam.healenium.model.Locator;
 import com.epam.healenium.treecomparing.Node;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Imitate css locator for healed webElement processor
  */
-@Slf4j
+@Slf4j(topic = "healenium")
 public class ImitateProcessor extends BaseProcessor {
 
     public ImitateProcessor(BaseProcessor nextProcessor) {
@@ -34,9 +34,7 @@ public class ImitateProcessor extends BaseProcessor {
             Node targetNode = healingResult.getTargetNodes().get(0).getValue();
             Double score = healingResult.getTargetNodes().get(0).getScore();
             HealedElement healedElement = healingResult.getHealedElements().get(0);
-            HealeniumSelectorImitatorDto imitatorDto = new HealeniumSelectorImitatorDto()
-                    .setUserSelector(context.getUserLocator())
-                    .setTargetNode(targetNode);
+            SelectorImitatorDto imitatorDto = new SelectorImitatorDto(targetNode, context.getUserLocator());
             List<Locator> imitatedLocators = restClient.imitate(imitatorDto);
             engine.replaceHealedElementLocator(imitatedLocators, score, healedElement);
         }

@@ -12,14 +12,19 @@
  */
 package com.epam.healenium.utils;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-@Slf4j
+@Slf4j(topic = "healenium")
 @UtilityClass
 public class SystemUtils {
     
@@ -35,5 +40,16 @@ public class SystemUtils {
             log.warn("Failed to get host address", ex);
         }
         return StringUtils.EMPTY;
+    }
+
+    public String getMd5Hash(String locator, String command, String url) {
+        String rawKey = new StringBuilder(url)
+                .append(command)
+                .append(locator.hashCode())
+                .toString();
+        log.debug("[Save Elements] RawKey: {}", rawKey);
+        String key = DigestUtils.md5Hex(rawKey.trim().getBytes(StandardCharsets.UTF_8));
+        log.debug("[Save Elements] SelectorId: {}", key);
+        return key;
     }
 }
