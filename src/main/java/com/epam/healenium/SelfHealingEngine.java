@@ -15,10 +15,8 @@ package com.epam.healenium;
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
 import com.epam.healenium.client.callback.HttpCallback;
-import com.epam.healenium.function.DomainNameUrlFunction;
 import com.epam.healenium.function.EmptyUrlFunction;
 import com.epam.healenium.function.FullUrlFunction;
-import com.epam.healenium.function.PathUrlFunction;
 import com.epam.healenium.message.MessageAction;
 import com.epam.healenium.model.ConfigSelectorDto;
 import com.epam.healenium.model.Context;
@@ -159,17 +157,8 @@ public class SelfHealingEngine {
         return config.getBoolean("backlight-healing");
     }
 
-    public BiFunction<SelfHealingEngine, String, String> getUrlFunction(boolean urlForKey, boolean pathForKey) {
-        if (!urlForKey && !pathForKey) {
-            return new EmptyUrlFunction();
-        }
-        if (urlForKey && !pathForKey) {
-            return new DomainNameUrlFunction();
-        }
-        if (!urlForKey && pathForKey) {
-            return new PathUrlFunction();
-        }
-        return new FullUrlFunction();
+    public BiFunction<SelfHealingEngine, String, String> getUrlFunction(boolean urlForKey) {
+        return urlForKey ? new FullUrlFunction() : new EmptyUrlFunction();
     }
 
     public byte[] captureScreen(WebElement element) {
@@ -189,15 +178,14 @@ public class SelfHealingEngine {
         if (configSelectorDto != null) {
             List<SelectorDto> disableHealingElementDto = configSelectorDto.getDisableHealingElementDto();
             List<SelectorDto> enableHealingElementsDto = configSelectorDto.getEnableHealingElementsDto();
-            BiFunction<SelfHealingEngine, String, String> urlFunction = getUrlFunction(configSelectorDto.isUrlForKey(),
-                    configSelectorDto.isPathForKey());
+            BiFunction<SelfHealingEngine, String, String> urlFunction = getUrlFunction(configSelectorDto.isUrlForKey());
             sessionContext = new SessionContext()
                     .setFunctionUrl(urlFunction)
                     .setEnableHealingElements(enableHealingElementsDto.stream()
                             .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)))
                     .setDisableHealingElement(disableHealingElementDto.stream()
                             .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)));
-                    }
+        }
     }
 
     public void initReport() {
