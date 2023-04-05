@@ -31,6 +31,9 @@ public class SaveHealingResultsProcessor extends BaseProcessor {
         byte[] screenshot = engine.captureScreen(mainHealedElement);
         healingResult.setScreenshot(screenshot);
         context.getElements().add(mainHealedElement);
+
+        // save healing result in session
+        engine.getSessionContext().getHealings().add(healingResult);
     }
 
 }

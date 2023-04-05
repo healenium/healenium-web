@@ -5,6 +5,7 @@ import com.epam.healenium.SelfHealingEngine;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ public class SessionContext {
     private Map<String, String> enableHealingElements = new HashMap<>();
     private Map<String, String> disableHealingElement = new HashMap<>();
     private Map<String, List<String>> sessionSelectors = new HashMap<>();
+    private List<HealingResult> healings = new ArrayList<>();
     private BiFunction<SelfHealingEngine, String, String> functionUrl;
 
 }
