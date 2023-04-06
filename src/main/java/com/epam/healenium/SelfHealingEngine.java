@@ -106,12 +106,10 @@ public class SelfHealingEngine {
                 RequestDto requestDto = client.getMapper().buildDto(context.getBy(), context.getAction(), null);
                 requestDto.setElementIds(ids);
                 requestDto.setSessionId(((RemoteWebDriver) webDriver).getSessionId().toString());
-                if (!isProxy) {
-                    requestDto.setNodePath(getNodePath(webElements));
-                    String currentUrl = getCurrentUrl();
-                    context.setCurrentUrl(currentUrl);
-                    requestDto.setUrl(currentUrl);
-                }
+                requestDto.setNodePath(getNodePath(webElements));
+                String currentUrl = getCurrentUrl();
+                context.setCurrentUrl(currentUrl);
+                requestDto.setUrl(currentUrl);
                 client.saveElements(requestDto);
             }
         } catch (Exception e) {
