@@ -21,6 +21,7 @@ public class Context {
     private By by;
     private NoSuchElementException noSuchElementException;
     private ReferenceElementsDto referenceElementsDto;
+    private List<Locator> unsuccessfulLocators;
     private String pageContent;
     private Locator userLocator;
     private String currentUrl;

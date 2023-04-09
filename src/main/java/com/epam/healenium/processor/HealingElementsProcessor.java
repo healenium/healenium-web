@@ -22,7 +22,10 @@ public class HealingElementsProcessor extends BaseProcessor {
         ReferenceElementsDto lastHealingData = context.getReferenceElementsDto();
         if (lastHealingData == null || lastHealingData.getPaths().isEmpty()) {
             if (context.getElements().isEmpty()) {
-                log.warn("New element locator have not been found. There is a lack of reference data.");
+                log.warn("New element locator have not been found. There is no reference data to selector in the database." +
+                        "\nMake sure that: " +
+                        "\n- There is selector on the page {}/selectors/ and type: multiple, if not then you have to run successful tests." +
+                        "\n- Your locator was changed on the page and not in code.", engine.getClient().getServerUrl());
             }
             return false;
         }

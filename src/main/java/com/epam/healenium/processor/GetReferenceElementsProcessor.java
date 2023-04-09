@@ -54,6 +54,7 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
                         context.getBy(), context.getAction(), context.getCurrentUrl())
                 .orElse(new ReferenceElementsDto().setPaths(new ArrayList<>()));
         context.setReferenceElementsDto(referenceElementsDto);
+        context.setUnsuccessfulLocators(referenceElementsDto.getUnsuccessfulLocators());
         Locator userLocator = restClient.getMapper().byToLocator(context.getBy());
         context.setUserLocator(userLocator);
     }
@@ -67,7 +68,11 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
 
     private void populateUrlKey() {
         if (context.getUrlKey() == null) {
+            if (context.getCurrentUrl() == null) {
+                context.setCurrentUrl(engine.getCurrentUrl());
+            }
             String urlKey = engine.getSessionContext().getFunctionUrl().apply(engine, context.getCurrentUrl());
+            log.debug("[Find Element] Get reference element. UrlKey: {}",  urlKey);
             context.setUrlKey(urlKey);
         }
     }
