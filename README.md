@@ -13,7 +13,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.4.0'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.4.2'
 }
 ```
 
@@ -22,7 +22,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.4.0</version>
+	<version>3.4.2</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver

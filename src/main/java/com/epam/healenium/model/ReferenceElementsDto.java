@@ -12,4 +12,5 @@ public class ReferenceElementsDto {
 
     private String pageContent;
     private List<List<Node>> paths;
+    private List<Locator> unsuccessfulLocators;
 }
