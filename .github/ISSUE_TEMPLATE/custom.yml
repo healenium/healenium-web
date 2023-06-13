@@ -2,7 +2,7 @@ name: Help-support template
 description: Describe you problem happened using Healenium and team will help
 title: "[Need support]: "
 labels: [ help wanted ]
-assignees: ElenaStepuro
+assignees: Alex-Reif
 body:
   - type: markdown
     attributes:
