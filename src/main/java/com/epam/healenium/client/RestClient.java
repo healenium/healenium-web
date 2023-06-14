@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.client;
 
-import com.epam.healenium.client.callback.HttpCallback;
 import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
 import com.epam.healenium.mapper.HealeniumMapper;
@@ -33,24 +32,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.typesafe.config.Config;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.openqa.selenium.By;
+import org.openqa.selenium.remote.http.ClientConfig;
+import org.openqa.selenium.remote.http.Contents;
+import org.openqa.selenium.remote.http.HttpClient;
+import org.openqa.selenium.remote.http.HttpMethod;
+import org.openqa.selenium.remote.http.HttpRequest;
+import org.openqa.selenium.remote.http.HttpResponse;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static org.openqa.selenium.json.Json.JSON_UTF_8;
 
 /**
  * Wrapper for {@code RestTemplate} class.
@@ -61,22 +64,21 @@ import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 @Data
 public class RestClient {
 
-    private final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private final String serverUrl;
     private final String imitateUrl;
     private final String sessionKey;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
-    private OkHttpClient okHttpClient;
-    private HttpCallback httpCallback;
+    private HttpClient serverHttpClient;
+    private HttpClient imitateHttpClient;
 
     public RestClient(Config config) {
-        this.okHttpClient = initOkHttpClient();
-        this.httpCallback = new HttpCallback();
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
         this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
+        this.serverHttpClient = getHttpClient(serverUrl);
+        this.imitateHttpClient = getHttpClient(imitateUrl);
         log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}", sessionKey, serverUrl, imitateUrl);
     }
 
@@ -84,12 +86,11 @@ public class RestClient {
         return (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat(path);
     }
 
-    private OkHttpClient initOkHttpClient() {
-        return new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .build();
+    @SneakyThrows
+    private HttpClient getHttpClient(String url) {
+        ClientConfig clientConfig = ClientConfig.defaultConfig()
+                .baseUrl(new URL(url));
+        return HttpClient.Factory.createDefault().createClient(clientConfig);
     }
 
     private ObjectMapper initMapper() {
@@ -111,14 +112,14 @@ public class RestClient {
      */
     public void saveElements(RequestDto requestDto) {
         try {
-            String bodyStr = objectMapper.writeValueAsString(requestDto);
-            RequestBody body = RequestBody.create(JSON, bodyStr);
-            Request request = new Request.Builder()
-                    .url(serverUrl)
-                    .post(body)
-                    .build();
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "");
+            String content = objectMapper.writeValueAsString(requestDto);
+            byte[] data = content.getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] Request: {}. Request body: {}", request, requestDto);
-            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
+            serverHttpClient.execute(request);
         } catch (Exception e) {
             log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
@@ -127,20 +128,18 @@ public class RestClient {
     public ConfigSelectorDto getElements() {
         ConfigSelectorDto configSelectorDto = null;
         try {
-            Request request = new Request.Builder()
-                    .url(serverUrl + "/elements")
-                    .get()
-                    .build();
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
+            request.setHeader("Cache-Control", "no-cache");
             log.debug("[Get Elements] Request: {}", request);
-            try (Response response = okHttpClient.newCall(request).execute()) {
-                if (HTTP_NOT_FOUND == response.code()) {
-                      throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
-                            "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
-                }
-                String result = Objects.requireNonNull(response.body()).string();
-                configSelectorDto = objectMapper.readValue(result, new TypeReference<ConfigSelectorDto>() {
-                });
+            HttpResponse response = serverHttpClient.execute(request);
+
+            if (HTTP_NOT_FOUND == response.getStatus()) {
+                throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
+                        "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
             }
+            Supplier<InputStream> result = response.getContent();
+            configSelectorDto = objectMapper.readValue(result.get(), new TypeReference<ConfigSelectorDto>() {
+            });
             log.debug("[Get Elements] Response: {}", configSelectorDto);
         } catch (RuntimeException e) {
             throw e;
@@ -169,19 +168,18 @@ public class RestClient {
                 requestDtos.add(mapper.buildMultRequest(context, healingResult, choices, metrics));
             }
 
-            String bodyStr = objectMapper.writeValueAsString(requestDtos);
-            RequestBody requestBody = RequestBody.create(JSON, bodyStr);
-
-            Request request = new Request.Builder()
-                    .addHeader("sessionKey", sessionKey)
-                    .addHeader("hostProject", SystemUtils.getHostProjectName())
-                    .url(serverUrl + "/healing")
-                    .post(requestBody)
-                    .build();
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "/healing");
+            String content = objectMapper.writeValueAsString(requestDtos);
+            byte[] data = content.getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setHeader("sessionKey", sessionKey);
+            request.setHeader("hostProject", SystemUtils.getHostProjectName());
+            request.setContent(Contents.bytes(data));
             log.debug("[Heal Element] Request: {}. Request body: {}", request, requestDtos);
-            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
+            serverHttpClient.execute(request);
         } catch (Exception e) {
-            log.warn("[Heal Element] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Heal Element] Error during call. Message: {}. Exception: {}", e.getMessage(), e);
         }
     }
 
@@ -190,37 +188,31 @@ public class RestClient {
      *
      * @param locator    element By locator
      * @param currentUrl url of web page
-     * @param command name of command
+     * @param command    name of command
      * @return lastHealingDataDto   previous success healing data
      */
     public Optional<ReferenceElementsDto> getReferenceElements(By locator, String command, String currentUrl) {
         ReferenceElementsDto referenceElementsDto = null;
         RequestDto requestDto = mapper.buildDto(locator, command, currentUrl);
         try {
-            HttpUrl.Builder httpBuilder = HttpUrl.parse(serverUrl).newBuilder()
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "");
+            request.setHeader("Cache-Control", "no-cache")
+                    .setHeader("sessionKey", sessionKey)
                     .addQueryParameter("locator", requestDto.getLocator())
                     .addQueryParameter("className", requestDto.getClassName())
                     .addQueryParameter("methodName", requestDto.getMethodName())
                     .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
-
-            Request request = new Request.Builder()
-                    .addHeader("sessionKey", sessionKey)
-                    .url(httpBuilder.build())
-                    .get()
-                    .build();
-
             log.debug("[Get Reference Elements] Request: {}", request);
-            try (Response response = okHttpClient.newCall(request).execute()) {
-                if (response.code() == 200) {
-                    String result = response.body().string();
-                    referenceElementsDto = objectMapper.readValue(result, new TypeReference<ReferenceElementsDto>() {
-                    });
-                }
+            HttpResponse response = serverHttpClient.execute(request);
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                referenceElementsDto = objectMapper.readValue(result.get(), new TypeReference<ReferenceElementsDto>() {
+                });
             }
             log.debug("[Get Reference Elements] Response: {}", referenceElementsDto);
         } catch (Exception e) {
-            log.warn("[Get Reference Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(), e);
         }
         return Optional.ofNullable(referenceElementsDto);
     }
@@ -233,21 +225,21 @@ public class RestClient {
      */
     public List<Locator> imitate(SelectorImitatorDto selectorImitatorDto) {
         try {
-            String bodyStr = objectMapper.writeValueAsString(selectorImitatorDto);
-            RequestBody body = RequestBody.create(JSON, bodyStr);
-            Request request = new Request.Builder()
-                    .url(imitateUrl)
-                    .post(body)
-                    .build();
-            log.debug("[Selector Imitate] Request: {}. Request body: {}", request, bodyStr);
-            try (Response response = okHttpClient.newCall(request).execute()) {
-                if (response.code() == 200) {
-                    String result = response.body().string();
-                    List<Locator> locators = objectMapper.readValue(result, new TypeReference<List<Locator>>() {
-                    });
-                    log.debug("[Selector Imitate] Response: {}", locators);
-                    return locators;
-                }
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "");
+            String content = objectMapper.writeValueAsString(selectorImitatorDto);
+            byte[] data = content.getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setContent(Contents.bytes(data));
+            log.debug("[Selector Imitate] Request: {}. Request body: {}", request, content);
+            HttpResponse response = imitateHttpClient.execute(request);
+
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                List<Locator> locators = objectMapper.readValue(result.get(), new TypeReference<List<Locator>>() {
+                });
+                log.debug("[Selector Imitate] Response: {}", locators);
+                return locators;
             }
         } catch (Exception e) {
             log.warn("[Selector Imitate] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
@@ -257,12 +249,12 @@ public class RestClient {
 
     public void initReport(String sessionId) {
         try {
-            Request request = new Request.Builder()
-                    .url(serverUrl + "/report/init/" + sessionId)
-                    .post(RequestBody.create(new byte[0]))
-                    .build();
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
+            request.setHeader("Content-Length", String.valueOf(0));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setContent(Contents.bytes(new byte[0]));
             log.debug("[Init Report] Request: {}", request);
-            okHttpClient.newCall(request).enqueue(httpCallback.asyncCall());
+            serverHttpClient.execute(request);
         } catch (Exception e) {
             log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
         }
