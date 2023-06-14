@@ -14,10 +14,8 @@ package com.epam.healenium;
 
 import com.epam.healenium.annotation.DisableHealing;
 import com.epam.healenium.client.RestClient;
-import com.epam.healenium.client.callback.HttpCallback;
 import com.epam.healenium.function.EmptyUrlFunction;
 import com.epam.healenium.function.FullUrlFunction;
-import com.epam.healenium.message.MessageAction;
 import com.epam.healenium.model.ConfigSelectorDto;
 import com.epam.healenium.model.Context;
 import com.epam.healenium.model.HealedElement;
@@ -191,14 +189,7 @@ public class SelfHealingEngine {
     }
 
     public void quit() {
-        HttpCallback httpCallback = client.getHttpCallback();
-        httpCallback.updateActiveMessageAmount(MessageAction.PUSH);
-        try {
-            httpCallback.getCountDownLatch().await();
-            webDriver.quit();
-        } catch (InterruptedException e) {
-            log.warn("Error during quit call. Message: {}. Exception: {}", e.getMessage(), e);
-        }
+        webDriver.quit();
     }
 
 }
