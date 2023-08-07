@@ -1,6 +1,7 @@
 package com.epam.healenium.service;
 
 import com.epam.healenium.FieldName;
+import com.epam.healenium.model.Context;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.NodeBuilder;
 import com.epam.healenium.utils.ResourceReader;
@@ -33,11 +34,12 @@ public class NodeService {
     /**
      * build list nodes by source webElement
      *
+     * @param driver     - web driver
      * @param webElement - source element
-     * @param driver - web driver
+     * @param context    - find element context dto
      * @return - list path nodes
      */
-    public List<Node> getNodePath(WebDriver driver, WebElement webElement) {
+    public List<Node> getNodePath(WebDriver driver, WebElement webElement, Context context) {
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         String data = (String) executor.executeScript(SCRIPT, webElement);
         List<Node> path = new LinkedList<>();
@@ -45,8 +47,10 @@ public class NodeService {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode treeNode = mapper.readTree(data);
-            if (treeNode.isArray()) {
-                for (final JsonNode jsonNode : treeNode) {
+            context.setCurrentUrl(treeNode.get("url").textValue());
+            JsonNode items = treeNode.get("items");
+            if (items.isArray()) {
+                for (final JsonNode jsonNode : items) {
                     Node node = toNode(mapper.treeAsTokens(jsonNode));
                     path.add(node);
                 }

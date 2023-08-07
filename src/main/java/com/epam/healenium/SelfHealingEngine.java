@@ -101,13 +101,13 @@ public class SelfHealingEngine {
             List<String> storedIds = sessionSelectors.get(by);
             if (storedIds == null || (!storedIds.containsAll(ids) && storedIds.size() != ids.size())) {
                 sessionSelectors.put(by, ids);
-                RequestDto requestDto = client.getMapper().buildDto(context.getBy(), context.getAction(), null);
-                requestDto.setElementIds(ids);
+                List<List<Node>> nodePath = getNodePath(webElements, context);
+                if (context.getCurrentUrl() == null) {
+                    context.setCurrentUrl(getCurrentUrl());
+                }
+                RequestDto requestDto = client.getMapper().buildDto(context.getBy(), context.getAction(), context.getCurrentUrl());
                 requestDto.setSessionId(((RemoteWebDriver) webDriver).getSessionId().toString());
-                requestDto.setNodePath(getNodePath(webElements));
-                String currentUrl = getCurrentUrl();
-                context.setCurrentUrl(currentUrl);
-                requestDto.setUrl(currentUrl);
+                requestDto.setNodePath(nodePath);
                 client.saveElements(requestDto);
             }
         } catch (Exception e) {
@@ -116,9 +116,9 @@ public class SelfHealingEngine {
         }
     }
 
-    public List<List<Node>> getNodePath(List<WebElement> webElements) {
+    public List<List<Node>> getNodePath(List<WebElement> webElements, Context context) {
         return webElements.stream()
-                .map(e -> nodeService.getNodePath(webDriver, e))
+                .map(e -> nodeService.getNodePath(webDriver, e, context))
                 .collect(Collectors.toList());
     }
 

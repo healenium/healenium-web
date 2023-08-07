@@ -49,7 +49,7 @@ public class HealingElementsProcessor extends BaseProcessor {
 
     private void splitDbNodes(List<List<Node>> nodesFromDb) {
         for (WebElement webElement : context.getElements()) {
-            List<Node> nodePath = engine.getNodeService().getNodePath(driver, webElement);
+            List<Node> nodePath = engine.getNodeService().getNodePath(driver, webElement, context);
             if (!nodesFromDb.contains(nodePath)) {
                 context.getNewElementsToNodes().put(webElement, nodePath);
             } else {

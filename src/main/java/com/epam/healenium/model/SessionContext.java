@@ -19,5 +19,7 @@ public class SessionContext {
     private Map<String, String> disableHealingElement = new HashMap<>();
     private Map<String, List<String>> sessionSelectors = new HashMap<>();
     private BiFunction<SelfHealingEngine, String, String> functionUrl;
+    private boolean waitCommand = false;
+    private boolean findElementWaitCommand = false;
 
 }

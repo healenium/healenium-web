@@ -1,5 +1,6 @@
 
 var items = [];
+var result = {items: null, url: null};
 var a = arguments[0];
 while (a != document) {
   var child = a;
@@ -25,4 +26,6 @@ while (a != document) {
   items.unshift(node);
   a = a.parentNode;
 }
-return JSON.stringify(items);
+result.items = items;
+result.url = window.location.href;
+return JSON.stringify(result);
