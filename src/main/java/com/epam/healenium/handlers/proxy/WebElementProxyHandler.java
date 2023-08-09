@@ -74,6 +74,9 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
     @Override
     public WebElement findElement(By by) {
         try {
+            if (engine.getSessionContext().isWaitCommand()) {
+                engine.getSessionContext().setFindElementWaitCommand(true);
+            }
             PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
@@ -96,6 +99,9 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
     @Override
     public List<WebElement> findElements(By by) {
         try {
+            if (engine.getSessionContext().isWaitCommand()) {
+                engine.getSessionContext().setFindElementWaitCommand(true);
+            }
             PageAwareBy pageBy = awareBy(by);
             By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {

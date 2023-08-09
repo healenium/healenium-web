@@ -25,6 +25,9 @@ public class FindElementProcessor extends BaseProcessor {
             engine.saveElements(context, Collections.singletonList(element));
             context.getElements().add(element);
         } catch (NoSuchElementException e) {
+            if (engine.getSessionContext().isWaitCommand()) {
+                throw e;
+            }
             context.setNoSuchElementException(e);
         }
     }

@@ -20,6 +20,9 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
 
     @Override
     public boolean validate() {
+        if (engine.getSessionContext().isWaitCommand()) {
+            return false;
+        }
         Locator locator = engine.getClient().getMapper().byToLocator(context.getBy());
         Map<String, String> enableHealingSelectors = engine.getSessionContext().getEnableHealingElements();
         Map<String, String> disableHealingSelector = engine.getSessionContext().getDisableHealingElement();

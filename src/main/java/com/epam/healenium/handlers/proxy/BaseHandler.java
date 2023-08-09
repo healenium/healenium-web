@@ -51,6 +51,9 @@ public class BaseHandler implements SelfHealingHandler {
     @Override
     public WebElement findElement(By by) {
         try {
+            if (engine.getSessionContext().isWaitCommand()) {
+                engine.getSessionContext().setFindElementWaitCommand(true);
+            }
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
                         .setBy(by)
@@ -82,6 +85,9 @@ public class BaseHandler implements SelfHealingHandler {
     @Override
     public List<WebElement> findElements(By by) {
         try {
+            if (engine.getSessionContext().isWaitCommand()) {
+                engine.getSessionContext().setFindElementWaitCommand(true);
+            }
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
                         .setBy(by)

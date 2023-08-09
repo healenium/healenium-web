@@ -13,10 +13,6 @@
 package com.epam.healenium.utils;
 
 import com.epam.healenium.SelfHealingDriver;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -24,6 +20,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.WrapsElement;
 import org.openqa.selenium.interactions.Interactive;
 import org.openqa.selenium.interactions.Locatable;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 @UtilityClass
 @SuppressWarnings("unchecked")
