@@ -28,12 +28,6 @@
             <name>Anna Chernyshova</name>
             <timezone>UTC+3</timezone>
         </developer>
-        <developer>
-            <id>engineer</id>
-            <name>Aliaksei Ashukha</name>
-            <email>aliaksei_ashukha@epam.com</email>
-            <timezone>UTC+3</timezone>
-        </developer>
     </developers>
     <scm>
         <connection>scm:git:git@github.com:healenium/healenium-web.git</connection>
