@@ -52,7 +52,7 @@
         <maven.apache>3.8.4</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.12</treecomparing.version>
-        <selenium.version>4.10.0</selenium.version>
+        <selenium.version>4.12.1</selenium.version>
         <jacksondatabind.version>2.15.2</jacksondatabind.version>
         <commonslang3.version>3.12.0</commonslang3.version>
         <commonscodec.version>1.15</commonscodec.version>
@@ -66,7 +66,7 @@
         <selenide.version>6.1.1</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
         <junit.version>5.8.2</junit.version>
-        <webdrivermanager.version>5.1.0</webdrivermanager.version>
+        <webdrivermanager.version>5.5.3</webdrivermanager.version>
     </properties>
 
     <profiles>
@@ -83,7 +83,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.1.0</version>
                         <configuration>
                             <passphrase>${gpg.passphrase}</passphrase>
                             <gpgArguments>
