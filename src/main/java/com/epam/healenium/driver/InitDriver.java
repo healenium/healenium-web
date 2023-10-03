@@ -26,7 +26,6 @@ public class InitDriver {
     public static SelfHealingDriver getDriver(){
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.setHeadless(true);
         options.addArguments("--remote-allow-origins=*");
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.create(delegate);

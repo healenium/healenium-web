@@ -42,7 +42,7 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
         if ("findElement".equals(context.getAction())) {
             return context.getNoSuchElementException() != null;
         }
-        return false;
+        return engine.getSessionContext().isFindElementsAutoHealing();
     }
 
     @Override

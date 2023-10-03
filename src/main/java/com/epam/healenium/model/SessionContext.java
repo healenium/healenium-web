@@ -21,5 +21,6 @@ public class SessionContext {
     private BiFunction<SelfHealingEngine, String, String> functionUrl;
     private boolean waitCommand = false;
     private boolean findElementWaitCommand = false;
+    private boolean findElementsAutoHealing = false;
 
 }

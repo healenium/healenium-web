@@ -13,5 +13,5 @@ public class ConfigSelectorDto {
     private boolean pathForKey;
     private List<SelectorDto> disableHealingElementDto;
     private List<SelectorDto> enableHealingElementsDto;
-
+    private boolean findElementsAutoHealing;
 }
