@@ -77,7 +77,6 @@ public class SelenideTest {
             WebDriverManager.chromedriver().setup();
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--remote-allow-origins=*");
-            options.setHeadless(true);
             options.merge(capabilities);
             WebDriver wd = new ChromeDriver(options);
             return SelfHealingDriver.create(wd);

@@ -180,7 +180,8 @@ public class SelfHealingEngine {
                     .setEnableHealingElements(enableHealingElementsDto.stream()
                             .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)))
                     .setDisableHealingElement(disableHealingElementDto.stream()
-                            .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)));
+                            .collect(Collectors.toMap(SelectorDto::getId, SelectorDto::getLocator)))
+                    .setFindElementsAutoHealing(configSelectorDto.isFindElementsAutoHealing());
         }
     }
 
