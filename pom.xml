@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.4.6</version>
+    <version>3.4.7</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -49,7 +49,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.apache>3.8.4</maven.apache>
+        <maven.apache>3.9.5</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.12</treecomparing.version>
         <selenium.version>4.13.0</selenium.version>
@@ -63,7 +63,7 @@
         <streamex.version>0.8.1</streamex.version>
         <jettyserver.version>11.0.15 </jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
-        <selenide.version>6.1.1</selenide.version>
+        <selenide.version>6.19.1</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
         <junit.version>5.8.2</junit.version>
         <webdrivermanager.version>5.5.3</webdrivermanager.version>
@@ -226,19 +226,8 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version>
-            <type>maven-plugin</type>
-        </dependency>
-        <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
-            <version>${maven.apache}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-compat</artifactId>
             <version>${maven.apache}</version>
         </dependency>
         <dependency>
