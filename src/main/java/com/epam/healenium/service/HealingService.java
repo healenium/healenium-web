@@ -44,6 +44,7 @@ public class HealingService {
         add(EnumSet.of(SelectorComponent.PARENT, SelectorComponent.TAG, SelectorComponent.CLASS, SelectorComponent.POSITION));
         add(EnumSet.of(SelectorComponent.PARENT, SelectorComponent.TAG, SelectorComponent.ID, SelectorComponent.CLASS, SelectorComponent.ATTRIBUTES));
         add(EnumSet.of(SelectorComponent.PATH));
+        add(EnumSet.of(SelectorComponent.INNERTEXT));
     }};
 
     public HealingService(Config finalizedConfig, WebDriver driver) {
@@ -93,6 +94,15 @@ public class HealingService {
                 HealedElement healedElement = new HealedElement();
                 healedElement.setElement(elements.get(0)).setScored(byScored);
                 return healedElement;
+            }else
+                locator=constructXPath(node.getValue(), selectorDetailLevels.get(6),"text");
+            elements = driver.findElements(locator);
+            if (elements.size() == 1 && !context.getElementIds().contains(((RemoteWebElement) elements.get(0)).getId())) {
+                Scored<By> byScored = new Scored<>(node.getScore(), locator);
+                context.getElementIds().add(((RemoteWebElement) elements.get(0)).getId());
+                HealedElement healedElement = new HealedElement();
+                healedElement.setElement(elements.get(0)).setScored(byScored);
+                return healedElement;
             }
         }
         return null;
@@ -126,4 +136,18 @@ public class HealingService {
                 .map(component -> component.createComponent(node))
                 .collect(Collectors.joining()));
     }
+
+    /**
+     * Construct xPath by Node
+     * @param node
+     * @param detailLevel
+     * @param attribute
+     * @return
+     */
+    protected By constructXPath(Node node, Set<SelectorComponent> detailLevel,String attribute) {
+        return By.xpath("//"+node.getTag()+"["+attribute+"()='"+detailLevel.stream()
+                .map(component -> component.createComponent(node))
+                .collect(Collectors.joining())+"']");
+    }
 }
+
