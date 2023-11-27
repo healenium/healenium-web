@@ -250,9 +250,7 @@ public class RestClient {
     public void initReport(String sessionId) {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
-            request.setHeader("Content-Length", String.valueOf(0));
             request.setHeader("Content-Type", JSON_UTF_8);
-            request.setContent(Contents.bytes(new byte[0]));
             log.debug("[Init Report] Request: {}", request);
             serverHttpClient.execute(request);
         } catch (Exception e) {
