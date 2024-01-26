@@ -67,8 +67,8 @@
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
         <junit.version>5.8.2</junit.version>
         <webdrivermanager.version>5.5.3</webdrivermanager.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
     <profiles>
