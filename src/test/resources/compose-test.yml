@@ -3,7 +3,7 @@ version: "3.3"
 services:
 
   postgres-db:
-    image: postgres:11-alpine
+    image: postgres:15.5-alpine
     container_name: postgres-db
     ports:
       - "5432:5432"
@@ -18,7 +18,9 @@ services:
       - healenium
 
   healenium:
-    image: healenium/hlm-backend:3.2.4
+    image: healenium/hlm-backend:3.4.3
+    container_name: healenium
+    restart: on-failure
     ports:
       - "7878:7878"
     links:
@@ -29,15 +31,24 @@ services:
       - SPRING_POSTGRES_USER=healenium_user
       - SPRING_POSTGRES_PASSWORD=YDk2nmNs4s9aCP6K
       - SPRING_POSTGRES_DB_HOST=postgres-db
-      - KEY_SELECTOR_URL=true
+      - KEY_SELECTOR_URL=false
+      - COLLECT_METRICS=true
+      - FIND_ELEMENTS_AUTO_HEALING=false
+      - HLM_LOG_LEVEL=info
+    volumes:
+      - ./screenshots/:/screenshots
+      - ./logs/:/logs
     networks:
       - healenium
 
   selector-imitator:
-    image: healenium/hlm-selector-imitator:1.1
+    image: healenium/hlm-selector-imitator:1.3
+    container_name: selector-imitator
     restart: on-failure
     ports:
       - "8000:8000"
+    networks:
+      - healenium
 
 networks:
   healenium:
