@@ -47,7 +47,6 @@ import org.openqa.selenium.remote.RemoteWebElement;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -95,24 +94,21 @@ public class SelfHealingEngine {
 
     public void saveElements(Context context, List<WebElement> webElements) {
         try {
-            String by = context.getBy().toString();
-            List<String> ids = context.getElementIds();
-            Map<String, List<String>> sessionSelectors = sessionContext.getSessionSelectors();
-            List<String> storedIds = sessionSelectors.get(by);
-            if (storedIds == null || (!storedIds.containsAll(ids) && storedIds.size() != ids.size())) {
-                sessionSelectors.put(by, ids);
+            if (!webElements.isEmpty()) {
                 List<List<Node>> nodePath = getNodePath(webElements, context);
                 if (context.getCurrentUrl() == null) {
                     context.setCurrentUrl(getCurrentUrl());
                 }
+
                 RequestDto requestDto = client.getMapper().buildDto(context.getBy(), context.getAction(), context.getCurrentUrl());
                 requestDto.setSessionId(((RemoteWebDriver) webDriver).getSessionId().toString());
                 requestDto.setNodePath(nodePath);
+
                 client.saveElements(requestDto);
             }
         } catch (Exception e) {
             log.warn("[Save Elements] Error during save elements: {}. Message: {}. Exception: {}",
-                    context.getElementIds(), e.getMessage(), e);
+                    context.getElementIds(), e.getMessage(), e.toString());
         }
     }
 

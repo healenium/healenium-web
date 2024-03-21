@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.5.0</version>
+    <version>3.5.1</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -52,7 +52,7 @@
         <maven.apache>3.8.4</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.13</treecomparing.version>
-        <selenium.version>4.17.0</selenium.version>
+        <selenium.version>4.18.1</selenium.version>
         <jacksondatabind.version>2.15.2</jacksondatabind.version>
         <commonslang3.version>3.12.0</commonslang3.version>
         <commonscodec.version>1.15</commonscodec.version>
@@ -66,7 +66,7 @@
         <selenide.version>7.0.0</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
         <junit.version>5.8.2</junit.version>
-        <webdrivermanager.version>5.5.3</webdrivermanager.version>
+        <webdrivermanager.version>5.6.4</webdrivermanager.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
