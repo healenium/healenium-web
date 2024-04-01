@@ -65,7 +65,11 @@ public class BaseHandler implements SelfHealingHandler {
                 if (context.getElements().size() > 0) {
                     return context.getElements().get(0);
                 }
-                throw context.getNoSuchElementException();
+                if (context.getNoSuchElementException() != null) {
+                    throw context.getNoSuchElementException();
+                } else {
+                    throw new NoSuchElementException("Failed to find element using " + by.toString());
+                }
             }
             return driver.findElement(by);
         } catch (NoSuchElementException ex) {

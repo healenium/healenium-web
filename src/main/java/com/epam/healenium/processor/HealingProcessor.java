@@ -35,6 +35,7 @@ public class HealingProcessor extends BaseProcessor {
         Node destination = engine.parseTree(targetPage);
         context.setPageContent(targetPage);
 
+        log.warn("Trying to heal...");
         for (List<Node> nodes : context.getReferenceElementsDto().getPaths()) {
             healingService.findNewLocations(nodes, destination, context);
         }

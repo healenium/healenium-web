@@ -47,11 +47,10 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
 
     @Override
     public void execute() {
-        log.warn("Failed to find an element using locator {}", context.getBy().toString());
         if (context.getNoSuchElementException() != null) {
+            log.warn("Failed to find an element using locator {}", context.getBy().toString());
             log.warn("Reason: {}", context.getNoSuchElementException().getMessage());
         }
-        log.warn("Trying to heal...");
         populateUrlKey();
         ReferenceElementsDto referenceElementsDto = restClient.getReferenceElements(
                         context.getBy(), context.getAction(), context.getCurrentUrl())
@@ -75,7 +74,6 @@ public class GetReferenceElementsProcessor extends BaseProcessor {
                 context.setCurrentUrl(engine.getCurrentUrl());
             }
             String urlKey = engine.getSessionContext().getFunctionUrl().apply(engine, context.getCurrentUrl());
-            log.debug("[Find Element] Get reference element. UrlKey: {}",  urlKey);
             context.setUrlKey(urlKey);
         }
     }

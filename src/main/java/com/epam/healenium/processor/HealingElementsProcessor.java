@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Healing Elements Processor
@@ -42,9 +43,15 @@ public class HealingElementsProcessor extends BaseProcessor {
         Node destination = engine.parseTree(targetPage);
         context.setPageContent(targetPage);
 
-        nodesFromDb.stream()
-                .filter(nodes -> !context.getNewElementsToNodes().containsValue(nodes) && !context.getExistElementsToNodes().containsValue(nodes))
-                .forEach(nodes -> healingService.findNewLocations(nodes, destination, context));
+        List<List<Node>> nodesToHeal = nodesFromDb.stream()
+                .filter(nodes -> !context.getNewElementsToNodes().containsValue(nodes)
+                        && !context.getExistElementsToNodes().containsValue(nodes))
+                .collect(Collectors.toList());
+        if (!nodesToHeal.isEmpty()) {
+            log.warn("Failed to find an elements using locator {}", context.getBy().toString());
+            log.warn("Trying to heal...");
+        }
+        nodesToHeal.forEach(nodes -> healingService.findNewLocations(nodes, destination, context));
     }
 
     private void splitDbNodes(List<List<Node>> nodesFromDb) {

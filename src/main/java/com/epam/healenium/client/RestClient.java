@@ -118,10 +118,11 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setContent(Contents.bytes(data));
-            log.debug("[Save Elements] Request: {}. Request body: {}", request, requestDto);
+            log.debug("[Save Elements] By: {}, Locator: {}, Command: {}, URL: {}",
+                    requestDto.getType(), requestDto.getLocator(), requestDto.getCommand(), requestDto.getUrl());
             serverHttpClient.execute(request);
         } catch (Exception e) {
-            log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
         }
     }
 
@@ -140,11 +141,10 @@ public class RestClient {
             Supplier<InputStream> result = response.getContent();
             configSelectorDto = objectMapper.readValue(result.get(), new TypeReference<ConfigSelectorDto>() {
             });
-            log.debug("[Get Elements] Response: {}", configSelectorDto);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("[Get Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Get Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
         }
         return configSelectorDto;
     }
@@ -176,10 +176,12 @@ public class RestClient {
             request.setHeader("sessionKey", sessionKey);
             request.setHeader("hostProject", SystemUtils.getHostProjectName());
             request.setContent(Contents.bytes(data));
-            log.debug("[Heal Element] Request: {}. Request body: {}", request, requestDtos);
+            for (RequestDto requestDto : requestDtos) {
+                log.debug("[Save Healed Elements] {}", requestDto.getUsedResult().getLocator());
+            }
             serverHttpClient.execute(request);
         } catch (Exception e) {
-            log.warn("[Heal Element] Error during call. Message: {}. Exception: {}", e.getMessage(), e);
+            log.warn("[Heal Element] Error during call. Message: {}. Exception: {}", e.getMessage(), e.toString());
         }
     }
 
@@ -203,16 +205,16 @@ public class RestClient {
                     .addQueryParameter("methodName", requestDto.getMethodName())
                     .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
-            log.debug("[Get Reference Elements] Request: {}", request);
+            log.debug("[Get Reference Elements] Request. Locator: {}, Command: {}, Url: {}",
+                    requestDto.getLocator(), requestDto.getCommand(), currentUrl);
             HttpResponse response = serverHttpClient.execute(request);
             if (response.getStatus() == 200) {
                 Supplier<InputStream> result = response.getContent();
                 referenceElementsDto = objectMapper.readValue(result.get(), new TypeReference<ReferenceElementsDto>() {
                 });
             }
-            log.debug("[Get Reference Elements] Response: {}", referenceElementsDto);
         } catch (Exception e) {
-            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(), e);
+            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(), e.toString());
         }
         return Optional.ofNullable(referenceElementsDto);
     }
@@ -231,7 +233,6 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setContent(Contents.bytes(data));
-            log.debug("[Selector Imitate] Request: {}. Request body: {}", request, content);
             HttpResponse response = imitateHttpClient.execute(request);
 
             if (response.getStatus() == 200) {
@@ -242,7 +243,7 @@ public class RestClient {
                 return locators;
             }
         } catch (Exception e) {
-            log.warn("[Selector Imitate] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Selector Imitate] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
         }
         return Collections.emptyList();
     }
@@ -254,7 +255,7 @@ public class RestClient {
             log.debug("[Init Report] Request: {}", request);
             serverHttpClient.execute(request);
         } catch (Exception e) {
-            log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e);
+            log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
         }
     }
 }
