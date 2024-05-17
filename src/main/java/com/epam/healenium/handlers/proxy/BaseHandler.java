@@ -88,23 +88,19 @@ public class BaseHandler implements SelfHealingHandler {
      */
     @Override
     public List<WebElement> findElements(By by) {
-        try {
-            if (engine.getSessionContext().isWaitCommand()) {
-                engine.getSessionContext().setFindElementWaitCommand(true);
-            }
-            if (engine.isHealingEnabled()) {
-                Context context = new Context()
-                        .setBy(by)
-                        .setAction("findElements");
-                setBaseProcessorFields(findElementsChainProcessor, context);
-                findElementsChainProcessor.process();
-
-                return context.getElements();
-            }
-            return driver.findElements(by);
-        } catch (Exception ex) {
-            throw new NoSuchElementException("Failed to find elements using " + by.toString(), ex);
+        if (engine.getSessionContext().isWaitCommand()) {
+            engine.getSessionContext().setFindElementWaitCommand(true);
         }
+        if (engine.isHealingEnabled()) {
+            Context context = new Context()
+                    .setBy(by)
+                    .setAction("findElements");
+            setBaseProcessorFields(findElementsChainProcessor, context);
+            findElementsChainProcessor.process();
+
+            return context.getElements();
+        }
+        return driver.findElements(by);
     }
 
 

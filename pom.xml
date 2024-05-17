@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.5.1</version>
+    <version>3.5.2</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -52,16 +52,15 @@
         <maven.apache>3.8.4</maven.apache>
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.13</treecomparing.version>
-        <selenium.version>4.18.1</selenium.version>
+        <selenium.version>4.20.0</selenium.version>
         <jacksondatabind.version>2.15.2</jacksondatabind.version>
         <commonslang3.version>3.12.0</commonslang3.version>
         <commonscodec.version>1.15</commonscodec.version>
-        <okhttp3.version>4.9.3</okhttp3.version>
         <annotations.version>23.0.0</annotations.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <lombok.version>1.18.22</lombok.version>
         <streamex.version>0.8.1</streamex.version>
-        <jettyserver.version>11.0.15</jettyserver.version>
+        <jettyserver.version>11.0.21</jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
         <selenide.version>7.0.0</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
@@ -227,16 +226,6 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>${commonscodec.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>${okhttp3.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>logging-interceptor</artifactId>
-            <version>4.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
