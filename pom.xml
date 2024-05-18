@@ -65,7 +65,7 @@
         <selenide.version>7.0.0</selenide.version>
         <testcontainersjunit.version>1.16.3</testcontainersjunit.version>
         <junit.version>5.8.2</junit.version>
-        <webdrivermanager.version>5.6.4</webdrivermanager.version>
+        <webdrivermanager.version>5.8.0</webdrivermanager.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
