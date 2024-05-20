@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
 import com.epam.healenium.annotation.PageAwareFindBy;
 import com.epam.healenium.driver.InitDriver;
@@ -47,22 +46,21 @@ public class FindByAnnotationTest {
 
     @Test
     public void testWithDefaultPageName() {
-        test(GooglePage.class.getSimpleName(), GooglePage::getSearchBox);
+        test(GooglePage::getSearchBox);
     }
 
     @Test
     public void testWithCustomPageName() {
-        test(CUSTOM_PAGE_NAME, GooglePage::getCustomSearchBox);
+        test(GooglePage::getCustomSearchBox);
     }
 
-    private void test(String pageName, Function<GooglePage, WebElement> elementGetter) {
+    private void test(Function<GooglePage, WebElement> elementGetter) {
         driver.get("http://www.google.com/");
         GooglePage page = PageFactory.initElements(driver, GooglePage.class);
         WebElement inputElement = elementGetter.apply(page);
         // annotation-driven element is lazy, need to do something with it
         inputElement.sendKeys("search");
-        PageAwareBy locator = PageAwareBy.by(pageName, By.name("q"));
-        Assertions.assertEquals(inputElement, driver.findElement(locator));
+        Assertions.assertEquals(inputElement, driver.findElement(By.name("q")));
     }
 
     public static class GooglePage {

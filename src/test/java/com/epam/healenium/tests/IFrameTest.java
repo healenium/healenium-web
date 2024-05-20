@@ -12,15 +12,12 @@
  */
 package com.epam.healenium.tests;
 
-import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
-import com.epam.healenium.TestServer;
 import com.epam.healenium.driver.InitDriver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
@@ -42,14 +39,11 @@ public class IFrameTest {
         }
     }
 
-    @RegisterExtension
-    public static final TestServer server = new TestServer(IFrameTest.class.getSimpleName());
-
     @Test
     public void testIFrame() {
-        PageAwareBy locator = PageAwareBy.by(IFrameTest.class.getSimpleName(), By.cssSelector("input.framebutton"));
-        driver.get("http://localhost:" + server.getPort());
-        WebElement element = driver.switchTo().frame("internal").findElement(locator);
+        driver.get("http://www.google.com/");
+        driver.findElement(By.xpath("//*[@aria-label='Google apps']")).click();
+        WebElement element = driver.switchTo().frame("app").findElement(By.linkText("Play"));
         Assertions.assertNotNull(element);
     }
 }

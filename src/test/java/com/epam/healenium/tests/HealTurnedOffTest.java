@@ -54,8 +54,7 @@ public class HealTurnedOffTest {
     @Test
     public void legitLocatorWorkingTest() {
         driver.get("https://google.com/");
-        PageAwareBy by = PageAwareBy.by(PAGE_NAME, By.name("q"));
-        WebElement input = driver.findElement(by);
+        WebElement input = driver.findElement(By.name("q"));
         Assertions.assertTrue(input.isDisplayed());
     }
 

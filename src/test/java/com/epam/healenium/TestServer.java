@@ -12,6 +12,7 @@
  */
 package com.epam.healenium;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jetty.server.Server;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public class TestServer implements BeforeAllCallback, AfterAllCallback {
 
     private final String folder;
+    @Getter
     private final int port;
     private Server server;
 
@@ -42,10 +44,6 @@ public class TestServer implements BeforeAllCallback, AfterAllCallback {
 
     public TestServer(String folder) {
         this(folder, 8090);
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public String getPageName() {
