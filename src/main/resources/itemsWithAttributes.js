@@ -11,7 +11,7 @@ while (a != document) {
   }
   node.id = a.id;
   node.index = i;
-  node.innerText = a.innerText;
+  node.innerText = a.innerText || "";
 
   if (a.hasAttribute("class")) {
 	  node.classes = a.attributes.class.value.split(' ');

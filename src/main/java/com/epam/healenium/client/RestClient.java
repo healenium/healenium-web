@@ -14,6 +14,7 @@ package com.epam.healenium.client;
 
 import com.epam.healenium.converter.NodeDeserializer;
 import com.epam.healenium.converter.NodeSerializer;
+import com.epam.healenium.exception.HealeniumException;
 import com.epam.healenium.mapper.HealeniumMapper;
 import com.epam.healenium.model.ConfigSelectorDto;
 import com.epam.healenium.model.Context;
@@ -43,6 +44,7 @@ import org.openqa.selenium.remote.http.HttpRequest;
 import org.openqa.selenium.remote.http.HttpResponse;
 
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -120,7 +122,7 @@ public class RestClient {
             request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] By: {}, Locator: {}, Command: {}, URL: {}",
                     requestDto.getType(), requestDto.getLocator(), requestDto.getCommand(), requestDto.getUrl());
-            serverHttpClient.execute(request);
+            serverExecute(request);
         } catch (Exception e) {
             log.warn("[Save Elements] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
         }
@@ -132,7 +134,7 @@ public class RestClient {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
             request.setHeader("Cache-Control", "no-cache");
             log.debug("[Get Elements] Request: {}", request);
-            HttpResponse response = serverHttpClient.execute(request);
+            HttpResponse response = serverExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
                 throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
@@ -179,7 +181,7 @@ public class RestClient {
             for (RequestDto requestDto : requestDtos) {
                 log.debug("[Save Healed Elements] {}", requestDto.getUsedResult().getLocator());
             }
-            serverHttpClient.execute(request);
+            serverExecute(request);
         } catch (Exception e) {
             log.warn("[Heal Element] Error during call. Message: {}. Exception: {}", e.getMessage(), e.toString());
         }
@@ -207,7 +209,7 @@ public class RestClient {
                     .addQueryParameter("url", currentUrl);
             log.debug("[Get Reference Elements] Request. Locator: {}, Command: {}, Url: {}",
                     requestDto.getLocator(), requestDto.getCommand(), currentUrl);
-            HttpResponse response = serverHttpClient.execute(request);
+            HttpResponse response = serverExecute(request);
             if (response.getStatus() == 200) {
                 Supplier<InputStream> result = response.getContent();
                 referenceElementsDto = objectMapper.readValue(result.get(), new TypeReference<ReferenceElementsDto>() {
@@ -233,7 +235,7 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setContent(Contents.bytes(data));
-            HttpResponse response = imitateHttpClient.execute(request);
+            HttpResponse response = imitateExecute(request);
 
             if (response.getStatus() == 200) {
                 Supplier<InputStream> result = response.getContent();
@@ -253,9 +255,31 @@ public class RestClient {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
             request.setHeader("Content-Type", JSON_UTF_8);
             log.debug("[Init Report] Request: {}", request);
-            serverHttpClient.execute(request);
+            serverExecute(request);
         } catch (Exception e) {
             log.warn("[Init Report] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
+        }
+    }
+
+    private HttpResponse serverExecute(HttpRequest request) {
+        try {
+            return serverHttpClient.execute(request);
+        } catch (UncheckedIOException e) {
+            String errorMessage = "[Execute Error] Unable to connect to the hlm-backend service. " +
+                    "Please check if the service is up and running, and verify that the connection URL is correct.";
+            log.error(errorMessage);
+            throw new HealeniumException(errorMessage, e);
+        }
+    }
+
+    private HttpResponse imitateExecute(HttpRequest request) {
+        try {
+            return imitateHttpClient.execute(request);
+        } catch (UncheckedIOException e) {
+            String errorMessage = "[Execute Error] Unable to connect to the selector-imitator service. " +
+                    "Please check if the service is up and running, and verify that the connection URL is correct.";
+            log.error(errorMessage);
+            throw new HealeniumException(errorMessage, e);
         }
     }
 }
