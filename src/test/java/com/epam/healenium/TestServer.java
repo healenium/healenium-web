@@ -14,16 +14,16 @@ package com.epam.healenium;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.jetty.server.Server;
-
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.PathResourceFactory;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
 
 @Slf4j(topic = "healenium")
 public class TestServer implements BeforeAllCallback, AfterAllCallback {
@@ -52,17 +52,23 @@ public class TestServer implements BeforeAllCallback, AfterAllCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setBaseResource(Resource.newClassPathResource(folder));
-        resourceHandler.setWelcomeFiles(new String[]{"index.html"});
-        resourceHandler.setDirectoriesListed(true);
-        server = new Server(port);
-        HandlerList handlers = new HandlerList(resourceHandler, new DefaultHandler());
-        server.setHandler(handlers);
         try {
+            Path resourcePath = null;
+
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            if (classLoader != null) {
+                resourcePath = Paths.get(Objects.requireNonNull(classLoader.getResource(folder)).toURI());
+            }
+
+            ResourceHandler resourceHandler = new ResourceHandler();
+            resourceHandler.setBaseResource(new PathResourceFactory().newResource(resourcePath));
+            resourceHandler.setWelcomeFiles("index.html");
+
+            server = new Server(port);
+            server.setHandler(resourceHandler);
             server.start();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Processing error of Jetty server", e);
         }
     }
 
