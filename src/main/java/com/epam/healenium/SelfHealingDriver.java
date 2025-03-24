@@ -50,6 +50,12 @@ public interface SelfHealingDriver extends WebDriver {
         return create(selfHealingEngine);
     }
 
+    static SelfHealingDriver createTestDriver(WebDriver delegate) {
+        SelfHealingEngine selfHealingEngine = new SelfHealingEngine(delegate);
+        setEngineFields(delegate, selfHealingEngine);
+        return create(selfHealingEngine);
+    }
+
     static void setEngineFields(WebDriver delegate, SelfHealingEngine selfHealingEngine) {
         Config finalizedConfig = selfHealingEngine.getConfig();
         HealeniumMapper healeniumMapper = new HealeniumMapper(new StackTraceReader());

@@ -28,6 +28,6 @@ public class InitDriver {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         WebDriver delegate = new ChromeDriver(options);
-        return SelfHealingDriver.create(delegate);
+        return SelfHealingDriver.createTestDriver(delegate);
     }
 }

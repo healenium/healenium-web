@@ -12,7 +12,6 @@
  */
 package com.epam.healenium.handlers.proxy;
 
-import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingEngine;
 import com.epam.healenium.config.ProcessorConfig;
 import com.epam.healenium.model.Context;
@@ -77,10 +76,9 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
             if (engine.getSessionContext().isWaitCommand()) {
                 engine.getSessionContext().setFindElementWaitCommand(true);
             }
-            PageAwareBy pageBy = awareBy(by);
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setBy(pageBy)
+                        .setBy(by)
                         .setAction("findElement");
                 setBaseProcessorFields(findElementChainProcessor, context);
                 findElementChainProcessor.process();
@@ -90,7 +88,7 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
                 }
                 throw context.getNoSuchElementException();
             }
-            return delegate.findElement(pageBy.getBy());
+            return delegate.findElement(by);
         } catch (Exception ex) {
             throw new NoSuchElementException("Failed to find element using " + by.toString(), ex);
         }
@@ -102,18 +100,16 @@ public class WebElementProxyHandler extends BaseHandler implements InvocationHan
             if (engine.getSessionContext().isWaitCommand()) {
                 engine.getSessionContext().setFindElementWaitCommand(true);
             }
-            PageAwareBy pageBy = awareBy(by);
-            By inner = pageBy.getBy();
             if (engine.isHealingEnabled()) {
                 Context context = new Context()
-                        .setBy(pageBy)
+                        .setBy(by)
                         .setAction("findElements");
                 setBaseProcessorFields(findElementsChainProcessor, context);
                 findElementsChainProcessor.process();
 
                 return context.getElements();
             }
-            return delegate.findElements(inner);
+            return delegate.findElements(by);
         } catch (Exception ex) {
             throw new NoSuchElementException("Failed to find elements using " + by.toString(), ex);
         }
