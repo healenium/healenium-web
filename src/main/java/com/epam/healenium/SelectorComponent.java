@@ -12,14 +12,7 @@
  */
 package com.epam.healenium;
 
-import com.epam.healenium.elementcreators.ClassElementCreator;
-import com.epam.healenium.elementcreators.PathElementCreator;
-import com.epam.healenium.elementcreators.PositionElementCreator;
-import com.epam.healenium.elementcreators.AttributesElementCreator;
-import com.epam.healenium.elementcreators.ElementCreator;
-import com.epam.healenium.elementcreators.IdElementCreator;
-import com.epam.healenium.elementcreators.ParentElementCreator;
-import com.epam.healenium.elementcreators.TagElementCreator;
+import com.epam.healenium.elementcreators.*;
 import com.epam.healenium.treecomparing.Node;
 import lombok.AllArgsConstructor;
 
@@ -31,7 +24,8 @@ public enum SelectorComponent {
     ID(new IdElementCreator()),
     CLASS(new ClassElementCreator()),
     POSITION(new PositionElementCreator()),
-    ATTRIBUTES(new AttributesElementCreator());
+    ATTRIBUTES(new AttributesElementCreator()),
+    INNERTEXT(new InnerTextElementCreator());
 
     private final ElementCreator elementCreator;
 
