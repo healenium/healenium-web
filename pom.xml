@@ -54,7 +54,7 @@
         <treecomparing.version>0.4.14</treecomparing.version>
         <selenium.version>4.25.0</selenium.version>
         <jacksondatabind.version>2.15.2</jacksondatabind.version>
-        <commonslang3.version>3.17.0</commonslang3.version>
+        <commonslang3.version>3.18.0</commonslang3.version>
         <commonscodec.version>1.15</commonscodec.version>
         <annotations.version>23.0.0</annotations.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
