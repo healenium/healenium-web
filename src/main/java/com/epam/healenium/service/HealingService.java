@@ -1,10 +1,8 @@
 package com.epam.healenium.service;
 
 import com.epam.healenium.SelectorComponent;
-import com.epam.healenium.model.Context;
-import com.epam.healenium.model.HealedElement;
-import com.epam.healenium.model.HealingCandidateDto;
-import com.epam.healenium.model.HealingResult;
+import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.model.*;
 import com.epam.healenium.treecomparing.HeuristicNodeDistance;
 import com.epam.healenium.treecomparing.LCSPathDistance;
 import com.epam.healenium.treecomparing.Node;
@@ -54,19 +52,21 @@ public class HealingService {
     }
 
     /**
-     * @param destination the new HTML page source on which we should search for the element
      * @param paths       source path to locator
+     * @param destination the new HTML page source on which we should search for the element
      * @param context     context data for healing
+     * @param engine
      */
-    public void findNewLocations(List<Node> paths, Node destination, Context context) {
+    public void findNewLocations(List<Node> paths, Node destination, Context context, SelfHealingEngine engine) {
         PathFinder pathFinder = new PathFinder(new LCSPathDistance(), new HeuristicNodeDistance());
         AbstractMap.SimpleImmutableEntry<Integer, Map<Double, List<AbstractMap.SimpleImmutableEntry<Node, Integer>>>> scoresToNodes =
                 pathFinder.findScoresToNodes(new Path(paths.toArray(new Node[0])), destination);
-        List<Scored<Node>> scoreds = pathFinder.getSortedNodes(scoresToNodes.getValue(), recoveryTries, scoreCap);
+        List<Scored<Node>> scoreds = pathFinder.getSortedNodes(scoresToNodes.getValue(), 1000, scoreCap);
 
         List<HealedElement> healedElements = scoreds.stream()
-                .map(node -> toLocator(node, context))
+                .map(node -> toLocator(node, context, engine))
                 .filter(Objects::nonNull)
+                .limit(recoveryTries)
                 .collect(Collectors.toList());
         if (!healedElements.isEmpty()) {
             HealingResult healingResult = new HealingResult()
@@ -81,13 +81,17 @@ public class HealingService {
     /**
      * @param node    convert source node to locator
      * @param context chain context
+     * @param engine
      * @return healedElement
      */
-    protected HealedElement toLocator(Scored<Node> node, Context context) {
+    protected HealedElement toLocator(Scored<Node> node, Context context, SelfHealingEngine engine) {
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
             By locator = construct(node.getValue(), detailLevel);
+            if (isUnsuccessLocator(locator, context, engine)) {
+                return null;
+            }
             List<WebElement> elements = driver.findElements(locator);
-            if (elements.size() == 1 && !context.getElementIds().contains(((RemoteWebElement) elements.get(0)).getId())) {
+            if (elements.size() == 1 && !context.getElementIds().contains(((RemoteWebElement) elements.get(0)).getId()) ) {
                 Scored<By> byScored = new Scored<>(node.getScore(), locator);
                 context.getElementIds().add(((RemoteWebElement) elements.get(0)).getId());
                 HealedElement healedElement = new HealedElement();
@@ -96,6 +100,12 @@ public class HealingService {
             }
         }
         return null;
+    }
+
+    private boolean isUnsuccessLocator(By locator, Context context, SelfHealingEngine engine) {
+        Locator convertLocator = engine.getClient().getMapper().byToLocator(locator);
+        List<Locator> unsuccessfulLocators = context.getUnsuccessfulLocators();
+        return unsuccessfulLocators != null && unsuccessfulLocators.contains(convertLocator);
     }
 
     /**

@@ -27,6 +27,7 @@ public class InitDriver {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--user-data-dir=/tmp/unique-chrome-profile-" + System.currentTimeMillis());
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.createTestDriver(delegate);
     }

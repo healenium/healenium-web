@@ -51,7 +51,7 @@ public class HealingElementsProcessor extends BaseProcessor {
             log.warn("Failed to find an elements using locator {}", context.getBy().toString());
             log.warn("Trying to heal...");
         }
-        nodesToHeal.forEach(nodes -> healingService.findNewLocations(nodes, destination, context));
+        nodesToHeal.forEach(nodes -> healingService.findNewLocations(nodes, destination, context, engine));
     }
 
     private void splitDbNodes(List<List<Node>> nodesFromDb) {

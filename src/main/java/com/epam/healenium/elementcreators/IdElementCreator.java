@@ -15,16 +15,29 @@ package com.epam.healenium.elementcreators;
 import com.epam.healenium.treecomparing.Node;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Optional;
+import java.util.regex.Pattern;
 
 public class IdElementCreator implements ElementCreator {
 
+    private static final Pattern SAFE_HASH_ID = Pattern.compile("^-?[A-Za-z_][A-Za-z0-9_-]*$");
+
     @Override
     public String create(Node node) {
-        return Optional.ofNullable(node.getId())
-            .map(String::trim)
-            .filter(StringUtils::isNotBlank)
-            .map("#"::concat)
-            .orElse("");
+        String id = StringUtils.trimToNull(node.getId());
+        if (id == null) {
+            return "";
+        }
+        if (isHashSafe(id)) {
+            return "#" + id;
+        }
+        return "[id=\"" + escapeAttrValue(id) + "\"]";
+    }
+
+    private static boolean isHashSafe(String id) {
+        return SAFE_HASH_ID.matcher(id).matches();
+    }
+
+    private static String escapeAttrValue(String s) {
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
