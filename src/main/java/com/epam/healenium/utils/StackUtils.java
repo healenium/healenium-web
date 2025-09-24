@@ -101,7 +101,7 @@ public class StackUtils {
         return value -> {
             Stream<String> skippingPackageStream = Stream.of("java.base", "sun.reflect", "java.lang", "org.gradle",
                     "org.junit", "java.util", "com.sun", "com.google", "jdk.internal", "org.openqa", "com.codeborne",
-                    "ru.yandex", "jdk.proxy2", "io.appium");
+                    "ru.yandex", "jdk.proxy2", "io.appium", "jdk.proxy1");
             return skippingPackageStream.noneMatch(s -> value.getClassName().startsWith(s));
         };
     }

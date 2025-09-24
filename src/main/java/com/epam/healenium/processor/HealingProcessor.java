@@ -37,7 +37,7 @@ public class HealingProcessor extends BaseProcessor {
 
         log.warn("Trying to heal...");
         for (List<Node> nodes : context.getReferenceElementsDto().getPaths()) {
-            healingService.findNewLocations(nodes, destination, context);
+            healingService.findNewLocations(nodes, destination, context, engine);
         }
     }
 
