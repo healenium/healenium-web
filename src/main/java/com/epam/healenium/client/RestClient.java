@@ -50,6 +50,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -68,20 +69,27 @@ public class RestClient {
 
     private final String serverUrl;
     private final String imitateUrl;
+    private final String aiServiceUrl;
     private final String sessionKey;
+    private final String selectorType;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
     private HttpClient serverHttpClient;
     private HttpClient imitateHttpClient;
+    private HttpClient aiServiceHttpClient;
 
     public RestClient(Config config) {
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
         this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
+        this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
+        this.selectorType = config.hasPath("selector-type") ? config.getString("selector-type") : "cssSelector";
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}", sessionKey, serverUrl, imitateUrl);
+        this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
+        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}", 
+                sessionKey, serverUrl, imitateUrl, selectorType);
     }
 
     private String getHttpUrl(String hlmServerUrl, String path) {
@@ -261,11 +269,58 @@ public class RestClient {
         }
     }
 
+    public String getXpathSelector(Node node, String sessionId) {
+        String xpath = null;
+        try {
+            if (node == null) {
+                log.error("[Get Xpath Selector] Node is null, cannot proceed with request");
+                return null;
+            }
+            
+            log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}", 
+                node.getTag(), node.getId(), node.getClasses());
+                
+            HttpRequest request = new HttpRequest(HttpMethod.POST, "/selectors/xpath");
+            String content = objectMapper.writeValueAsString(node);
+            log.debug("[Get Xpath Selector] Request body: {}", content);
+            byte[] data = content.getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
+            request.setHeader("Content-Type", JSON_UTF_8);
+            request.setHeader("X-Session-Id", sessionId);
+            request.setContent(Contents.bytes(data));
+            HttpResponse response = aiServiceExecute(request);
+
+            if (HTTP_NOT_FOUND == response.getStatus()) {
+                throw new RuntimeException("[Get Xpath Selector] Compatibility error. You must have a paid hlm-ai service.");
+            }
+            Supplier<InputStream> result = response.getContent();
+            Map<String, String> responseMap = objectMapper.readValue(result.get(), new TypeReference<Map<String, String>>() {});
+            xpath = responseMap.get("xpath");
+            log.debug("[Get Xpath Selector] Received xpath: {}", xpath);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("[Get Xpath Selector] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
+        }
+        return xpath;
+    }
+
     private HttpResponse serverExecute(HttpRequest request) {
         try {
             return serverHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-backend service. " +
+                    "Please check if the service is up and running, and verify that the connection URL is correct.";
+            log.error(errorMessage);
+            throw new HealeniumException(errorMessage, e);
+        }
+    }
+
+    private HttpResponse aiServiceExecute(HttpRequest request) {
+        try {
+            return aiServiceHttpClient.execute(request);
+        } catch (UncheckedIOException e) {
+            String errorMessage = "[Execute Error] Unable to connect to the hlm-ai service. " +
                     "Please check if the service is up and running, and verify that the connection URL is correct.";
             log.error(errorMessage);
             throw new HealeniumException(errorMessage, e);

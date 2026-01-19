@@ -2,6 +2,7 @@ package com.epam.healenium.service;
 
 import com.epam.healenium.SelectorComponent;
 import com.epam.healenium.SelfHealingEngine;
+import com.epam.healenium.client.RestClient;
 import com.epam.healenium.model.*;
 import com.epam.healenium.treecomparing.HeuristicNodeDistance;
 import com.epam.healenium.treecomparing.LCSPathDistance;
@@ -78,26 +79,39 @@ public class HealingService {
         }
     }
 
-    /**
-     * @param node    convert source node to locator
-     * @param context chain context
-     * @param engine
-     * @return healedElement
-     */
     protected HealedElement toLocator(Scored<Node> node, Context context, SelfHealingEngine engine) {
-        for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
-            By locator = construct(node.getValue(), detailLevel);
-            if (isUnsuccessLocator(locator, context, engine)) {
-                return null;
-            }
-            List<WebElement> elements = driver.findElements(locator);
-            if (elements.size() == 1 && !context.getElementIds().contains(((RemoteWebElement) elements.get(0)).getId()) ) {
-                Scored<By> byScored = new Scored<>(node.getScore(), locator);
-                context.getElementIds().add(((RemoteWebElement) elements.get(0)).getId());
-                HealedElement healedElement = new HealedElement();
-                healedElement.setElement(elements.get(0)).setScored(byScored);
+        By locator;
+        if (useXPath(engine)) {
+            String xpath = createXPathFromElement(node.getValue(), engine);
+            locator = By.xpath(xpath);
+            HealedElement healedElement = getElementBySelectorType(locator, context, node, "XPath", engine);
+            if (healedElement != null) {
                 return healedElement;
             }
+        }
+        for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
+            locator = construct(node.getValue(), detailLevel);
+            HealedElement healedElement = getElementBySelectorType(locator, context, node, "Css", engine);
+            if (healedElement != null) {
+                return healedElement;
+            }
+        }
+        return null;
+    }
+
+    private HealedElement getElementBySelectorType(By locator, Context context, Scored<Node> node,
+                                                   String selectorType, SelfHealingEngine engine) {
+        if (isUnsuccessLocator(locator, context, engine)) {
+            return null;
+        }
+        List<WebElement> elements = driver.findElements(locator);
+        if (elements.size() == 1 && !context.getElementIds().contains(((RemoteWebElement) elements.get(0)).getId())) {
+            Scored<By> byScored = new Scored<>(node.getScore(), locator);
+            context.getElementIds().add(((RemoteWebElement) elements.get(0)).getId());
+            HealedElement healedElement = new HealedElement();
+            healedElement.setElement(elements.get(0)).setScored(byScored);
+            log.debug("Using {}, selector: {}", selectorType, locator);
+            return healedElement;
         }
         return null;
     }
@@ -106,6 +120,21 @@ public class HealingService {
         Locator convertLocator = engine.getClient().getMapper().byToLocator(locator);
         List<Locator> unsuccessfulLocators = context.getUnsuccessfulLocators();
         return unsuccessfulLocators != null && unsuccessfulLocators.contains(convertLocator);
+    }
+
+    /**
+     * Determine if XPath should be used based on configuration
+     *
+     * @param engine SelfHealingEngine instance
+     * @return true if XPath should be used, false for CSS selector
+     */
+    private boolean useXPath(SelfHealingEngine engine) {
+        if (engine == null || engine.getClient() == null) {
+            return false;
+        }
+
+        String selectorType = engine.getClient().getSelectorType();
+        return "xpath".equals(selectorType);
     }
 
     /**
@@ -135,5 +164,10 @@ public class HealingService {
         return By.cssSelector(detailLevel.stream()
                 .map(component -> component.createComponent(node))
                 .collect(Collectors.joining()));
+    }
+
+    public static String createXPathFromElement(Node node, SelfHealingEngine engine) {
+        RestClient client = engine.getClient();
+        return client.getXpathSelector(node, engine.getClient().getSessionKey());
     }
 }
