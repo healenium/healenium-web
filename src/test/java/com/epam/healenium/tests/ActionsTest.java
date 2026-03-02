@@ -13,7 +13,7 @@ import org.openqa.selenium.interactions.Actions;
 
 public class ActionsTest {
 
-    private String urlShaTest = "https://elenastepuro.github.io/test_env/index.html";
+    private String urlShaTest = "https://healenium.github.io/healenium-test-env/index.html";
 
     private static SelfHealingDriver driver;
 
