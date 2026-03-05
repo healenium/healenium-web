@@ -57,7 +57,7 @@
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <lombok.version>1.18.38</lombok.version>
         <streamex.version>0.8.1</streamex.version>
-        <jettyserver.version>12.0.17</jettyserver.version>
+        <jettyserver.version>12.0.32</jettyserver.version>
         <hamcrestcore.version>2.2</hamcrestcore.version>
         <selenide.version>7.0.0</selenide.version>
         <testcontainersjunit.version>1.21.4</testcontainersjunit.version>
