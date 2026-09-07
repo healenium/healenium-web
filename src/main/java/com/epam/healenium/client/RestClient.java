@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.openqa.selenium.json.Json.JSON_UTF_8;
 
@@ -67,11 +68,14 @@ import static org.openqa.selenium.json.Json.JSON_UTF_8;
 @Data
 public class RestClient {
 
+    private static final String TENANT_HEADER = "Healenium-Tenant-Id";
+
     private final String serverUrl;
     private final String imitateUrl;
     private final String aiServiceUrl;
     private final String sessionKey;
     private final String selectorType;
+    private String tenantId;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
     private HttpClient serverHttpClient;
@@ -127,6 +131,7 @@ public class RestClient {
             byte[] data = content.getBytes(StandardCharsets.UTF_8);
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
+            setTenantHeader(request, tenantId);
             request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] By: {}, Locator: {}, Command: {}, URL: {}",
                     requestDto.getType(), requestDto.getLocator(), requestDto.getCommand(), requestDto.getUrl());
@@ -141,12 +146,18 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
             request.setHeader("Cache-Control", "no-cache");
+            setTenantHeader(request, tenantId);
             log.debug("[Get Elements] Request: {}", request);
             HttpResponse response = serverExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
                 throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
                         "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
+            }
+
+
+            if (HTTP_BAD_REQUEST == response.getStatus()) {
+                throw new RuntimeException("[Get Elements] Compatibility error. Check Request:"  + request);
             }
             Supplier<InputStream> result = response.getContent();
             configSelectorDto = objectMapper.readValue(result.get(), new TypeReference<ConfigSelectorDto>() {
@@ -185,6 +196,7 @@ public class RestClient {
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("sessionKey", sessionKey);
             request.setHeader("hostProject", SystemUtils.getHostProjectName());
+            setTenantHeader(request, tenantId);
             request.setContent(Contents.bytes(data));
             for (RequestDto requestDto : requestDtos) {
                 log.debug("[Save Healed Elements] {}", requestDto.getUsedResult().getLocator());
@@ -215,6 +227,7 @@ public class RestClient {
                     .addQueryParameter("methodName", requestDto.getMethodName())
                     .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
+            setTenantHeader(request, tenantId);
             log.debug("[Get Reference Elements] Request. Locator: {}, Command: {}, Url: {}",
                     requestDto.getLocator(), requestDto.getCommand(), currentUrl);
             HttpResponse response = serverExecute(request);
@@ -262,6 +275,7 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
             request.setHeader("Content-Type", JSON_UTF_8);
+            setTenantHeader(request, tenantId);
             log.debug("[Init Report] Request: {}", request);
             serverExecute(request);
         } catch (Exception e) {
@@ -287,6 +301,7 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("X-Session-Id", sessionId);
+            setTenantHeader(request, tenantId);
             request.setContent(Contents.bytes(data));
             HttpResponse response = aiServiceExecute(request);
 
@@ -335,6 +350,12 @@ public class RestClient {
                     "Please check if the service is up and running, and verify that the connection URL is correct.";
             log.error(errorMessage);
             throw new HealeniumException(errorMessage, e);
+        }
+    }
+
+    private void setTenantHeader(HttpRequest request, String tenantId) {
+        if (tenantId != null && !tenantId.isEmpty()) {
+            request.setHeader(TENANT_HEADER, tenantId);
         }
     }
 }
