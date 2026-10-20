@@ -68,6 +68,7 @@ import static org.openqa.selenium.json.Json.JSON_UTF_8;
 @Data
 public class RestClient {
 
+    public static final String API_KEY_HEADER = "X-Api-Key";
     private static final String TENANT_HEADER = "Healenium-Tenant-Id";
 
     private final String serverUrl;
@@ -75,6 +76,7 @@ public class RestClient {
     private final String aiServiceUrl;
     private final String sessionKey;
     private final String selectorType;
+    private final String apiKey;
     private String tenantId;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
@@ -89,11 +91,36 @@ public class RestClient {
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
         this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
         this.selectorType = config.hasPath("selector-type") ? config.getString("selector-type") : "cssSelector";
+        this.apiKey = resolveApiKey(config);
+        this.tenantId = resolveTenantId(config);
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
         this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}",
-                sessionKey, serverUrl, imitateUrl, selectorType);
+        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}, hasApiKey: {}",
+                sessionKey, serverUrl, imitateUrl, selectorType, (apiKey != null && !apiKey.isEmpty()));
+    }
+
+    private String resolveApiKey(Config config) {
+        if (config.hasPath("hlm.api.key")) {
+            return config.getString("hlm.api.key");
+        }
+        if (config.hasPath("hlm.apiKey")) {
+            return config.getString("hlm.apiKey");
+        }
+        if (config.hasPath("api-key")) {
+            return config.getString("api-key");
+        }
+        return null;
+    }
+
+    private String resolveTenantId(Config config) {
+        if (config.hasPath("hlm.tenant.id")) {
+            return config.getString("hlm.tenant.id");
+        }
+        if (config.hasPath("tenantId")) {
+            return config.getString("tenantId");
+        }
+        return null;
     }
 
     private String getHttpUrl(String hlmServerUrl, String path) {
@@ -322,6 +349,7 @@ public class RestClient {
 
     private HttpResponse serverExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return serverHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-backend service. " +
@@ -333,6 +361,7 @@ public class RestClient {
 
     private HttpResponse aiServiceExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return aiServiceHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-ai service. " +
@@ -353,9 +382,19 @@ public class RestClient {
         }
     }
 
+    private void setAuthHeaders(HttpRequest request) {
+        if (apiKey != null && !apiKey.trim().isEmpty()) {
+            request.setHeader(API_KEY_HEADER, apiKey.trim());
+        }
+        if (tenantId != null && !tenantId.trim().isEmpty()) {
+            request.setHeader(TENANT_HEADER, tenantId.trim());
+        }
+    }
+
     private void setTenantHeader(HttpRequest request, String tenantId) {
         if (tenantId != null && !tenantId.isEmpty()) {
-            request.setHeader(TENANT_HEADER, tenantId);
+            this.tenantId = tenantId;
         }
+        setAuthHeaders(request);
     }
 }
