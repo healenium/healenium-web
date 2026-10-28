@@ -91,7 +91,7 @@ public class RestClient {
         this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
         this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
-        this.selectorType = config.hasPath("selector-type") ? config.getString("selector-type") : "cssSelector";
+        this.selectorType = resolveSelectorType(config);
         this.apiKey = resolveApiKey(config);
         this.tenantId = resolveTenantId(config);
         this.serverHttpClient = getHttpClient(serverUrl);
@@ -99,6 +99,21 @@ public class RestClient {
         this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
         log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}, hasApiKey: {}",
                 sessionKey, serverUrl, imitateUrl, selectorType, (apiKey != null && !apiKey.isEmpty()));
+    }
+
+    private String resolveSelectorType(Config config) {
+        if (config.hasPath("selector-type")) {
+            return config.getString("selector-type");
+        }
+        if (config.hasPath("healed-type")) {
+            String type = config.getString("healed-type");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        if (config.hasPath("healedType")) {
+            String type = config.getString("healedType");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        return "cssSelector";
     }
 
     private String resolveApiKey(Config config) {

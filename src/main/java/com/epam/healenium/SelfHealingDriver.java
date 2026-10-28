@@ -71,6 +71,12 @@ public interface SelfHealingDriver extends WebDriver {
         Config finalizedConfig = selfHealingEngine.getConfig();
         if (finalizedConfig.hasPath("selector-type")) {
             restClient.setSelectorType(finalizedConfig.getString("selector-type"));
+        } else if (finalizedConfig.hasPath("healed-type")) {
+            String type = finalizedConfig.getString("healed-type");
+            restClient.setSelectorType("xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector");
+        } else if (finalizedConfig.hasPath("healedType")) {
+            String type = finalizedConfig.getString("healedType");
+            restClient.setSelectorType("xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector");
         }
         selfHealingEngine.setNodeService(new NodeService());
         selfHealingEngine.setHealingService(new HealingService(finalizedConfig, delegate));
