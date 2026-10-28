@@ -24,6 +24,7 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorImitatorDto;
+import com.epam.healenium.model.TenantSettingsDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
@@ -75,7 +76,7 @@ public class RestClient {
     private final String imitateUrl;
     private final String aiServiceUrl;
     private final String sessionKey;
-    private final String selectorType;
+    private String selectorType;
     private final String apiKey;
     private String tenantId;
     private ObjectMapper objectMapper;
@@ -389,6 +390,33 @@ public class RestClient {
         if (tenantId != null && !tenantId.trim().isEmpty()) {
             request.setHeader(TENANT_HEADER, tenantId.trim());
         }
+    }
+
+    public boolean hasTenantOrApiKey() {
+        return (apiKey != null && !apiKey.trim().isEmpty()) || (tenantId != null && !tenantId.trim().isEmpty());
+    }
+
+    /**
+     * Fetch tenant-specific healing settings from backend
+     * @return Optional containing TenantSettingsDto if successfully fetched
+     */
+    public Optional<TenantSettingsDto> getTenantSettings() {
+        try {
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "/v1/tenant/settings");
+            setAuthHeaders(request);
+            HttpResponse response = serverHttpClient.execute(request);
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                TenantSettingsDto dto = objectMapper.readValue(result.get(), TenantSettingsDto.class);
+                log.info("[Get Tenant Settings] Successfully fetched remote tenant settings: {}", dto);
+                return Optional.ofNullable(dto);
+            } else {
+                log.debug("[Get Tenant Settings] Backend returned status: {}", response.getStatus());
+            }
+        } catch (Exception e) {
+            log.debug("[Get Tenant Settings] Could not fetch remote tenant settings (fallback to local config): {}", e.getMessage());
+        }
+        return Optional.empty();
     }
 
     private void setTenantHeader(HttpRequest request, String tenantId) {

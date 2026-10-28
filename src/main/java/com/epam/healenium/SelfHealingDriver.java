@@ -57,11 +57,21 @@ public interface SelfHealingDriver extends WebDriver {
     }
 
     static void setEngineFields(WebDriver delegate, SelfHealingEngine selfHealingEngine) {
-        Config finalizedConfig = selfHealingEngine.getConfig();
+        Config initialConfig = selfHealingEngine.getConfig();
         HealeniumMapper healeniumMapper = new HealeniumMapper(new StackTraceReader());
-        RestClient restClient = new RestClient(finalizedConfig);
+        RestClient restClient = new RestClient(initialConfig);
         restClient.setMapper(healeniumMapper);
         selfHealingEngine.setClient(restClient);
+
+        // Fetch remote tenant settings if tenant ID or API key is present
+        if (restClient.hasTenantOrApiKey()) {
+            restClient.getTenantSettings().ifPresent(selfHealingEngine::applyTenantSettings);
+        }
+
+        Config finalizedConfig = selfHealingEngine.getConfig();
+        if (finalizedConfig.hasPath("selector-type")) {
+            restClient.setSelectorType(finalizedConfig.getString("selector-type"));
+        }
         selfHealingEngine.setNodeService(new NodeService());
         selfHealingEngine.setHealingService(new HealingService(finalizedConfig, delegate));
         selfHealingEngine.setSessionContext(new SessionContext());
