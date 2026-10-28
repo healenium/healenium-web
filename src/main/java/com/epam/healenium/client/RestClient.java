@@ -402,7 +402,7 @@ public class RestClient {
      */
     public Optional<TenantSettingsDto> getTenantSettings() {
         try {
-            HttpRequest request = new HttpRequest(HttpMethod.GET, "/v1/tenant/settings");
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "/tenant/settings");
             setAuthHeaders(request);
             HttpResponse response = serverHttpClient.execute(request);
             if (response.getStatus() == 200) {
