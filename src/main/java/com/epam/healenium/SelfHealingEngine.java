@@ -213,13 +213,24 @@ public class SelfHealingEngine {
             tenantMap.put("healed-type", healedType);
             tenantMap.put("selector-type", "xpath".equalsIgnoreCase(healedType) ? "xpath" : "cssSelector");
         }
+        if (remote.getKeySelectorUrl() != null) {
+            tenantMap.put("key-selector-url", remote.getKeySelectorUrl());
+            tenantMap.put("url-for-key", remote.getKeySelectorUrl());
+        }
+        if (remote.getCollectMetrics() != null) {
+            tenantMap.put("collect-metrics", remote.getCollectMetrics());
+        }
+        if (remote.getFindElementsAutoHealing() != null) {
+            tenantMap.put("find-elements-auto-healing", remote.getFindElementsAutoHealing());
+        }
         if (!tenantMap.isEmpty()) {
             Config tenantConfig = ConfigFactory.parseMap(tenantMap);
             Config systemProps = ConfigFactory.systemProperties();
             this.config = systemProps.withFallback(tenantConfig).withFallback(this.config);
             this.scoreCap = this.config.getDouble("score-cap");
-            log.info("[Settings] Applied remote tenant settings: healEnabled={}, recoveryTries={}, scoreCap={}, healedType={}",
-                    remote.getHealEnabled(), remote.getRecoveryTries(), remote.getScoreCap(), remote.getHealedType());
+            log.info("[Settings] Applied remote tenant settings: healEnabled={}, recoveryTries={}, scoreCap={}, healedType={}, keySelectorUrl={}, collectMetrics={}, findElementsAutoHealing={}",
+                    remote.getHealEnabled(), remote.getRecoveryTries(), remote.getScoreCap(), remote.getHealedType(),
+                    remote.getKeySelectorUrl(), remote.getCollectMetrics(), remote.getFindElementsAutoHealing());
         }
     }
 
