@@ -261,7 +261,12 @@ public class RestClient {
     public void initReport(String sessionId) {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
+            // A POST without a body fails on some Selenium HTTP client versions with
+            // "IllegalArgumentException: non-positive contentLength: 0", so always send an (empty) JSON body.
+            byte[] data = "{}".getBytes(StandardCharsets.UTF_8);
+            request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
+            request.setContent(Contents.bytes(data));
             log.debug("[Init Report] Request: {}", request);
             serverExecute(request);
         } catch (Exception e) {
