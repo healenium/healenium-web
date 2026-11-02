@@ -82,11 +82,19 @@ public class HealingService {
     protected HealedElement toLocator(Scored<Node> node, Context context, SelfHealingEngine engine) {
         By locator;
         if (useXPath(engine)) {
-            String xpath = createXPathFromElement(node.getValue(), engine);
-            locator = By.xpath(xpath);
-            HealedElement healedElement = getElementBySelectorType(locator, context, node, "XPath", engine);
-            if (healedElement != null) {
-                return healedElement;
+            try {
+                String xpath = createXPathFromElement(node.getValue(), engine);
+                if (xpath != null) {
+                    locator = By.xpath(xpath);
+                    HealedElement healedElement = getElementBySelectorType(locator, context, node, "XPath", engine);
+                    if (healedElement != null) {
+                        return healedElement;
+                    }
+                } else {
+                    log.warn("[toLocator] XPath generation returned null, falling back to CSS selector");
+                }
+            } catch (RuntimeException e) {
+                log.warn("[toLocator] XPath generation failed: {}, falling back to CSS selector", e.getMessage());
             }
         }
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
