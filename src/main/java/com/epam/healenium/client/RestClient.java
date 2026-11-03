@@ -74,7 +74,6 @@ public class RestClient {
 
     private final String serverUrl;
     private final String imitateUrl;
-    private final String aiServiceUrl;
     private final String sessionKey;
     private String selectorType;
     private final String apiKey;
@@ -88,15 +87,15 @@ public class RestClient {
     public RestClient(Config config) {
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
-        this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
+        String serverBase = config.getString("hlm.server.url");
+        this.serverUrl = getHttpUrl(serverBase, "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
-        this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
         this.selectorType = resolveSelectorType(config);
         this.apiKey = resolveApiKey(config);
         this.tenantId = resolveTenantId(config);
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
-        this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
+        this.aiServiceHttpClient = getHttpClient(getHttpUrl(serverBase, "/healenium-ai"));
         log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}, hasApiKey: {}",
                 sessionKey, serverUrl, imitateUrl, selectorType, (apiKey != null && !apiKey.isEmpty()));
     }
