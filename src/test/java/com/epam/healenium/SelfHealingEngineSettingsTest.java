@@ -101,6 +101,34 @@ public class SelfHealingEngineSettingsTest {
     }
 
     @Test
+    public void testRunConfigOverridesTenantSettings() {
+        // Simulate healenium.properties having healed-type=xpath via JVM property
+        // (JVM properties are loaded by ConfigFactory.load("healenium.properties") as system overrides,
+        //  so -Dhealed-type=xpath is equivalent to putting healed-type=xpath in healenium.properties)
+        System.setProperty("healed-type", "xpath");
+        ConfigFactory.invalidateCaches();
+        try {
+            RemoteWebDriver mockDriver = createMockDriver();
+            SelfHealingEngine engine = new SelfHealingEngine(mockDriver);
+
+            // UI/tenant says css — but local run config says xpath
+            TenantSettingsDto remote = new TenantSettingsDto()
+                    .setHealedType("css")
+                    .setRecoveryTries(3);
+
+            engine.applyTenantSettings(remote);
+
+            // healenium.properties (run config) wins over tenant UI setting
+            Assertions.assertEquals("xpath", engine.getConfig().getString("healed-type"));
+            Assertions.assertEquals("xpath", engine.getConfig().getString("selector-type"));
+            // tenant settings without local override still apply
+            Assertions.assertEquals(3, engine.getConfig().getInt("recovery-tries"));
+        } finally {
+            System.clearProperty("healed-type");
+        }
+    }
+
+    @Test
     public void testCssSelectorNormalization() {
         RemoteWebDriver mockDriver = createMockDriver();
         SelfHealingEngine engine = new SelfHealingEngine(mockDriver);
