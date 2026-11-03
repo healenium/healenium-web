@@ -226,7 +226,17 @@ public class SelfHealingEngine {
         if (!tenantMap.isEmpty()) {
             Config tenantConfig = ConfigFactory.parseMap(tenantMap);
             Config systemProps = ConfigFactory.systemProperties();
-            this.config = systemProps.withFallback(tenantConfig).withFallback(this.config);
+            // healenium.properties loaded separately (without application.conf defaults) so
+            // run-specific settings take priority over tenant UI settings.
+            Config runConfig = ConfigFactory.load("healenium.properties");
+            // Translate healed-type → selector-type in run config so it overrides tenant's selector-type too.
+            if (runConfig.hasPath("healed-type")) {
+                String localType = runConfig.getString("healed-type");
+                runConfig = runConfig.withValue("selector-type",
+                        ConfigValueFactory.fromAnyRef("xpath".equalsIgnoreCase(localType) ? "xpath" : "cssSelector"));
+            }
+            // Priority: JVM -D flags > healenium.properties (run-specific) > tenant UI settings > rest
+            this.config = systemProps.withFallback(runConfig).withFallback(tenantConfig).withFallback(this.config);
             this.scoreCap = this.config.getDouble("score-cap");
             log.info("[Settings] Applied remote tenant settings: healEnabled={}, recoveryTries={}, scoreCap={}, healedType={}, keySelectorUrl={}, collectMetrics={}, findElementsAutoHealing={}",
                     remote.getHealEnabled(), remote.getRecoveryTries(), remote.getScoreCap(), remote.getHealedType(),
