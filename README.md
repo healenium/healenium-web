@@ -2,6 +2,8 @@
 Self-healing library for Selenium Web-based tests
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.epam.healenium/healenium-web.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.epam.healenium%22%20AND%20a:%22healenium-web%22)
+[![Build Status](https://github.com/healenium/healenium-web/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/healenium/healenium-web/actions/workflows/build.yml)
+</br>
  [![@healenium](https://img.shields.io/badge/Telegram-%40healenium-orange.svg)](https://t.me/healenium)<br />
 ⇧ Join us! ⇧
 ## How to start
@@ -13,7 +15,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.5.8'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.2.5'
 }
 ```
 
@@ -22,7 +24,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.5.8</version>
+	<version>3.2.5</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
@@ -71,6 +73,6 @@ public boolean isButtonPresent() {
     }
 }
 ```
-
-### 5. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
-### 6. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
+### 5. Add [hlm-report-gradle](https://github.com/healenium/healenium-report-gradle) or [hlm-report-mvn](https://github.com/healenium/healenium-report-mvn) plugin to enable reporting
+### 6. Add [hlm-idea](https://github.com/healenium/healenium-idea) plugin to enable locator updates in your TAF code
+### 7. Run tests as usual using Maven mvn clean test or Gradle ./gradlew clean test
