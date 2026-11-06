@@ -86,7 +86,7 @@ public class HealingService {
                 String xpath = createXPathFromElement(node.getValue(), engine);
                 if (xpath != null) {
                     locator = By.xpath(xpath);
-                    HealedElement healedElement = getElementBySelectorType(locator, context, node, "XPath", engine);
+                    HealedElement healedElement = getElementByHealedType(locator, context, node, "XPath", engine);
                     if (healedElement != null) {
                         return healedElement;
                     }
@@ -99,7 +99,7 @@ public class HealingService {
         }
         for (Set<SelectorComponent> detailLevel : selectorDetailLevels) {
             locator = construct(node.getValue(), detailLevel);
-            HealedElement healedElement = getElementBySelectorType(locator, context, node, "Css", engine);
+            HealedElement healedElement = getElementByHealedType(locator, context, node, "Css", engine);
             if (healedElement != null) {
                 return healedElement;
             }
@@ -107,8 +107,8 @@ public class HealingService {
         return null;
     }
 
-    private HealedElement getElementBySelectorType(By locator, Context context, Scored<Node> node,
-                                                   String selectorType, SelfHealingEngine engine) {
+    private HealedElement getElementByHealedType(By locator, Context context, Scored<Node> node,
+                                                 String healedType, SelfHealingEngine engine) {
         if (isUnsuccessLocator(locator, context, engine)) {
             return null;
         }
@@ -118,7 +118,7 @@ public class HealingService {
             context.getElementIds().add(((RemoteWebElement) elements.get(0)).getId());
             HealedElement healedElement = new HealedElement();
             healedElement.setElement(elements.get(0)).setScored(byScored);
-            log.debug("Using {}, selector: {}", selectorType, locator);
+            log.debug("Using {}, selector: {}", healedType, locator);
             return healedElement;
         }
         return null;
@@ -141,8 +141,8 @@ public class HealingService {
             return false;
         }
 
-        String selectorType = engine.getClient().getSelectorType();
-        return "xpath".equals(selectorType);
+        String healedType = engine.getClient().getHealedType();
+        return "xpath".equals(healedType);
     }
 
     /**

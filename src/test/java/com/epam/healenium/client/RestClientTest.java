@@ -18,15 +18,13 @@ public class RestClientTest {
         map.put("sessionKey", "test-session-key");
         map.put("hlm.server.url", "http://localhost:8085");
         map.put("hlm.imitator.url", "http://localhost:8000");
-        map.put("hlm.ai.url", "http://localhost:6565");
-        map.put("hlm.api.key", "hlm_live_test_api_key_12345");
-        map.put("hlm.tenant.id", "ae26c18d-1ecd-4b80-a291-44316d4384f0");
+        map.put("hlm.api-key", "hlm_live_test_api_key_12345");
 
         Config config = ConfigFactory.parseMap(map);
         RestClient client = new RestClient(config);
 
         Assertions.assertEquals("hlm_live_test_api_key_12345", client.getApiKey());
-        Assertions.assertEquals("ae26c18d-1ecd-4b80-a291-44316d4384f0", client.getTenantId());
+        Assertions.assertTrue(client.hasApiKey());
     }
 
     @Test
@@ -35,24 +33,21 @@ public class RestClientTest {
         map.put("sessionKey", "test-session-key");
         map.put("hlm.server.url", "http://localhost:7878");
         map.put("hlm.imitator.url", "http://localhost:8000");
-        map.put("hlm.ai.url", "http://localhost:6565");
 
         Config config = ConfigFactory.parseMap(map);
         RestClient client = new RestClient(config);
 
         Assertions.assertNull(client.getApiKey());
-        Assertions.assertNull(client.getTenantId());
+        Assertions.assertFalse(client.hasApiKey());
     }
 
     @Test
-    public void testSetAuthHeadersAppliesApiKeyAndTenantHeader() throws Exception {
+    public void testSetAuthHeadersAppliesApiKeyHeader() throws Exception {
         Map<String, Object> map = new HashMap<>();
         map.put("sessionKey", "test-session-key");
         map.put("hlm.server.url", "http://localhost:8085");
         map.put("hlm.imitator.url", "http://localhost:8000");
-        map.put("hlm.ai.url", "http://localhost:6565");
-        map.put("hlm.api.key", "hlm_live_test_api_key_12345");
-        map.put("hlm.tenant.id", "ae26c18d-1ecd-4b80-a291-44316d4384f0");
+        map.put("hlm.api-key", "hlm_live_test_api_key_12345");
 
         Config config = ConfigFactory.parseMap(map);
         RestClient client = new RestClient(config);
@@ -63,7 +58,6 @@ public class RestClientTest {
         method.invoke(client, request);
 
         Assertions.assertEquals("hlm_live_test_api_key_12345", request.getHeader(RestClient.API_KEY_HEADER));
-        Assertions.assertEquals("ae26c18d-1ecd-4b80-a291-44316d4384f0", request.getHeader("Healenium-Tenant-Id"));
     }
 
     @Test
@@ -72,7 +66,6 @@ public class RestClientTest {
         map.put("sessionKey", "test-session-key");
         map.put("hlm.server.url", "http://localhost:7878");
         map.put("hlm.imitator.url", "http://localhost:8000");
-        map.put("hlm.ai.url", "http://localhost:6565");
 
         Config config = ConfigFactory.parseMap(map);
         RestClient client = new RestClient(config);
@@ -83,36 +76,24 @@ public class RestClientTest {
         method.invoke(client, request);
 
         Assertions.assertNull(request.getHeader(RestClient.API_KEY_HEADER));
-        Assertions.assertNull(request.getHeader("Healenium-Tenant-Id"));
     }
 
     @Test
-    public void testHasTenantOrApiKey() {
+    public void testHasApiKey() {
         Map<String, Object> mapWithApiKey = new HashMap<>();
         mapWithApiKey.put("sessionKey", "test-session-key");
         mapWithApiKey.put("hlm.server.url", "http://localhost:8085");
         mapWithApiKey.put("hlm.imitator.url", "http://localhost:8000");
-        mapWithApiKey.put("hlm.ai.url", "http://localhost:6565");
         mapWithApiKey.put("hlm.api.key", "some-api-key");
         RestClient clientWithApiKey = new RestClient(ConfigFactory.parseMap(mapWithApiKey));
-        Assertions.assertTrue(clientWithApiKey.hasTenantOrApiKey());
-
-        Map<String, Object> mapWithTenantOnly = new HashMap<>();
-        mapWithTenantOnly.put("sessionKey", "test-session-key");
-        mapWithTenantOnly.put("hlm.server.url", "http://localhost:8085");
-        mapWithTenantOnly.put("hlm.imitator.url", "http://localhost:8000");
-        mapWithTenantOnly.put("hlm.ai.url", "http://localhost:6565");
-        mapWithTenantOnly.put("hlm.tenant.id", "some-tenant-id");
-        RestClient clientWithTenant = new RestClient(ConfigFactory.parseMap(mapWithTenantOnly));
-        Assertions.assertTrue(clientWithTenant.hasTenantOrApiKey());
+        Assertions.assertTrue(clientWithApiKey.hasApiKey());
 
         Map<String, Object> mapOss = new HashMap<>();
         mapOss.put("sessionKey", "test-session-key");
         mapOss.put("hlm.server.url", "http://localhost:7878");
         mapOss.put("hlm.imitator.url", "http://localhost:8000");
-        mapOss.put("hlm.ai.url", "http://localhost:6565");
         RestClient clientOss = new RestClient(ConfigFactory.parseMap(mapOss));
-        Assertions.assertFalse(clientOss.hasTenantOrApiKey());
+        Assertions.assertFalse(clientOss.hasApiKey());
     }
 
     @Test
@@ -122,11 +103,10 @@ public class RestClientTest {
         // Non-existent port to test connection error fallback
         map.put("hlm.server.url", "http://localhost:59999");
         map.put("hlm.imitator.url", "http://localhost:8000");
-        map.put("hlm.ai.url", "http://localhost:6565");
         map.put("hlm.api.key", "hlm_test_key");
 
         RestClient client = new RestClient(ConfigFactory.parseMap(map));
         // Should not throw exception, but return Optional.empty()
-        Assertions.assertTrue(client.getTenantSettings().isEmpty());
+        Assertions.assertFalse(client.getTenantSettings().isPresent());
     }
 }
