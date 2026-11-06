@@ -24,6 +24,7 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorImitatorDto;
+import com.epam.healenium.model.TenantSettingsDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
@@ -68,14 +69,13 @@ import static org.openqa.selenium.json.Json.JSON_UTF_8;
 @Data
 public class RestClient {
 
-    private static final String TENANT_HEADER = "Healenium-Tenant-Id";
+    public static final String API_KEY_HEADER = "X-Api-Key";
 
     private final String serverUrl;
     private final String imitateUrl;
-    private final String aiServiceUrl;
     private final String sessionKey;
-    private final String selectorType;
-    private String tenantId;
+    private String healedType;
+    private final String apiKey;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
     private HttpClient serverHttpClient;
@@ -85,15 +85,16 @@ public class RestClient {
     public RestClient(Config config) {
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
-        this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
+        String serverBase = config.getString("hlm.server.url");
+        this.serverUrl = getHttpUrl(serverBase, "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
-        this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
-        this.selectorType = config.hasPath("selector-type") ? config.getString("selector-type") : "cssSelector";
+        this.healedType = resolveHealedType(config);
+        this.apiKey = resolveApiKey(config);
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
-        this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}",
-                sessionKey, serverUrl, imitateUrl, selectorType);
+        this.aiServiceHttpClient = getHttpClient(getHttpUrl(serverBase, "/healenium-ai"));
+        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, healedType: {}, hasApiKey: {}",
+                sessionKey, serverUrl, imitateUrl, healedType, (apiKey != null && !apiKey.isEmpty()));
     }
 
     private String getHttpUrl(String hlmServerUrl, String path) {
@@ -131,7 +132,7 @@ public class RestClient {
             byte[] data = content.getBytes(StandardCharsets.UTF_8);
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] By: {}, Locator: {}, Command: {}, URL: {}",
                     requestDto.getType(), requestDto.getLocator(), requestDto.getCommand(), requestDto.getUrl());
@@ -146,7 +147,7 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
             request.setHeader("Cache-Control", "no-cache");
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             log.debug("[Get Elements] Request: {}", request);
             HttpResponse response = serverExecute(request);
 
@@ -196,7 +197,7 @@ public class RestClient {
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("sessionKey", sessionKey);
             request.setHeader("hostProject", SystemUtils.getHostProjectName());
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             for (RequestDto requestDto : requestDtos) {
                 log.debug("[Save Healed Elements] {}", requestDto.getUsedResult().getLocator());
@@ -227,7 +228,7 @@ public class RestClient {
                     .addQueryParameter("methodName", requestDto.getMethodName())
                     .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             log.debug("[Get Reference Elements] Request. Locator: {}, Command: {}, Url: {}",
                     requestDto.getLocator(), requestDto.getCommand(), currentUrl);
             HttpResponse response = serverExecute(request);
@@ -275,7 +276,7 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
             request.setHeader("Content-Type", JSON_UTF_8);
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             log.debug("[Init Report] Request: {}", request);
             serverExecute(request);
         } catch (Exception e) {
@@ -301,7 +302,7 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("X-Session-Id", sessionId);
-            setTenantHeader(request, tenantId);
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             HttpResponse response = aiServiceExecute(request);
 
@@ -322,6 +323,7 @@ public class RestClient {
 
     private HttpResponse serverExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return serverHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-backend service. " +
@@ -333,6 +335,7 @@ public class RestClient {
 
     private HttpResponse aiServiceExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return aiServiceHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-ai service. " +
@@ -353,9 +356,83 @@ public class RestClient {
         }
     }
 
-    private void setTenantHeader(HttpRequest request, String tenantId) {
-        if (tenantId != null && !tenantId.isEmpty()) {
-            request.setHeader(TENANT_HEADER, tenantId);
+    private void setAuthHeaders(HttpRequest request) {
+        if (hasApiKey()) {
+            request.setHeader(API_KEY_HEADER, apiKey.trim());
         }
+    }
+
+    public boolean hasApiKey() {
+        return apiKey != null && !apiKey.trim().isEmpty();
+    }
+
+    @Deprecated
+    public boolean hasTenantOrApiKey() {
+        return hasApiKey();
+    }
+
+    /**
+     * Fetch tenant-specific healing settings from backend
+     * @return Optional containing TenantSettingsDto if successfully fetched
+     */
+    public Optional<TenantSettingsDto> getTenantSettings() {
+        try {
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "/tenant/settings");
+            setAuthHeaders(request);
+            HttpResponse response = serverHttpClient.execute(request);
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                TenantSettingsDto dto = objectMapper.readValue(result.get(), TenantSettingsDto.class);
+                log.info("[Get Tenant Settings] Successfully fetched remote tenant settings: {}", dto);
+                return Optional.ofNullable(dto);
+            } else {
+                log.debug("[Get Tenant Settings] Backend returned status: {}", response.getStatus());
+            }
+        } catch (Exception e) {
+            log.debug("[Get Tenant Settings] Could not fetch remote tenant settings (fallback to local config): {}", e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    @Deprecated
+    public String getSelectorType() {
+        return healedType;
+    }
+
+    @Deprecated
+    public void setSelectorType(String selectorType) {
+        this.healedType = selectorType;
+    }
+
+    private String resolveHealedType(Config config) {
+        if (config.hasPath("healed-type")) {
+            String type = config.getString("healed-type");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        if (config.hasPath("healedType")) {
+            String type = config.getString("healedType");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        if (config.hasPath("selector-type")) {
+            String type = config.getString("selector-type");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        return "cssSelector";
+    }
+
+    private String resolveApiKey(Config config) {
+        if (config.hasPath("hlm.api-key")) {
+            return config.getString("hlm.api-key");
+        }
+        if (config.hasPath("hlm.api.key")) {
+            return config.getString("hlm.api.key");
+        }
+        if (config.hasPath("hlm.apiKey")) {
+            return config.getString("hlm.apiKey");
+        }
+        if (config.hasPath("api-key")) {
+            return config.getString("api-key");
+        }
+        return null;
     }
 }
