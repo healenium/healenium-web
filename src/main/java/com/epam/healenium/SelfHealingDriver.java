@@ -57,11 +57,28 @@ public interface SelfHealingDriver extends WebDriver {
     }
 
     static void setEngineFields(WebDriver delegate, SelfHealingEngine selfHealingEngine) {
-        Config finalizedConfig = selfHealingEngine.getConfig();
+        Config initialConfig = selfHealingEngine.getConfig();
         HealeniumMapper healeniumMapper = new HealeniumMapper(new StackTraceReader());
-        RestClient restClient = new RestClient(finalizedConfig);
+        RestClient restClient = new RestClient(initialConfig);
         restClient.setMapper(healeniumMapper);
         selfHealingEngine.setClient(restClient);
+
+        // Fetch remote tenant settings if API key is present
+        if (restClient.hasApiKey()) {
+            restClient.getTenantSettings().ifPresent(selfHealingEngine::applyTenantSettings);
+        }
+
+        Config finalizedConfig = selfHealingEngine.getConfig();
+        if (finalizedConfig.hasPath("healed-type")) {
+            String type = finalizedConfig.getString("healed-type");
+            restClient.setHealedType("xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector");
+        } else if (finalizedConfig.hasPath("healedType")) {
+            String type = finalizedConfig.getString("healedType");
+            restClient.setHealedType("xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector");
+        } else if (finalizedConfig.hasPath("selector-type")) {
+            String type = finalizedConfig.getString("selector-type");
+            restClient.setHealedType("xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector");
+        }
         selfHealingEngine.setNodeService(new NodeService());
         selfHealingEngine.setHealingService(new HealingService(finalizedConfig, delegate));
         selfHealingEngine.setSessionContext(new SessionContext());
