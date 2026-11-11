@@ -109,4 +109,27 @@ public class RestClientTest {
         // Should not throw exception, but return Optional.empty()
         Assertions.assertFalse(client.getTenantSettings().isPresent());
     }
+
+    @Test
+    public void testAiUrlUsesHlmAiUrlWhenConfigured() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sessionKey", "test-session-key");
+        map.put("hlm.server.url", "http://localhost:7878");
+        map.put("hlm.imitator.url", "http://localhost:8000");
+        map.put("hlm.ai.url", "http://localhost:6565");
+
+        RestClient client = new RestClient(ConfigFactory.parseMap(map));
+        Assertions.assertEquals("http://localhost:6565/healenium-ai", client.getAiServiceUrl());
+    }
+
+    @Test
+    public void testAiUrlFallsBackToServerBaseWhenOmitted() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("sessionKey", "test-session-key");
+        map.put("hlm.server.url", "http://localhost:8085");
+        map.put("hlm.imitator.url", "http://localhost:8000");
+
+        RestClient client = new RestClient(ConfigFactory.parseMap(map));
+        Assertions.assertEquals("http://localhost:8085/healenium-ai", client.getAiServiceUrl());
+    }
 }

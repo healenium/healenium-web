@@ -62,7 +62,8 @@ import static org.openqa.selenium.json.Json.JSON_UTF_8;
 
 /**
  * Wrapper for {@code RestTemplate} class.
- * Main purpose - encapsulate consumer from really used client and invocation complexity
+ * Main purpose - encapsulate consumer from really used client and invocation
+ * complexity
  */
 
 @Slf4j(topic = "healenium")
@@ -73,6 +74,7 @@ public class RestClient {
 
     private final String serverUrl;
     private final String imitateUrl;
+    private final String aiServiceUrl;
     private final String sessionKey;
     private String healedType;
     private final String apiKey;
@@ -88,17 +90,27 @@ public class RestClient {
         String serverBase = config.getString("hlm.server.url");
         this.serverUrl = getHttpUrl(serverBase, "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
+        String aiBase = resolveAiBaseUrl(config, serverBase);
+        this.aiServiceUrl = getHttpUrl(aiBase, "/healenium-ai");
         this.healedType = resolveHealedType(config);
         this.apiKey = resolveApiKey(config);
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
-        this.aiServiceHttpClient = getHttpClient(getHttpUrl(serverBase, "/healenium-ai"));
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, healedType: {}, hasApiKey: {}",
-                sessionKey, serverUrl, imitateUrl, healedType, (apiKey != null && !apiKey.isEmpty()));
+        this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
+        log.debug(
+                "[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, aiServiceUrl: {}, healedType: {}, hasApiKey: {}",
+                sessionKey, serverUrl, imitateUrl, aiServiceUrl, healedType, (apiKey != null && !apiKey.isEmpty()));
     }
 
-    private String getHttpUrl(String hlmServerUrl, String path) {
-        return (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat(path);
+    private String getHttpUrl(String baseUrl, String path) {
+        String url = baseUrl.startsWith("http") ? baseUrl : "http://".concat(baseUrl);
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        if (url.endsWith(path)) {
+            return url;
+        }
+        return url.concat(path);
     }
 
     @SneakyThrows
@@ -121,9 +133,9 @@ public class RestClient {
     /**
      * Store info in backend
      * <p>
-     * //     * @param by         element By locator
-     * //     * @param nodePath   List of nodes
-     * //     * @param currentUrl url of web page
+     * // * @param by element By locator
+     * // * @param nodePath List of nodes
+     * // * @param currentUrl url of web page
      */
     public void saveElements(RequestDto requestDto) {
         try {
@@ -152,13 +164,13 @@ public class RestClient {
             HttpResponse response = serverExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
-                throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
-                        "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
+                throw new RuntimeException(
+                        "[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
+                                "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
             }
 
-
             if (HTTP_BAD_REQUEST == response.getStatus()) {
-                throw new RuntimeException("[Get Elements] Compatibility error. Check Request:"  + request);
+                throw new RuntimeException("[Get Elements] Compatibility error. Check Request:" + request);
             }
             Supplier<InputStream> result = response.getContent();
             configSelectorDto = objectMapper.readValue(result.get(), new TypeReference<ConfigSelectorDto>() {
@@ -214,7 +226,7 @@ public class RestClient {
      * @param locator    element By locator
      * @param currentUrl url of web page
      * @param command    name of command
-     * @return lastHealingDataDto   previous success healing data
+     * @return lastHealingDataDto previous success healing data
      */
     public Optional<ReferenceElementsDto> getReferenceElements(By locator, String command, String currentUrl) {
         ReferenceElementsDto referenceElementsDto = null;
@@ -238,13 +250,15 @@ public class RestClient {
                 });
             }
         } catch (Exception e) {
-            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(), e.toString());
+            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(),
+                    e.toString());
         }
         return Optional.ofNullable(referenceElementsDto);
     }
 
     /**
-     * Get imitated locators by target node and user selector from selector-imitator service
+     * Get imitated locators by target node and user selector from selector-imitator
+     * service
      *
      * @param selectorImitatorDto element By locator
      * @return locators
@@ -293,7 +307,7 @@ public class RestClient {
             }
 
             log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}",
-                node.getTag(), node.getId(), node.getClasses());
+                    node.getTag(), node.getId(), node.getClasses());
 
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/selectors/xpath");
             String content = objectMapper.writeValueAsString(node);
@@ -307,16 +321,20 @@ public class RestClient {
             HttpResponse response = aiServiceExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
-                throw new RuntimeException("[Get Xpath Selector] Compatibility error. You must have a paid hlm-ai service.");
+                throw new RuntimeException(
+                        "[Get Xpath Selector] Compatibility error. You must have a paid hlm-ai service.");
             }
             Supplier<InputStream> result = response.getContent();
-            Map<String, String> responseMap = objectMapper.readValue(result.get(), new TypeReference<Map<String, String>>() {});
+            Map<String, String> responseMap = objectMapper.readValue(result.get(),
+                    new TypeReference<Map<String, String>>() {
+                    });
             xpath = responseMap.get("xpath");
             log.debug("[Get Xpath Selector] Received xpath: {}", xpath);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("[Get Xpath Selector] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
+            log.warn("[Get Xpath Selector] Error during call. Message: {}, Exception: {}", e.getMessage(),
+                    e.toString());
         }
         return xpath;
     }
@@ -373,6 +391,7 @@ public class RestClient {
 
     /**
      * Fetch tenant-specific healing settings from backend
+     * 
      * @return Optional containing TenantSettingsDto if successfully fetched
      */
     public Optional<TenantSettingsDto> getTenantSettings() {
@@ -389,7 +408,8 @@ public class RestClient {
                 log.debug("[Get Tenant Settings] Backend returned status: {}", response.getStatus());
             }
         } catch (Exception e) {
-            log.debug("[Get Tenant Settings] Could not fetch remote tenant settings (fallback to local config): {}", e.getMessage());
+            log.debug("[Get Tenant Settings] Could not fetch remote tenant settings (fallback to local config): {}",
+                    e.getMessage());
         }
         return Optional.empty();
     }
@@ -434,5 +454,18 @@ public class RestClient {
             return config.getString("api-key");
         }
         return null;
+    }
+
+    private String resolveAiBaseUrl(Config config, String fallbackServerBase) {
+        if (config.hasPath("hlm.ai.url")) {
+            return config.getString("hlm.ai.url");
+        }
+        if (config.hasPath("hlm.aiUrl")) {
+            return config.getString("hlm.aiUrl");
+        }
+        if (config.hasPath("ai-url")) {
+            return config.getString("ai-url");
+        }
+        return fallbackServerBase;
     }
 }
