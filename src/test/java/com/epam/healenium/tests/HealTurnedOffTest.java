@@ -41,7 +41,7 @@ public class HealTurnedOffTest {
         options.addArguments("--remote-allow-origins=*");
         WebDriver delegate = new ChromeDriver(options);
         Config config = ConfigFactory.load("test.conf");
-        driver = SelfHealingDriver.create(delegate, config);
+        driver = SelfHealingDriver.createTestDriver(delegate, config);
     }
 
     @Test
