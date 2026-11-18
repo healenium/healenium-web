@@ -15,7 +15,7 @@ Self-healing library for Selenium Web-based tests
 for Gradle projects:
 ``` 
 dependencies {
-    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.2.5'
+    compile group: 'com.epam.healenium', name: 'healenium-web', version: '3.7.0'
 }
 ```
 
@@ -24,7 +24,7 @@ for Maven projects:
 <dependency>
 	<groupId>com.epam.healenium</groupId>
 	<artifactId>healenium-web</artifactId>
-	<version>3.2.5</version>
+	<version>3.7.0</version>
 </dependency>
 ```
 ### 1. Init driver instance of SelfHealingDriver
@@ -37,7 +37,7 @@ SelfHealingDriver driver = SelfHealingDriver.create(delegate);
 ### 2. Specify custom healing config file healenium.properties under test/resources directory, ex.:
 ``` 
 recovery-tries = 1
-score-cap = 0.5
+score-cap = 0.6
 heal-enabled = true
 hlm.server.url = http://localhost:7878
 hlm.imitator.url = http://localhost:8000
