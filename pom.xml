@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <!-- This module was also published with a richer model, Gradle metadata,  -->
     <!-- which should be used instead. Do not delete the following line which  -->
     <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
@@ -10,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.epam.healenium</groupId>
     <artifactId>healenium-web</artifactId>
-    <version>3.6.0</version>
+    <version>3.7.0</version>
     <packaging>jar</packaging>
     <name>healenium-web</name>
     <description>healenium web client</description>
@@ -50,9 +48,11 @@
         <typesafe.version>1.4.2</typesafe.version>
         <treecomparing.version>0.4.14</treecomparing.version>
         <selenium.version>4.25.0</selenium.version>
-        <jacksondatabind.version>2.15.2</jacksondatabind.version>
+        <jacksondatabind.version>2.18.11</jacksondatabind.version>
+        <jsoup.version>1.24.1</jsoup.version>
+        <guava.version>33.8.0-jre</guava.version>
         <commonslang3.version>3.18.0</commonslang3.version>
-        <commonscodec.version>1.15</commonscodec.version>
+        <commonscodec.version>1.17.2</commonscodec.version>
         <annotations.version>23.0.0</annotations.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <lombok.version>1.18.38</lombok.version>
@@ -66,7 +66,6 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
-
     <profiles>
         <profile>
             <id>sign-artifacts</id>
@@ -106,7 +105,6 @@
             </build>
         </profile>
     </profiles>
-
     <build>
         <plugins>
             <plugin>
@@ -182,16 +180,6 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-artifact</artifactId>
-            <version>${maven.apache}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>${maven.apache}</version>
-        </dependency>
-        <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
             <version>${typesafe.version}</version>
@@ -206,6 +194,16 @@
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -251,41 +249,49 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
             <version>${jettyserver.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <version>${hamcrestcore.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
             <version>${selenide.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${testcontainersjunit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>${webdrivermanager.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
