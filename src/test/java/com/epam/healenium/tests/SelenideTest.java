@@ -79,7 +79,7 @@ public class SelenideTest {
             options.addArguments("--remote-allow-origins=*");
             options.merge(capabilities);
             WebDriver wd = new ChromeDriver(options);
-            return SelfHealingDriver.create(wd);
+            return SelfHealingDriver.createTestDriver(wd);
         }
     }
 
