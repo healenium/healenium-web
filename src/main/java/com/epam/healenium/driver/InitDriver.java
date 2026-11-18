@@ -13,7 +13,6 @@
 package com.epam.healenium.driver;
 
 import com.epam.healenium.SelfHealingDriver;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -24,11 +23,22 @@ import org.openqa.selenium.chrome.ChromeOptions;
 public class InitDriver {
 
     public static SelfHealingDriver getDriver(){
-        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("--user-data-dir=/tmp/unique-chrome-profile-" + System.currentTimeMillis());
+        applyCiOptions(options);
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.createTestDriver(delegate);
+    }
+
+    /**
+     * Adds flags required to run Chrome on a CI runner (no display, restricted sandbox).
+     * Applied only when the CI environment variable is set, so local runs are unchanged.
+     */
+    public static void applyCiOptions(ChromeOptions options) {
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu",
+                    "--window-size=1920,1080");
+        }
     }
 }

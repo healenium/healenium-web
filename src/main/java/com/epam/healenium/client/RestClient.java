@@ -24,6 +24,7 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.ReferenceElementsDto;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorImitatorDto;
+import com.epam.healenium.model.TenantSettingsDto;
 import com.epam.healenium.treecomparing.Node;
 import com.epam.healenium.treecomparing.Scored;
 import com.epam.healenium.utils.SystemUtils;
@@ -55,23 +56,28 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.openqa.selenium.json.Json.JSON_UTF_8;
 
 /**
  * Wrapper for {@code RestTemplate} class.
- * Main purpose - encapsulate consumer from really used client and invocation complexity
+ * Main purpose - encapsulate consumer from really used client and invocation
+ * complexity
  */
 
 @Slf4j(topic = "healenium")
 @Data
 public class RestClient {
 
+    public static final String API_KEY_HEADER = "X-Api-Key";
+
     private final String serverUrl;
     private final String imitateUrl;
     private final String aiServiceUrl;
     private final String sessionKey;
-    private final String selectorType;
+    private String healedType;
+    private final String apiKey;
     private ObjectMapper objectMapper;
     private HealeniumMapper mapper;
     private HttpClient serverHttpClient;
@@ -81,19 +87,30 @@ public class RestClient {
     public RestClient(Config config) {
         this.objectMapper = initMapper();
         this.sessionKey = config.getString("sessionKey");
-        this.serverUrl = getHttpUrl(config.getString("hlm.server.url"), "/healenium");
+        String serverBase = config.getString("hlm.server.url");
+        this.serverUrl = getHttpUrl(serverBase, "/healenium");
         this.imitateUrl = getHttpUrl(config.getString("hlm.imitator.url"), "/imitate");
-        this.aiServiceUrl = getHttpUrl(config.getString("hlm.ai.url"), "/healenium-ai");
-        this.selectorType = config.hasPath("selector-type") ? config.getString("selector-type") : "cssSelector";
+        String aiBase = resolveAiBaseUrl(config, serverBase);
+        this.aiServiceUrl = getHttpUrl(aiBase, "/healenium-ai");
+        this.healedType = resolveHealedType(config);
+        this.apiKey = resolveApiKey(config);
         this.serverHttpClient = getHttpClient(serverUrl);
         this.imitateHttpClient = getHttpClient(imitateUrl);
         this.aiServiceHttpClient = getHttpClient(aiServiceUrl);
-        log.debug("[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, selectorType: {}", 
-                sessionKey, serverUrl, imitateUrl, selectorType);
+        log.debug(
+                "[Init] sessionKey: {}, serverUrl: {}, imitateUrl: {}, aiServiceUrl: {}, healedType: {}, hasApiKey: {}",
+                sessionKey, serverUrl, imitateUrl, aiServiceUrl, healedType, (apiKey != null && !apiKey.isEmpty()));
     }
 
-    private String getHttpUrl(String hlmServerUrl, String path) {
-        return (hlmServerUrl.startsWith("http") ? hlmServerUrl : "http://".concat(hlmServerUrl)).concat(path);
+    private String getHttpUrl(String baseUrl, String path) {
+        String url = baseUrl.startsWith("http") ? baseUrl : "http://".concat(baseUrl);
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        if (url.endsWith(path)) {
+            return url;
+        }
+        return url.concat(path);
     }
 
     @SneakyThrows
@@ -116,9 +133,9 @@ public class RestClient {
     /**
      * Store info in backend
      * <p>
-     * //     * @param by         element By locator
-     * //     * @param nodePath   List of nodes
-     * //     * @param currentUrl url of web page
+     * // * @param by element By locator
+     * // * @param nodePath List of nodes
+     * // * @param currentUrl url of web page
      */
     public void saveElements(RequestDto requestDto) {
         try {
@@ -127,6 +144,7 @@ public class RestClient {
             byte[] data = content.getBytes(StandardCharsets.UTF_8);
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             log.debug("[Save Elements] By: {}, Locator: {}, Command: {}, URL: {}",
                     requestDto.getType(), requestDto.getLocator(), requestDto.getCommand(), requestDto.getUrl());
@@ -141,12 +159,18 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.GET, "/elements");
             request.setHeader("Cache-Control", "no-cache");
+            setAuthHeaders(request);
             log.debug("[Get Elements] Request: {}", request);
             HttpResponse response = serverExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
-                throw new RuntimeException("[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
-                        "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
+                throw new RuntimeException(
+                        "[Get Elements] Compatibility error. Hlm-backend service must be 3.3.0 and height." +
+                                "\nActual versions you can find here: https://github.com/healenium/healenium/blob/master/docker-compose-web.yaml");
+            }
+
+            if (HTTP_BAD_REQUEST == response.getStatus()) {
+                throw new RuntimeException("[Get Elements] Compatibility error. Check Request:" + request);
             }
             Supplier<InputStream> result = response.getContent();
             configSelectorDto = objectMapper.readValue(result.get(), new TypeReference<ConfigSelectorDto>() {
@@ -185,6 +209,7 @@ public class RestClient {
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("sessionKey", sessionKey);
             request.setHeader("hostProject", SystemUtils.getHostProjectName());
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             for (RequestDto requestDto : requestDtos) {
                 log.debug("[Save Healed Elements] {}", requestDto.getUsedResult().getLocator());
@@ -201,7 +226,7 @@ public class RestClient {
      * @param locator    element By locator
      * @param currentUrl url of web page
      * @param command    name of command
-     * @return lastHealingDataDto   previous success healing data
+     * @return lastHealingDataDto previous success healing data
      */
     public Optional<ReferenceElementsDto> getReferenceElements(By locator, String command, String currentUrl) {
         ReferenceElementsDto referenceElementsDto = null;
@@ -215,6 +240,7 @@ public class RestClient {
                     .addQueryParameter("methodName", requestDto.getMethodName())
                     .addQueryParameter("command", requestDto.getCommand())
                     .addQueryParameter("url", currentUrl);
+            setAuthHeaders(request);
             log.debug("[Get Reference Elements] Request. Locator: {}, Command: {}, Url: {}",
                     requestDto.getLocator(), requestDto.getCommand(), currentUrl);
             HttpResponse response = serverExecute(request);
@@ -224,13 +250,15 @@ public class RestClient {
                 });
             }
         } catch (Exception e) {
-            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(), e.toString());
+            log.warn("[Get Reference Elements] Error during call. Message: {}. Exception: {}", e.getMessage(),
+                    e.toString());
         }
         return Optional.ofNullable(referenceElementsDto);
     }
 
     /**
-     * Get imitated locators by target node and user selector from selector-imitator service
+     * Get imitated locators by target node and user selector from selector-imitator
+     * service
      *
      * @param selectorImitatorDto element By locator
      * @return locators
@@ -262,6 +290,7 @@ public class RestClient {
         try {
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/report/init/" + sessionId);
             request.setHeader("Content-Type", JSON_UTF_8);
+            setAuthHeaders(request);
             log.debug("[Init Report] Request: {}", request);
             serverExecute(request);
         } catch (Exception e) {
@@ -276,10 +305,10 @@ public class RestClient {
                 log.error("[Get Xpath Selector] Node is null, cannot proceed with request");
                 return null;
             }
-            
-            log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}", 
-                node.getTag(), node.getId(), node.getClasses());
-                
+
+            log.debug("[Get Xpath Selector] Node details - Tag: {}, ID: {}, Classes: {}",
+                    node.getTag(), node.getId(), node.getClasses());
+
             HttpRequest request = new HttpRequest(HttpMethod.POST, "/selectors/xpath");
             String content = objectMapper.writeValueAsString(node);
             log.debug("[Get Xpath Selector] Request body: {}", content);
@@ -287,26 +316,32 @@ public class RestClient {
             request.setHeader("Content-Length", String.valueOf(data.length));
             request.setHeader("Content-Type", JSON_UTF_8);
             request.setHeader("X-Session-Id", sessionId);
+            setAuthHeaders(request);
             request.setContent(Contents.bytes(data));
             HttpResponse response = aiServiceExecute(request);
 
             if (HTTP_NOT_FOUND == response.getStatus()) {
-                throw new RuntimeException("[Get Xpath Selector] Compatibility error. You must have a paid hlm-ai service.");
+                throw new RuntimeException(
+                        "[Get Xpath Selector] Compatibility error. You must have a paid hlm-ai service.");
             }
             Supplier<InputStream> result = response.getContent();
-            Map<String, String> responseMap = objectMapper.readValue(result.get(), new TypeReference<Map<String, String>>() {});
+            Map<String, String> responseMap = objectMapper.readValue(result.get(),
+                    new TypeReference<Map<String, String>>() {
+                    });
             xpath = responseMap.get("xpath");
             log.debug("[Get Xpath Selector] Received xpath: {}", xpath);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("[Get Xpath Selector] Error during call. Message: {}, Exception: {}", e.getMessage(), e.toString());
+            log.warn("[Get Xpath Selector] Error during call. Message: {}, Exception: {}", e.getMessage(),
+                    e.toString());
         }
         return xpath;
     }
 
     private HttpResponse serverExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return serverHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-backend service. " +
@@ -318,6 +353,7 @@ public class RestClient {
 
     private HttpResponse aiServiceExecute(HttpRequest request) {
         try {
+            setAuthHeaders(request);
             return aiServiceHttpClient.execute(request);
         } catch (UncheckedIOException e) {
             String errorMessage = "[Execute Error] Unable to connect to the hlm-ai service. " +
@@ -336,5 +372,100 @@ public class RestClient {
             log.error(errorMessage);
             throw new HealeniumException(errorMessage, e);
         }
+    }
+
+    private void setAuthHeaders(HttpRequest request) {
+        if (hasApiKey()) {
+            request.setHeader(API_KEY_HEADER, apiKey.trim());
+        }
+    }
+
+    public boolean hasApiKey() {
+        return apiKey != null && !apiKey.trim().isEmpty();
+    }
+
+    @Deprecated
+    public boolean hasTenantOrApiKey() {
+        return hasApiKey();
+    }
+
+    /**
+     * Fetch tenant-specific healing settings from backend
+     * 
+     * @return Optional containing TenantSettingsDto if successfully fetched
+     */
+    public Optional<TenantSettingsDto> getTenantSettings() {
+        try {
+            HttpRequest request = new HttpRequest(HttpMethod.GET, "/settings");
+            setAuthHeaders(request);
+            HttpResponse response = serverHttpClient.execute(request);
+            if (response.getStatus() == 200) {
+                Supplier<InputStream> result = response.getContent();
+                TenantSettingsDto dto = objectMapper.readValue(result.get(), TenantSettingsDto.class);
+                log.info("[Get Tenant Settings] Successfully fetched remote tenant settings: {}", dto);
+                return Optional.ofNullable(dto);
+            } else {
+                log.debug("[Get Tenant Settings] Backend returned status: {}", response.getStatus());
+            }
+        } catch (Exception e) {
+            log.debug("[Get Tenant Settings] Could not fetch remote tenant settings (fallback to local config): {}",
+                    e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    @Deprecated
+    public String getSelectorType() {
+        return healedType;
+    }
+
+    @Deprecated
+    public void setSelectorType(String selectorType) {
+        this.healedType = selectorType;
+    }
+
+    private String resolveHealedType(Config config) {
+        if (config.hasPath("healed-type")) {
+            String type = config.getString("healed-type");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        if (config.hasPath("healedType")) {
+            String type = config.getString("healedType");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        if (config.hasPath("selector-type")) {
+            String type = config.getString("selector-type");
+            return "xpath".equalsIgnoreCase(type) ? "xpath" : "cssSelector";
+        }
+        return "cssSelector";
+    }
+
+    private String resolveApiKey(Config config) {
+        if (config.hasPath("hlm.api-key")) {
+            return config.getString("hlm.api-key");
+        }
+        if (config.hasPath("hlm.api.key")) {
+            return config.getString("hlm.api.key");
+        }
+        if (config.hasPath("hlm.apiKey")) {
+            return config.getString("hlm.apiKey");
+        }
+        if (config.hasPath("api-key")) {
+            return config.getString("api-key");
+        }
+        return null;
+    }
+
+    private String resolveAiBaseUrl(Config config, String fallbackServerBase) {
+        if (config.hasPath("hlm.ai.url")) {
+            return config.getString("hlm.ai.url");
+        }
+        if (config.hasPath("hlm.aiUrl")) {
+            return config.getString("hlm.aiUrl");
+        }
+        if (config.hasPath("ai-url")) {
+            return config.getString("ai-url");
+        }
+        return fallbackServerBase;
     }
 }

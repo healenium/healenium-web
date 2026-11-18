@@ -23,6 +23,7 @@ import com.epam.healenium.model.Locator;
 import com.epam.healenium.model.RequestDto;
 import com.epam.healenium.model.SelectorDto;
 import com.epam.healenium.model.SessionContext;
+import com.epam.healenium.model.TenantSettingsDto;
 import com.epam.healenium.service.HealingService;
 import com.epam.healenium.service.NodeService;
 import com.epam.healenium.treecomparing.JsoupHTMLParser;
@@ -46,7 +47,9 @@ import org.openqa.selenium.remote.RemoteWebElement;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -58,9 +61,9 @@ public class SelfHealingEngine {
     private static final Config DEFAULT_CONFIG = ConfigFactory.systemProperties().withFallback(
             ConfigFactory.load("healenium.properties").withFallback(ConfigFactory.load()));
 
-    private final Config config;
+    private Config config;
     private final WebDriver webDriver;
-    private final double scoreCap;
+    private double scoreCap;
     private final boolean isProxy;
 
     private RestClient client;
@@ -183,6 +186,62 @@ public class SelfHealingEngine {
 
     public void initReport() {
         client.initReport(((RemoteWebDriver) webDriver).getSessionId().toString());
+    }
+
+    /**
+     * Apply remote tenant settings into engine configuration.
+     * System properties (-D...) retain the highest precedence.
+     *
+     * @param remote tenant settings from backend
+     */
+    public void applyTenantSettings(TenantSettingsDto remote) {
+        if (remote == null) {
+            return;
+        }
+        Map<String, Object> tenantMap = new HashMap<>();
+        if (remote.getHealEnabled() != null) {
+            tenantMap.put("heal-enabled", remote.getHealEnabled());
+        }
+        if (remote.getRecoveryTries() != null) {
+            tenantMap.put("recovery-tries", remote.getRecoveryTries());
+        }
+        if (remote.getScoreCap() != null) {
+            tenantMap.put("score-cap", remote.getScoreCap());
+        }
+        if (remote.getHealedType() != null) {
+            String healedType = remote.getHealedType();
+            tenantMap.put("healed-type", healedType);
+            tenantMap.put("selector-type", "xpath".equalsIgnoreCase(healedType) ? "xpath" : "cssSelector");
+        }
+        if (remote.getKeySelectorUrl() != null) {
+            tenantMap.put("key-selector-url", remote.getKeySelectorUrl());
+            tenantMap.put("url-for-key", remote.getKeySelectorUrl());
+        }
+        if (remote.getCollectMetrics() != null) {
+            tenantMap.put("collect-metrics", remote.getCollectMetrics());
+        }
+        if (remote.getFindElementsAutoHealing() != null) {
+            tenantMap.put("find-elements-auto-healing", remote.getFindElementsAutoHealing());
+        }
+        if (!tenantMap.isEmpty()) {
+            Config tenantConfig = ConfigFactory.parseMap(tenantMap);
+            Config systemProps = ConfigFactory.systemProperties();
+            // healenium.properties loaded separately (without application.conf defaults) so
+            // run-specific settings take priority over tenant UI settings.
+            Config runConfig = ConfigFactory.load("healenium.properties");
+            // Translate healed-type → selector-type in run config so it overrides tenant's selector-type too.
+            if (runConfig.hasPath("healed-type")) {
+                String localType = runConfig.getString("healed-type");
+                runConfig = runConfig.withValue("selector-type",
+                        ConfigValueFactory.fromAnyRef("xpath".equalsIgnoreCase(localType) ? "xpath" : "cssSelector"));
+            }
+            // Priority: JVM -D flags > healenium.properties (run-specific) > tenant UI settings > rest
+            this.config = systemProps.withFallback(runConfig).withFallback(tenantConfig).withFallback(this.config);
+            this.scoreCap = this.config.getDouble("score-cap");
+            log.info("[Settings] Applied remote tenant settings: healEnabled={}, recoveryTries={}, scoreCap={}, healedType={}, keySelectorUrl={}, collectMetrics={}, findElementsAutoHealing={}",
+                    remote.getHealEnabled(), remote.getRecoveryTries(), remote.getScoreCap(), remote.getHealedType(),
+                    remote.getKeySelectorUrl(), remote.getCollectMetrics(), remote.getFindElementsAutoHealing());
+        }
     }
 
     public void quit() {
