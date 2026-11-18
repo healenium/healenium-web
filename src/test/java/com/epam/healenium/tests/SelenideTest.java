@@ -15,6 +15,7 @@ package com.epam.healenium.tests;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.WebDriverProvider;
 import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.driver.InitDriver;
 import com.epam.healenium.TestServer;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,7 @@ public class SelenideTest {
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--remote-allow-origins=*");
             options.merge(capabilities);
+            InitDriver.applyCiOptions(options);
             WebDriver wd = new ChromeDriver(options);
             return SelfHealingDriver.createTestDriver(wd);
         }

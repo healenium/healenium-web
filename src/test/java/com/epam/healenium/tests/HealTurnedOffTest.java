@@ -14,6 +14,7 @@ package com.epam.healenium.tests;
 
 import com.epam.healenium.PageAwareBy;
 import com.epam.healenium.SelfHealingDriver;
+import com.epam.healenium.driver.InitDriver;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -39,6 +40,7 @@ public class HealTurnedOffTest {
         WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
+        InitDriver.applyCiOptions(options);
         WebDriver delegate = new ChromeDriver(options);
         Config config = ConfigFactory.load("test.conf");
         driver = SelfHealingDriver.createTestDriver(delegate, config);

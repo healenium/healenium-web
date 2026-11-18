@@ -26,7 +26,19 @@ public class InitDriver {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         options.addArguments("--user-data-dir=/tmp/unique-chrome-profile-" + System.currentTimeMillis());
+        applyCiOptions(options);
         WebDriver delegate = new ChromeDriver(options);
         return SelfHealingDriver.createTestDriver(delegate);
+    }
+
+    /**
+     * Adds flags required to run Chrome on a CI runner (no display, restricted sandbox).
+     * Applied only when the CI environment variable is set, so local runs are unchanged.
+     */
+    public static void applyCiOptions(ChromeOptions options) {
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new", "--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu",
+                    "--window-size=1920,1080");
+        }
     }
 }
